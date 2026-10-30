@@ -6,40 +6,40 @@ Feature rows seeded from the PARITY CHECKLIST in
 Bracketed keys are reference keys into the D2 mechanics spec only — product names are ORIGINAL
 (clean-room rule, docs/ARCHITECTURE.md §R2). Statuses: NOT-BUILT / BUILDING / TESTED / VERIFIED.
 
-STATUS: SKELETON (layout v2 created 2026-10-30; no modules built yet)
+STATUS: M1-FOUNDATION (first code commit 2026-10-30, MC 11745: src/BabaYaga.Sim + xunit tests + xp-ladder/koldun-skills data green). BUILT-M1 = mechanic fully implemented+tested in the Sim (class content rows for the other six classes, stamina (row 6), phys-50 cap + difficulty penalties (row 26), ⅕ rule (row 27), crush/open-wounds/DoT/stun (31–35) and everything later remain open).
 
 | # | Feature (Baba Yaga ← reference key) | Milestone | Status |
 |---|---|---|---|
-| 1 | 5 attributes with per-class start table [charstats] | M1 | NOT-BUILT |
-| 2 | 5 stat pts + 1 skill pt per level; 5 quest skill pts | M1 | NOT-BUILT |
-| 3 | Class-keyed Life/Vit, Mana/Ener, Stam/Vit rates table | M1 | NOT-BUILT |
-| 4 | Life formula incl. Increase-Max-Life multiplier | M1 | NOT-BUILT |
-| 5 | Mana formula with post-multiplier item terms | M1 | NOT-BUILT |
+| 1 | 5 attributes with per-class start table [charstats] | M1 | BUILT-M1 |
+| 2 | 5 stat pts + 1 skill pt per level; 5 quest skill pts | M1 | BUILT-M1 |
+| 3 | Class-keyed Life/Vit, Mana/Ener, Stam/Vit rates table | M1 | BUILDING |
+| 4 | Life formula incl. Increase-Max-Life multiplier | M1 | BUILT-M1 |
+| 5 | Mana formula with post-multiplier item terms | M1 | BUILT-M1 |
 | 6 | Stamina: run-only drain, class drain rates, heavy-armor 2× | M1 | NOT-BUILT |
-| 7 | Attack Rating = Dex×5 + flats, then %AR | M1 | NOT-BUILT |
-| 8 | To-hit dual-ratio formula, 5/95 clamp, integer floors | M1 | NOT-BUILT |
-| 9 | Running-always-hit (melee) rule | M1 | NOT-BUILT |
-| 10 | Block formula w/ Dex−15 term, class factors 30/25/20, 75% cap | M1 | NOT-BUILT |
-| 11 | Running block ÷3 (cap 25) | M1 | NOT-BUILT |
-| 12 | Physical damage pipeline: weapon ED → flat → %ED → SrcDam | M1 | NOT-BUILT |
-| 13 | Str/Dex per-point damage table per weapon group | M1 | NOT-BUILT |
+| 7 | Attack Rating = Dex×5 + flats, then %AR | M1 | BUILT-M1 |
+| 8 | To-hit dual-ratio formula, 5/95 clamp, integer floors | M1 | BUILT-M1 |
+| 9 | Running-always-hit (melee) rule | M1 | BUILT-M1 |
+| 10 | Block formula w/ Dex−15 term, class factors 30/25/20, 75% cap | M1 | BUILT-M1 |
+| 11 | Running block ÷3 (cap 25) | M1 | BUILT-M1 |
+| 12 | Physical damage pipeline: weapon ED → flat → %ED → SrcDam | M1 | BUILT-M1 |
+| 13 | Str/Dex per-point damage table per weapon group | M1 | BUILT-M1 |
 | 14 | 2H Str-penalty switch (optional difficulty flavour) | M1 | NOT-BUILT |
-| 15 | XP chain: base × killtype × players × level-gap × ExpRatio | M1 | NOT-BUILT |
-| 16 | Level-gap tables both directions + clvl25 rule | M1 | NOT-BUILT |
-| 17 | XP ladder anchors + ExpRatio curve 70→99, Lvl99 stops | M1 | NOT-BUILT |
+| 15 | XP chain: base × killtype × players × level-gap × ExpRatio | M1 | BUILT-M1 |
+| 16 | Level-gap tables both directions + clvl25 rule | M1 | BUILT-M1 |
+| 17 | XP ladder anchors + ExpRatio curve 70→99, Lvl99 stops | M1 | BUILT-M1 |
 | 18 | Monsters: table(level) × own-percent stat shape | M3 | NOT-BUILT |
 | 19 | Area-driven monster levels in higher difficulties | M3 | NOT-BUILT |
-| 20 | 3 skill trees per class, row reqs 1/6/12/18/24/30 | M2 | NOT-BUILT |
-| 21 | Prerequisite arrows: max-3 prereqs w/ point reqs | M2 | NOT-BUILT |
-| 22 | Synergy system on hard points (blvl), own lines on lvl | M2 | NOT-BUILT |
+| 20 | 3 skill trees per class, row reqs 1/6/12/18/24/30 | M2 | BUILT-M1 |
+| 21 | Prerequisite arrows: max-3 prereqs w/ point reqs | M2 | BUILT-M1 |
+| 22 | Synergy system on hard points (blvl), own lines on lvl | M2 | BUILT-M1 |
 | 23 | Cast-speed compression curve + class frame tables | M2 | NOT-BUILT |
 | 24 | Hit-recovery formula + life-trigger + thresholds | M2 | NOT-BUILT |
 | 25 | Attack-speed frame pipeline + weapon speed modifier | M2 | NOT-BUILT |
-| 26 | Resistances: caps 75/95, phys 50, floor −100, difficulty penalties | M1 | NOT-BUILT |
-| 27 | Immunity ≥100 monster resist; ⅕ rule on immune debuffs | M1 | NOT-BUILT |
+| 26 | Resistances: caps 75/95, phys 50, floor −100, difficulty penalties | M1 | BUILDING |
+| 27 | Immunity ≥100 monster resist; ⅕ rule on immune debuffs | M1 | BUILDING |
 | 28 | Curse/aura/buff stack engine (timed stat mods, refresh) | M1 | NOT-BUILT |
 | 29 | Amplify(−100)/Decrepify(−50)/Conviction-style curves | M1 | NOT-BUILT |
-| 30 | Crit family: mastery→crit-strike→deadly-strike roll order | M1 | NOT-BUILT |
+| 30 | Crit family: mastery→crit-strike→deadly-strike roll order | M1 | BUILT-M1 |
 | 31 | Crushing Blow fractions + players divisor | M1 | NOT-BUILT |
 | 32 | Open Wounds level-rate table (256ths/frame, 200 f) | M1 | NOT-BUILT |
 | 33 | Poison rate×length model with mastery + SrcDam | M1 | NOT-BUILT |

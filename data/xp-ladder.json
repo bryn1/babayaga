@@ -1,0 +1,503 @@
+{
+ "note": "Baba Yaga XP ladder. Anchor rows (2/30/50/69/70/80/85/90/95/98/99) are the fetched spec values; intermediate rows interpolated in the data phase (T0b P1 \u00a71.7 GAP). ExpRatio is /1024.",
+ "statGrantPerLevel": 5,
+ "skillGrantPerLevel": 1,
+ "maxLevel": 99,
+ "levels": [
+  {
+   "level": 1,
+   "totalXp": 0,
+   "expRatio": 1024
+  },
+  {
+   "level": 2,
+   "totalXp": 500,
+   "expRatio": 1024
+  },
+  {
+   "level": 3,
+   "totalXp": 693,
+   "expRatio": 1024
+  },
+  {
+   "level": 4,
+   "totalXp": 960,
+   "expRatio": 1024
+  },
+  {
+   "level": 5,
+   "totalXp": 1331,
+   "expRatio": 1024
+  },
+  {
+   "level": 6,
+   "totalXp": 1845,
+   "expRatio": 1024
+  },
+  {
+   "level": 7,
+   "totalXp": 2557,
+   "expRatio": 1024
+  },
+  {
+   "level": 8,
+   "totalXp": 3545,
+   "expRatio": 1024
+  },
+  {
+   "level": 9,
+   "totalXp": 4913,
+   "expRatio": 1024
+  },
+  {
+   "level": 10,
+   "totalXp": 6810,
+   "expRatio": 1024
+  },
+  {
+   "level": 11,
+   "totalXp": 9439,
+   "expRatio": 1024
+  },
+  {
+   "level": 12,
+   "totalXp": 13083,
+   "expRatio": 1024
+  },
+  {
+   "level": 13,
+   "totalXp": 18134,
+   "expRatio": 1024
+  },
+  {
+   "level": 14,
+   "totalXp": 25135,
+   "expRatio": 1024
+  },
+  {
+   "level": 15,
+   "totalXp": 34839,
+   "expRatio": 1024
+  },
+  {
+   "level": 16,
+   "totalXp": 48288,
+   "expRatio": 1024
+  },
+  {
+   "level": 17,
+   "totalXp": 66929,
+   "expRatio": 1024
+  },
+  {
+   "level": 18,
+   "totalXp": 92767,
+   "expRatio": 1024
+  },
+  {
+   "level": 19,
+   "totalXp": 128580,
+   "expRatio": 1024
+  },
+  {
+   "level": 20,
+   "totalXp": 178217,
+   "expRatio": 1024
+  },
+  {
+   "level": 21,
+   "totalXp": 247016,
+   "expRatio": 1024
+  },
+  {
+   "level": 22,
+   "totalXp": 342376,
+   "expRatio": 1024
+  },
+  {
+   "level": 23,
+   "totalXp": 474548,
+   "expRatio": 1024
+  },
+  {
+   "level": 24,
+   "totalXp": 657743,
+   "expRatio": 1024
+  },
+  {
+   "level": 25,
+   "totalXp": 911661,
+   "expRatio": 1024
+  },
+  {
+   "level": 26,
+   "totalXp": 1263601,
+   "expRatio": 1024
+  },
+  {
+   "level": 27,
+   "totalXp": 1751406,
+   "expRatio": 1024
+  },
+  {
+   "level": 28,
+   "totalXp": 2427524,
+   "expRatio": 1024
+  },
+  {
+   "level": 29,
+   "totalXp": 3364652,
+   "expRatio": 1024
+  },
+  {
+   "level": 30,
+   "totalXp": 4663553,
+   "expRatio": 1024
+  },
+  {
+   "level": 31,
+   "totalXp": 5235278,
+   "expRatio": 1024
+  },
+  {
+   "level": 32,
+   "totalXp": 5877095,
+   "expRatio": 1024
+  },
+  {
+   "level": 33,
+   "totalXp": 6597594,
+   "expRatio": 1024
+  },
+  {
+   "level": 34,
+   "totalXp": 7406423,
+   "expRatio": 1024
+  },
+  {
+   "level": 35,
+   "totalXp": 8314409,
+   "expRatio": 1024
+  },
+  {
+   "level": 36,
+   "totalXp": 9333710,
+   "expRatio": 1024
+  },
+  {
+   "level": 37,
+   "totalXp": 10477971,
+   "expRatio": 1024
+  },
+  {
+   "level": 38,
+   "totalXp": 11762513,
+   "expRatio": 1024
+  },
+  {
+   "level": 39,
+   "totalXp": 13204532,
+   "expRatio": 1024
+  },
+  {
+   "level": 40,
+   "totalXp": 14823335,
+   "expRatio": 1024
+  },
+  {
+   "level": 41,
+   "totalXp": 16640594,
+   "expRatio": 1024
+  },
+  {
+   "level": 42,
+   "totalXp": 18680639,
+   "expRatio": 1024
+  },
+  {
+   "level": 43,
+   "totalXp": 20970782,
+   "expRatio": 1024
+  },
+  {
+   "level": 44,
+   "totalXp": 23541684,
+   "expRatio": 1024
+  },
+  {
+   "level": 45,
+   "totalXp": 26427765,
+   "expRatio": 1024
+  },
+  {
+   "level": 46,
+   "totalXp": 29667663,
+   "expRatio": 1024
+  },
+  {
+   "level": 47,
+   "totalXp": 33304755,
+   "expRatio": 1024
+  },
+  {
+   "level": 48,
+   "totalXp": 37387734,
+   "expRatio": 1024
+  },
+  {
+   "level": 49,
+   "totalXp": 41971263,
+   "expRatio": 1024
+  },
+  {
+   "level": 50,
+   "totalXp": 47116709,
+   "expRatio": 1024
+  },
+  {
+   "level": 51,
+   "totalXp": 51560376,
+   "expRatio": 1024
+  },
+  {
+   "level": 52,
+   "totalXp": 56423135,
+   "expRatio": 1024
+  },
+  {
+   "level": 53,
+   "totalXp": 61744510,
+   "expRatio": 1024
+  },
+  {
+   "level": 54,
+   "totalXp": 67567755,
+   "expRatio": 1024
+  },
+  {
+   "level": 55,
+   "totalXp": 73940200,
+   "expRatio": 1024
+  },
+  {
+   "level": 56,
+   "totalXp": 80913644,
+   "expRatio": 1024
+  },
+  {
+   "level": 57,
+   "totalXp": 88544766,
+   "expRatio": 1024
+  },
+  {
+   "level": 58,
+   "totalXp": 96895594,
+   "expRatio": 1024
+  },
+  {
+   "level": 59,
+   "totalXp": 106034005,
+   "expRatio": 1024
+  },
+  {
+   "level": 60,
+   "totalXp": 116034277,
+   "expRatio": 1024
+  },
+  {
+   "level": 61,
+   "totalXp": 126977695,
+   "expRatio": 1024
+  },
+  {
+   "level": 62,
+   "totalXp": 138953207,
+   "expRatio": 1024
+  },
+  {
+   "level": 63,
+   "totalXp": 152058152,
+   "expRatio": 1024
+  },
+  {
+   "level": 64,
+   "totalXp": 166399051,
+   "expRatio": 1024
+  },
+  {
+   "level": 65,
+   "totalXp": 182092467,
+   "expRatio": 1024
+  },
+  {
+   "level": 66,
+   "totalXp": 199265960,
+   "expRatio": 1024
+  },
+  {
+   "level": 67,
+   "totalXp": 218059118,
+   "expRatio": 1024
+  },
+  {
+   "level": 68,
+   "totalXp": 238624696,
+   "expRatio": 1024
+  },
+  {
+   "level": 69,
+   "totalXp": 261129853,
+   "expRatio": 1024
+  },
+  {
+   "level": 70,
+   "totalXp": 285041630,
+   "expRatio": 976
+  },
+  {
+   "level": 71,
+   "totalXp": 310981059,
+   "expRatio": 928
+  },
+  {
+   "level": 72,
+   "totalXp": 339281035,
+   "expRatio": 880
+  },
+  {
+   "level": 73,
+   "totalXp": 370156373,
+   "expRatio": 832
+  },
+  {
+   "level": 74,
+   "totalXp": 403841435,
+   "expRatio": 784
+  },
+  {
+   "level": 75,
+   "totalXp": 440591915,
+   "expRatio": 736
+  },
+  {
+   "level": 76,
+   "totalXp": 480686770,
+   "expRatio": 688
+  },
+  {
+   "level": 77,
+   "totalXp": 524430348,
+   "expRatio": 640
+  },
+  {
+   "level": 78,
+   "totalXp": 572154689,
+   "expRatio": 592
+  },
+  {
+   "level": 79,
+   "totalXp": 624222053,
+   "expRatio": 544
+  },
+  {
+   "level": 80,
+   "totalXp": 681027665,
+   "expRatio": 496
+  },
+  {
+   "level": 81,
+   "totalXp": 742667562,
+   "expRatio": 448
+  },
+  {
+   "level": 82,
+   "totalXp": 809886494,
+   "expRatio": 400
+  },
+  {
+   "level": 83,
+   "totalXp": 883189420,
+   "expRatio": 352
+  },
+  {
+   "level": 84,
+   "totalXp": 963127003,
+   "expRatio": 304
+  },
+  {
+   "level": 85,
+   "totalXp": 1050299747,
+   "expRatio": 256
+  },
+  {
+   "level": 86,
+   "totalXp": 1145174246,
+   "expRatio": 217
+  },
+  {
+   "level": 87,
+   "totalXp": 1248618842,
+   "expRatio": 178
+  },
+  {
+   "level": 88,
+   "totalXp": 1361407680,
+   "expRatio": 139
+  },
+  {
+   "level": 89,
+   "totalXp": 1484384832,
+   "expRatio": 100
+  },
+  {
+   "level": 90,
+   "totalXp": 1618470619,
+   "expRatio": 61
+  },
+  {
+   "level": 91,
+   "totalXp": 1764480570,
+   "expRatio": 51
+  },
+  {
+   "level": 92,
+   "totalXp": 1923662776,
+   "expRatio": 42
+  },
+  {
+   "level": 93,
+   "totalXp": 2097205568,
+   "expRatio": 33
+  },
+  {
+   "level": 94,
+   "totalXp": 2286404482,
+   "expRatio": 24
+  },
+  {
+   "level": 95,
+   "totalXp": 2492671933,
+   "expRatio": 15
+  },
+  {
+   "level": 96,
+   "totalXp": 2717389515,
+   "expRatio": 12
+  },
+  {
+   "level": 97,
+   "totalXp": 2962365677,
+   "expRatio": 9
+  },
+  {
+   "level": 98,
+   "totalXp": 3229426756,
+   "expRatio": 6
+  },
+  {
+   "level": 99,
+   "totalXp": 3520485254,
+   "expRatio": 0
+  }
+ ]
+}

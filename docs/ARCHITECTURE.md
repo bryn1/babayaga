@@ -1,6 +1,8 @@
-# Baba Yaga — Architecture (v1, 2026-10-30)
+# Baba Yaga — Architecture (v2, 2026-10-30)
 
-version: 1 (created by the `design` profile, run 202610301950-31593a83, MC 11739; board record MC 11743)
+version: 2 (M1 foundation build, first code commit, MC 11745; v1 was created by the `design` profile,
+run 202610301950-31593a83, MC 11739; board record MC 11743 — git history is this repo file's version
+store, the superseded v1 text is archived in commit 1351b6c)
 Maintained per layout v2: the Architect keeps this doc true to the tree. Engine decision is pinned in
 `.audits/202610301950-31593a83/out/T0c-engine-decision.md` (run dir at the Games workspace root);
 mechanics Bible is T0b parts 1–3 in the same `out/` dir.
@@ -108,6 +110,39 @@ Carried habits (T0c §4 pitfalls): one worktree per concurrent engine run; never
 
 ## Module inventory — one file per concern, ~250-line target each (400 hard ceiling w/ header reason)
 
+### As-built (M1 foundation, first code commit, MC 11745) — these files exist and are tested
+
+```
+BabaYaga.sln                              solution: Sim + Tests (game/ + Cli join at their milestones)
+src/BabaYaga.Sim/                         net8.0 class library — references nothing (dependency rule held)
+  Rng.cs                        (66 ln)   seeded PCG-XSH-RR 32/64; BCL Random forbidden, not used
+  Stats.cs                      (102 ln)  ClassProfile rows + life/mana/AR derivations + per-group
+                                          Str/Dex damage bonuses; Koldun design row
+  Character.cs                  (113 ln)  attribute allocation, XP intake → level-up grants (5+1)
+  XpTable.cs                    (128 ln)  ladder loader+validator, ExpRatio, level-gap tables,
+                                          full kill-XP chain (floor every step)
+  SkillData.cs                  (133 ln)  JSON skill-table loader; validation IS the content gate
+                                          (tier caps 3/2/2/1, ≤3 prereqs, prereq edges up-row)
+  SkillTree.cs                  (81 ln)   spend engine: row level reqs, prereqs, tier caps,
+                                          hard-point synergy math, effective level on +skills
+  CombatResolver.cs             (162 ln)  to-hit 2AR/(AR+DEF)×alvl/(alvl+dlvl) clamped 5..95,
+                                          running-always-hit, block (Dex−15, class factor, 75 cap,
+                                          running ÷3-after-cap), physical pipeline weaponED→flat→
+                                          %ED→SrcDam with −90 clamp, crit-family order roll,
+                                          elemental 75/95 cap + −100 floor, Monster + kill→XP grant
+src/BabaYaga.Sim.Tests/                   net8.0 xunit project — 32 tests green (RngTests,
+                                          MechanicsTests, SkillTreeTests, CombatTests)
+data/xp-ladder.json                       anchors exact per P1 §1.7; intermediate rows interpolated
+data/koldun-skills.json                   Koldun = first playable class (ORIGINAL IP): 3 trees
+                                          (Popioly/Uroki/Krag × 4 skills), prereqs, synergies
+```
+
+The xunit project sits under `src/` beside the library; the planned `tests/` pytest-over-CLI suite
+arrives with `src/BabaYaga.Sim.Cli/` (later M1 leg) — it drives the CLI stdout markers and will not
+duplicate these unit contracts.
+
+### Planned (design, not built yet)
+
 All paths below are under `src/BabaYaga.Sim/` unless prefixed otherwise. Rule sources cite the
 T0b spec part/section (P1 = T0b-mechanics-spec.md, P2 = -2, P3 = -3).
 
@@ -158,6 +193,11 @@ each asserts on CLI markers/exit codes only.
 
 ## Truth status of this document
 
-Modules above are the DESIGN (nothing under `src/`, `game/`, `tests/`, `data/`, `assets/` exists yet —
-this commit is the skeleton). The first build phase must update this file to match what it actually
-created, in the same run.
+The As-built section above matches the tree at this commit (M1 foundation: Sim library, xunit
+tests, xp-ladder + Koldun skill data). Everything under "Planned" remains DESIGN — `game/`,
+`src/BabaYaga.Sim.Cli/`, `tests/` (pytest) and `assets/` do not exist yet, and the planned
+module names there (Attributes.cs, LifeManaStam.cs, ToHitBlock.cs, DamagePipeline.cs,
+SkillTrees.cs…) were partly merged into the as-built files for the M1 scope (Stats/Character/
+CombatResolver/SkillData+SkillTree/XpTable); later milestones split further files as named.
+The first later build phase must again update this file to match what it actually created,
+in the same run.
