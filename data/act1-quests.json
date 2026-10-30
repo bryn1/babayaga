@@ -1,0 +1,20 @@
+{
+ "note": "Baba Yaga Act I quests — three side rites and the act-ending head-hunt, ALL content ORIGINAL (the reference quest list was read for the FRAMEWORK only: per-act quests with ordered prereqs, goal flags, and reward kinds of the §6.4 set). rewardKind rows: SkillPoint / LifePotion (+20 base life, once per difficulty) / WaypointUnlock / StashTab.",
+ "quests": [
+  { "key": "gesi", "name": "Zaginione Gęsi", "act": 1, "order": 1,
+    "rewardKind": "SkillPoint", "rewardAmount": 1,
+    "goalAreaKey": "mchy", "prereqs": [] },
+
+  { "key": "wrzeciono", "name": "Wrzeciono Kikimory", "act": 1, "order": 2,
+    "rewardKind": "LifePotion", "rewardAmount": 1,
+    "goalAreaKey": "pokrzywlasy", "prereqs": [] },
+
+  { "key": "dary", "name": "Dary w Kopcach", "act": 1, "order": 3,
+    "rewardKind": "WaypointUnlock", "rewardAmount": 1,
+    "goalAreaKey": "kopcowisko", "prereqs": ["gesi"] },
+
+  { "key": "glowa", "name": "Głowa Leszego", "act": 1, "order": 4,
+    "rewardKind": "StashTab", "rewardAmount": 1,
+    "goalAreaKey": "czelusc", "prereqs": ["wrzeciono", "dary"] }
+ ]
+}
