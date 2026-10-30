@@ -1,0 +1,14 @@
+# Godot
+.godot/
+
+# C# / dotnet
+bin/
+obj/
+*.uid
+
+# scratch (layout v2)
+.tmp/
+
+# python tests cache
+__pycache__/
+.pytest_cache/
