@@ -1,8 +1,10 @@
-# Baba Yaga — Architecture (v2, 2026-10-30)
+# Baba Yaga — Architecture (v3, 2026-10-30)
 
-version: 2 (M1 foundation build, first code commit, MC 11745; v1 was created by the `design` profile,
-run 202610301950-31593a83, MC 11739; board record MC 11743 — git history is this repo file's version
-store, the superseded v1 text is archived in commit 1351b6c)
+version: 3 (M3 monsters & world build, MC 11747 — as-built list grew the M3 section and the
+planned §5/§6 rows were flipped to built/superseded notes; v2 was the M1 foundation state, MC
+11745; v1 was created by the `design` profile, run 202610301950-31593a83, MC 11739; board record
+MC 11743 — git history is this repo file's version store, superseded texts are archived in
+commits 1351b6c / d0ab182)
 Maintained per layout v2: the Architect keeps this doc true to the tree. Engine decision is pinned in
 `.audits/202610301950-31593a83/out/T0c-engine-decision.md` (run dir at the Games workspace root);
 mechanics Bible is T0b parts 1–3 in the same `out/` dir.
@@ -130,11 +132,64 @@ src/BabaYaga.Sim/                         net8.0 class library — references no
                                           running ÷3-after-cap), physical pipeline weaponED→flat→
                                           %ED→SrcDam with −90 clamp, crit-family order roll,
                                           elemental 75/95 cap + −100 floor, Monster + kill→XP grant
-src/BabaYaga.Sim.Tests/                   net8.0 xunit project — 32 tests green (RngTests,
-                                          MechanicsTests, SkillTreeTests, CombatTests)
+src/BabaYaga.Sim.Tests/                   net8.0 xunit project — 64 tests green (RngTests,
+                                          MechanicsTests, SkillTreeTests, CombatTests, + the M3
+                                          Monster/PackAffix/AI/World suites)
 data/xp-ladder.json                       anchors exact per P1 §1.7; intermediate rows interpolated
 data/koldun-skills.json                   Koldun = first playable class (ORIGINAL IP): 3 trees
                                           (Popioly/Uroki/Krag × 4 skills), prereqs, synergies
+```
+
+### As-built (M3 monsters & world, card/11747) — these files exist and are tested
+
+```
+src/BabaYaga.Sim/
+  MonsterBase.cs                (60 ln)   base row (monstats shape) + final-stat math:
+                                          base × growth(level) × own % ÷ 100, floored (P3 §5.1)
+  MonsterTable.cs              (145 ln)  data/monsters.json loader+validator, growth-row lookup,
+                                          spawn-level stamping (Ordinary = own level; Nightmare/
+                                          Hell stamp the AREA's level on ordinary monsters, bosses
+                                          keep own), foundation-Monster factory
+  PackAffix.cs                 (234 ln)  data/packs.json shape (the ONLY reader): 4:1 special-group
+                                          roll, champion pack sizes + family affixes, band bonus
+                                          tables (life/AR/level/XP), Encounter composition —
+                                          same seed replays the identical pack
+  UniqueMonster.cs              (33 ln)  unique modifier roll 1/2/3 per band, equal chance,
+                                          distinct, partial Fisher-Yates on the seeded Rng
+  MonsterMinion.cs              (54 ln)  3–6 minion escort, reduced band bonus, behaviour-only
+                                          affixes never inherit; XP multiplier lives in the bonus
+                                          table so KillType stays Normal (no double-count)
+  MonsterAI.cs                  (91 ln)  4 pure behaviour scripts over WorldPos (P3 §5.5):
+                                          melee strikes in range, ranged herds the target into
+                                          band [2..6], charge commits to closing, avoid flees
+                                          within its threshold or when hurt
+  AreaGraph.cs                 (147 ln)  Difficulty bands + WorldPos (Chebyshev metric) +
+                                          data/act1-areas.json graph: one town, symmetric edges,
+                                          per-band area monster levels (P3 §6.1)
+  WaypointGraph.cs             (102 ln)  data/waypoints.json: permanent per-char discovery,
+                                          travel ONLY between lit nodes, town is the hub,
+                                          stone-to-stone needs a lit path (P3 §6.3)
+  QuestState.cs                (147 ln)  data/act1-quests.json: inactive→active→completable→
+                                          reward-pending→done FSM, every Try-method rejects
+                                          out-of-order; prereq-gated starts; cycle check at load
+                                          (P3 §6.4)
+  XpShare.cs                    (59 ln)  party pot ×(256+87·(n−1))/256, living members within
+                                          80 units, level-weighted split, floors only — payout
+                                          never exceeds the pot (P3 §6.6)
+  DeathPenalty.cs               (39 ln)  0/5/10 % of the current level's span, floor at the
+                                          level start, level 1 free, ¾ waits on the corpse (§6.6)
+  DeathDropEvent.cs             (28 ln)  plain emit-record {AffixKind, Ilvl, AreaSeed} on a kill;
+                                          calls NO item-generation code — the sibling owns that,
+                                          a later phase wires them (M2/M3 seam)
+src/BabaYaga.Sim.Tests/                   MonsterTests, PackAffixTests, AITests, WorldTests
+data/monsters.json                        12 ORIGINAL rows (Leszun, Strzyga, Leszy-boss…) + growth
+                                          table — SHAPE from the reference, every name/cell invented
+data/packs.json                           8 champion families + 10 unique affixes (ORIGINAL Slavic
+                                          witch-fantasy names), band bonus tables, size ranges
+data/act1-areas.json                      Act "Bór": Bobrowisko town + 5 wilderness areas +
+                                          Czelusc Leszego boss lair, edges, density, per-band levels
+data/act1-quests.json                     3 side rites + the head-hunt, ordered prereqs, reward kinds
+data/waypoints.json                       5 standing stones across the act
 ```
 
 The xunit project sits under `src/` beside the library; the planned `tests/` pytest-over-CLI suite
@@ -162,14 +217,14 @@ src/BabaYaga.Sim/Runewords.cs             — socket roll (band by ilvl, size ca
 src/BabaYaga.Sim/CubeRecipes.cs           — recipe engine: inputs → output, ilvl rules, flags — ~150 (P2 §4.6)
 src/BabaYaga.Sim/TreasureClass.cs         — drop pipeline: TC walk ≤6 items, forced picks, gold piles, MF-quality-only — ~250 (P2 §4.1, §4.8–4.9)
 src/BabaYaga.Sim/Vendors.cs               — buy/sell/gamble/repair price multipliers, caps, gamble ilvl roll — ~200 (P2 §4.7–4.8)
-src/BabaYaga.Sim/MonsterStats.cs          — table(level) × own-percent stat shape, special-group 4:1 roll, champ/unique bonus tables — ~250 (P3 §5.1–5.2)
-src/BabaYaga.Sim/MonsterAffixes.cs        — unique affix pool 1/2/3 rolls, minion inherit flag, champion families as data — ~200 (P3 §5.3)
-src/BabaYaga.Sim/MonsterAI.cs             — 6 behaviour scripts (Melee/Archer/Caster/Teleporter/Fleer/Boss) over Sim state — ~250 (P3 §5.5)
-src/BabaYaga.Sim/XpTable.cs               — XP ladder anchors + ExpRatio curve, level-gap tables, XP chain, party pot 87/256 — ~250 (P1 §1.7; P3 §6.6)
-src/BabaYaga.Sim/DeathPenalty.cs          — 0/5/10% XP cost, ¾ corpse return, level-floor rule — ~100 (P3 §6.6)
+src/BabaYaga.Sim/MonsterStats.cs          — SUPERSEDED by the M3 as-built MonsterBase.cs + MonsterTable.cs (same scope P3 §5.1–5.2)
+src/BabaYaga.Sim/MonsterAffixes.cs        — SUPERSEDED by the M3 as-built PackAffix.cs + UniqueMonster.cs + MonsterMinion.cs (P3 §5.2–5.4)
+src/BabaYaga.Sim/MonsterAI.cs             — BUILT as M3 above with the 4 DoD-named behaviours (melee/ranged/charge/avoid); caster-teleport/boss scripts arrive with the skills phase (P3 §5.5)
+src/BabaYaga.Sim/XpTable.cs               — BUILT as M1; party-pot 87/256 built as M3 XpShare.cs (P1 §1.7; P3 §6.6)
+src/BabaYaga.Sim/DeathPenalty.cs          — BUILT as M3 above (P3 §6.6)
 src/BabaYaga.Sim/Hirelings.cs             — merc bracket tables, weight skill roll, hire price, merc XP chain — ~200 (P3 §6.7)
-src/BabaYaga.Sim/QuestState.cs            — per-quest state machine inactive→active→completable→reward→done, reward kinds — ~200 (P3 §6.4)
-src/BabaYaga.Sim/WaypointGraph.cs         — area graph, waypoint activation, per-char persistence, TP interop hook — ~150 (P3 §6.1, §6.3)
+src/BabaYaga.Sim/QuestState.cs            — BUILT as M3 above (P3 §6.4)
+src/BabaYaga.Sim/WaypointGraph.cs         — BUILT as M3 above (P3 §6.1, §6.3)
 src/BabaYaga.Sim/MapGen.cs                — preset + procedural area layout rules, density roll, quest-object slots — ~250 (P3 §6.5)
 src/BabaYaga.Sim/DataTables.cs            — load/validate data/*.json into typed tables (the ONLY file touching table shape) — ~200
 src/BabaYaga.Sim/SaveSerializer.cs        — deterministic JSON save/load for whole session state — ~200
@@ -193,11 +248,10 @@ each asserts on CLI markers/exit codes only.
 
 ## Truth status of this document
 
-The As-built section above matches the tree at this commit (M1 foundation: Sim library, xunit
-tests, xp-ladder + Koldun skill data). Everything under "Planned" remains DESIGN — `game/`,
-`src/BabaYaga.Sim.Cli/`, `tests/` (pytest) and `assets/` do not exist yet, and the planned
-module names there (Attributes.cs, LifeManaStam.cs, ToHitBlock.cs, DamagePipeline.cs,
-SkillTrees.cs…) were partly merged into the as-built files for the M1 scope (Stats/Character/
-CombatResolver/SkillData+SkillTree/XpTable); later milestones split further files as named.
-The first later build phase must again update this file to match what it actually created,
-in the same run.
+The two As-built sections above match the tree at this commit (M1 foundation + M3 monsters &
+world: Sim library, 64 xunit tests, xp-ladder/koldun-skills + monsters/packs/act1-areas/
+act1-quests/waypoints data). Everything still under "Planned" remains DESIGN — `game/`,
+`src/BabaYaga.Sim.Cli/`, `tests/` (pytest) and `assets/` do not exist yet, and several planned
+module names were merged into as-built files (noted inline where a row was SUPERSEDED).
+MapGen (procedural layout), hirelings and the NPC roster remain open M3 rows. The next build
+phase must again update this file to match what it actually created, in the same run.

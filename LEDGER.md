@@ -8,6 +8,8 @@ Bracketed keys are reference keys into the D2 mechanics spec only — product na
 
 STATUS: M1-FOUNDATION (first code commit 2026-10-30, MC 11745: src/BabaYaga.Sim + xunit tests + xp-ladder/koldun-skills data green). BUILT-M1 = mechanic fully implemented+tested in the Sim (class content rows for the other six classes, stamina (row 6), phys-50 cap + difficulty penalties (row 26), ⅕ rule (row 27), crush/open-wounds/DoT/stun (31–35) and everything later remain open).
 
+STATUS: M3-MONSTERS-WORLD (2026-10-30, MC 11747: monster tables, champion packs/uniques/minions, 4 AI behaviours, area+waypoint graphs, quest FSM, party XP 87/256, death penalty; rows 18–19, 53–58, 61–64 BUILT-M3). OPEN: row 59 procedural layout (MapGen), row 60 NPC roles, rows 65–66 hirelings.
+
 | # | Feature (Baba Yaga ← reference key) | Milestone | Status |
 |---|---|---|---|
 | 1 | 5 attributes with per-class start table [charstats] | M1 | BUILT-M1 |
@@ -27,8 +29,8 @@ STATUS: M1-FOUNDATION (first code commit 2026-10-30, MC 11745: src/BabaYaga.Sim 
 | 15 | XP chain: base × killtype × players × level-gap × ExpRatio | M1 | BUILT-M1 |
 | 16 | Level-gap tables both directions + clvl25 rule | M1 | BUILT-M1 |
 | 17 | XP ladder anchors + ExpRatio curve 70→99, Lvl99 stops | M1 | BUILT-M1 |
-| 18 | Monsters: table(level) × own-percent stat shape | M3 | NOT-BUILT |
-| 19 | Area-driven monster levels in higher difficulties | M3 | NOT-BUILT |
+| 18 | Monsters: table(level) × own-percent stat shape | M3 | BUILT-M3 |
+| 19 | Area-driven monster levels in higher difficulties | M3 | BUILT-M3 |
 | 20 | 3 skill trees per class, row reqs 1/6/12/18/24/30 | M2 | BUILT-M1 |
 | 21 | Prerequisite arrows: max-3 prereqs w/ point reqs | M2 | BUILT-M1 |
 | 22 | Synergy system on hard points (blvl), own lines on lvl | M2 | BUILT-M1 |
@@ -62,18 +64,18 @@ STATUS: M1-FOUNDATION (first code commit 2026-10-30, MC 11745: src/BabaYaga.Sim 
 | 50 | Vendor price/repair/sell mults + caps + ethereal quarter | M2 | NOT-BUILT |
 | 51 | Gold piles: TC mul/256 × killer GoldFind | M2 | NOT-BUILT |
 | 52 | MF quality-only rule (never quantity) | M2 | NOT-BUILT |
-| 53 | Special-group roll 4:1 unique:champion; packs | M3 | NOT-BUILT |
-| 54 | Champ/unique/minion life-AR-XP bonus table | M3 | NOT-BUILT |
-| 55 | Champion families (5+ families as data rows) | M3 | NOT-BUILT |
-| 56 | Unique affix pool: 1/2/3 rolls, minion inherit flag | M3 | NOT-BUILT |
-| 57 | Minion count 3–6, reduced bonuses, behaviour-immunity | M3 | NOT-BUILT |
-| 58 | AI script set (Melee/Archer/Caster/Teleporter/Fleer/Boss) | M3 | NOT-BUILT |
-| 59 | 5 acts, area graph w/ procedural + preset layouts | M3 | NOT-BUILT |
+| 53 | Special-group roll 4:1 unique:champion; packs | M3 | BUILT-M3 |
+| 54 | Champ/unique/minion life-AR-XP bonus table | M3 | BUILT-M3 |
+| 55 | Champion families (5+ families as data rows) | M3 | BUILT-M3 |
+| 56 | Unique affix pool: 1/2/3 rolls, minion inherit flag | M3 | BUILT-M3 |
+| 57 | Minion count 3–6, reduced bonuses, behaviour-immunity | M3 | BUILT-M3 |
+| 58 | AI script set (Melee/Ranged/Charge/Avoid) — 4 behaviours, card/11747; teleport/boss variants later | M3 | BUILT-M3 |
+| 59 | 5 acts, area graph w/ procedural + preset layouts | M3 | BUILDING |
 | 60 | NPC role set: shop/repair/gamble/stash/craft/quest/hire/waypoint | M3 | NOT-BUILT |
-| 61 | Waypoint network, per-char persistence, portal interop | M3 | NOT-BUILT |
-| 62 | Quest state machine + reward kinds | M3 | NOT-BUILT |
-| 63 | Party XP pot: proximity, +87/256 bonus, level-share | M3 | NOT-BUILT |
-| 64 | Death: 0/5/10% XP penalty, ¾ corpse return | M3 | NOT-BUILT |
+| 61 | Waypoint network, per-char persistence, portal interop | M3 | BUILT-M3 |
+| 62 | Quest state machine + reward kinds | M3 | BUILT-M3 |
+| 63 | Party XP pot: proximity, +87/256 bonus, level-share | M3 | BUILT-M3 |
+| 64 | Death: 0/5/10% XP penalty, ¾ corpse return | M3 | BUILT-M3 |
 | 65 | Hirelings: bracket tables, weight skill roll, hire price | M3 | NOT-BUILT |
 | 66 | Merc XP chain w/ 86/256 + 1/64 cap | M3 | NOT-BUILT |
 | 67 | Inventory 4×10 grid w/ w×h placement | M4 | NOT-BUILT |
