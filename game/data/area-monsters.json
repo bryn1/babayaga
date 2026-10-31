@@ -1,0 +1,21 @@
+{
+ "_comment": "PER-AREA MONSTER TABLE (LEDGER debt row 77, first payment, M4-S3): the spawn rows MonsterField builds, replacing the M4-slice code constant {mchy: pokrzywnik}. One entry per area key; each row {kind, count, placement}: kind = a data/monsters.json key (Sim Attack looks it up there), count = idle sprites in the row, placement = 'near-spawn' (Chebyshev <= 3 from the arrival cell) | 'deep' (>= 5 from it; the 4-ring between may stay empty). An empty band falls back to all walkable cells; a town spawns nothing whatever this file says (isTown gate first). mchy: pokrzywnik keeps the slice's count 4, ponurak (art committed at assets/raw/mon-ponurak-idle.png) roams deep, count 2. Acts 2-5 rows are skeleton-valid placeholders on the first wilderness region of each act. Seed stays Fnv.Hash(area + ':mon'); rows build in file order. Loaded through the GameContext.DataDir() surface; one-way copy to game/data/ — never hand-edit the copy.",
+ "areas": {
+  "mchy": [
+   { "kind": "pokrzywnik", "count": 4, "placement": "near-spawn" },
+   { "kind": "ponurak", "count": 2, "placement": "deep" }
+  ],
+  "wydmuchy": [
+   { "kind": "leszun", "count": 2, "placement": "deep" }
+  ],
+  "glosne_korzysko": [
+   { "kind": "kretownik", "count": 2, "placement": "deep" }
+  ],
+  "zaruiny_weglarze": [
+   { "kind": "strzyga", "count": 2, "placement": "deep" }
+  ],
+  "krug_wyrzysk": [
+   { "kind": "widlast", "count": 2, "placement": "deep" }
+  ]
+ }
+}

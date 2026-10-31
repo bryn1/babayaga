@@ -7,8 +7,8 @@ using Godot;
 /// OBJECT EVERY TICK; then ONE scenes/Act.tscn instantiate through the placeholder
 /// pass (DA_SCENE_ACT_OK prints only after a NON-NULL instantiate — a null scene
 /// goes to PushError and never prints the marker), and the retained Act rides the
-/// M4-SLICE journey legs (JourneyLeg: HERO_STEP walk + MONSTER_DEFEATED strike in
-/// mchy, bridge-only) → the M4-S2 vendor trade beat (TradeLeg: stone home to the
+/// M4-SLICE journey legs (JourneyLeg: HERO_STEP walk + one MONSTER_DEFEATED per
+/// kind the data table spawns in mchy + the XP_EXPECT honesty leg, bridge-only) → the M4-S2 vendor trade beat (TradeLeg: stone home to the
 /// town, Buy + SellLast, every value read from the session) → ORCH_M4_OK → Quit(0).
 /// Windowed → MainMenu.tscn. Zero rules live here (Game → Sim → nothing).
 /// </summary>
