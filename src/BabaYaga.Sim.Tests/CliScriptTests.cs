@@ -203,4 +203,37 @@ public class CliScriptTests
         }
         finally { File.Delete(path); }
     }
+
+    /// <summary>DA round-2 P4-1: 'spend &lt;skill&gt; -1' rejected with an ERROR line
+    /// like attack/loot reject negative counts — never the silent no-op exit 0.</summary>
+    [Fact]
+    public void SpendNegativeCount_PrintsErrorLine_AndExitsNonzero()
+    {
+        var path = WriteTempScript("new koldun\nlevelto 5\nspend iskra -1\n");
+        try
+        {
+            var (exit, lines) = Run(path);
+            Assert.NotEqual(0, exit);
+            Assert.Contains("\"ERROR\"", lines[^1]);
+            Assert.DoesNotContain(lines, l => l.Contains("RESULT"));
+        }
+        finally { File.Delete(path); }
+    }
+
+    /// <summary>DA round-2 P4-2: 'special &lt;unknown&gt;' names the bad monster like
+    /// 'attack' does — never the raw .NET KeyNotFoundException text.</summary>
+    [Fact]
+    public void SpecialUnknownMonster_PrintsNamedError_NotRawFrameworkText()
+    {
+        var path = WriteTempScript("new koldun\nspecial drwol\n");
+        try
+        {
+            var (exit, lines) = Run(path);
+            Assert.NotEqual(0, exit);
+            var err = JsonNode.Parse(lines[^1])!["ERROR"]!.GetValue<string>();
+            Assert.Equal("unknown monster 'drwol'", err);      // the named attack-style rejection
+            Assert.DoesNotContain("key 'drwol' was not present", err); // never the raw .NET text
+        }
+        finally { File.Delete(path); }
+    }
 }

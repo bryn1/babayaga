@@ -42,6 +42,10 @@ public sealed class SessionSave
     public IReadOnlyList<string> Waypoints { get; init; } = [];
     public IReadOnlyList<int> QuestPhases { get; init; } = [];
     public IReadOnlyList<SkillPointsSave> Skills { get; init; } = [];
+    /// <summary>Unspent skill-point pool AT SAVE TIME (DA round-2 P1-N1): quest
+    /// rewards deliberately skip phase replay, so the pool cannot be re-derived
+    /// from level grants — the save carries it.</summary>
+    public int UnspentSkillPoints { get; init; }
     public int StashTabs { get; init; }
     public int OtherRewards { get; init; }
     public int LastLootedIdx { get; init; } = -1;

@@ -30,6 +30,17 @@ Any rejection prints one `{"ERROR":"…"}` line and exits nonzero. The planned
 `pytest tests/` marker suite (same CLI, more journeys) is NOT-BUILT yet — see LEDGER.
 Note: `dotnet` SDK 8.0.133 at `/usr/bin/dotnet` is sufficient (T0c verified; no new install needed).
 
+## Known limits
+
+- **Mid-special-fight save keeps plain-restore (documented, intentional — DA round-2 P4-3).**
+  A save taken while a `special` group is engaged stores the engagement's current
+  bonus-scaled LIFE but no special kind/affixes; on load the monster is restored PLAIN,
+  so the next kill pays the plain XP row (not the ×3/×5 band multiplier). Consistent by
+  construction (dump→save→load→dump is byte-identical, exit 0); LEDGER DA-ROUND-2-FIX
+  row carries the OPEN line.
+- Save files are read at the build's own version only (`save version N unsupported`
+  refuses foreign versions, hand-built v1 pinned by xunit); there is no upgrade path.
+
 ## Engine leg (PLANNED — `game/` is not in the tree yet, row 8 of the LEDGER)
 
 Godot build/acceptance commands from T0c, for when `game/` lands:

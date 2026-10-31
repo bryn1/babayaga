@@ -9,10 +9,12 @@ namespace BabaYaga.Sim;
 /// </summary>
 public static class SaveSerializer
 {
-    /// <summary>Save-format version 2 (DA round-1 P1-1): the DTO gained the two
-    /// RNG state words and dropped the quest-point bank; a foreign Version is
-    /// refused rather than silently half-restored.</summary>
-    public const int SaveVersion = 2;
+    /// <summary>Save-format version 3 (DA round-2 P1-N1): the DTO gained the
+    /// explicit unspentSkillPoints pool — the pool restores FROM THE SAVE, never
+    /// re-derived (quest rewards deliberately skip replay). Version 2 was the
+    /// round-1 stream-state fix; a foreign Version is refused rather than
+    /// silently half-restored.</summary>
+    public const int SaveVersion = 3;
 
     private static readonly JsonSerializerOptions FileOpts = new()
     { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
@@ -67,6 +69,7 @@ public static class SaveSerializer
                 .Select(def => new SkillPointsSave(def.Id, s.Skills.HardPoints(def.Id)))
                 .Where(p => p.Points > 0)
                 .OrderBy(p => s.SkillData.Find(p.Id)!.Row).ThenBy(p => p.Id, StringComparer.Ordinal)],
+            UnspentSkillPoints = c.SkillPoints,
             StashTabs = s.StashTabs,
             OtherRewards = s.OtherRewards,
             LastLootedIdx = s.LastLooted is null ? -1 : s.Carried.IndexOf(s.LastLooted),
@@ -111,6 +114,12 @@ public static class SaveSerializer
             c.EnerFromItems = d.EnerFromItems;
             s.Skills.PlusSkillLevels = d.PlusSkillLevels;
             // Hard points replay in grid order: prereq edges only ever point up-row.
+            // The pool is set to the EARNED total — unspent + already-spent (DA
+            // round-2 P1-N1): level grants alone cannot fund the replay when a
+            // quest point was spent (total hard points may exceed the grants), and
+            // the replay's debits land the pool on the saved unspent value — an
+            // absolute restore, so the GrantXp replay above adds no double-count.
+            c.RestoreSkillPoints(d.UnspentSkillPoints + d.Skills.Sum(p => p.Points));
             foreach (var (id, points) in d.Skills)
                 for (int i = 0; i < points; i++) s.Skills.Spend(c, id);
 

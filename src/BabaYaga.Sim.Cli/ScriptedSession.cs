@@ -92,6 +92,7 @@ public sealed class ScriptedSession
     {
         ArgCount(parts, "spend <skill> [n]", 2, 3);
         int times = Num(parts, 2, 1, "spend");
+        if (times < 1) throw new SessionRejectedException("spend times must be at least 1"); // DA P4-1, as attack/loot
         for (int i = 0; i < times; i++) S.SpendSkill(parts[1]); // SkillSpendRejectedException propagates
         p["SKILL"] = parts[1];
         p["HARDPOINTS"] = S.Skills.HardPoints(parts[1]);
@@ -223,8 +224,7 @@ public sealed class ScriptedSession
         return p;
     }
 
-    private GameSession S =>
-        _session ?? throw new SessionRejectedException("no session yet — the first command must be 'new <class>'");
+    private GameSession S => _session ?? throw new SessionRejectedException("no session yet — the first command must be 'new <class>'");
 
     /// Arity check for commands with an optional trailing count argument.
     private static void ArgCount(string[] parts, string grammar, params int[] allowed)

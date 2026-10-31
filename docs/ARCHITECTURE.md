@@ -1,6 +1,8 @@
-# Baba Yaga — Architecture (v6, 2026-10-31)
+# Baba Yaga — Architecture (v7, 2026-10-31)
 
-version: 6 (merge of the M2 items & economy as-built section, MC 11746, the M3 monsters &
+version: 7 (DA round-2 fix addendum, card/11757 — save v3 persists the unspent skill-point
+pool, the unique live path honours passesToMinions:false, two CLI grammar rejects — merged
+onto v6, which had merged the M2 items & economy as-built section, MC 11746, the M3 monsters &
 world as-built section, MC 11747, and the DA round-1 fix addendum (card/11755) onto the M1
 foundation, MC 11745; v1 was created by the `design`
 profile, run 202610301950-31593a83, MC 11739; board record MC 11743 — git history is this repo file's
@@ -122,9 +124,10 @@ src/BabaYaga.Sim/                         net8.0 class library — references no
                                           the raw stream word into the save DTO (DA P1-1)
   Stats.cs                      (95 ln)  ClassProfile rows + life/mana/AR derivations + per-group
                                           Str/Dex damage bonuses; Koldun design row
-  Character.cs                  (124 ln)  attribute allocation, XP intake → level-up grants (5+1),
+  Character.cs                  (133 ln)  attribute allocation, XP intake → level-up grants (5+1),
                                           GrantSkillPoints = the single reward-point grant door
-                                          (DA P1-2; TrySpendSkillPoint stays the only debit)
+                                          (DA P1-2; TrySpendSkillPoint stays the only debit;
+                                          RestoreSkillPoints = the serializer-only pool restore)
   XpTable.cs                    (128 ln)  ladder loader+validator, ExpRatio, level-gap tables,
                                           full kill-XP chain (floor every step)
   SkillData.cs                  (133 ln)  JSON skill-table loader; validation IS the content gate
@@ -136,7 +139,7 @@ src/BabaYaga.Sim/                         net8.0 class library — references no
                                           running ÷3-after-cap), physical pipeline weaponED→flat→
                                           %ED→SrcDam with −90 clamp, crit-family order roll,
                                           elemental 75/95 cap + −100 floor, Monster + kill→XP grant
-src/BabaYaga.Sim.Tests/                   net8.0 xunit project — 127 tests green at v6 (RngTests,
+src/BabaYaga.Sim.Tests/                   net8.0 xunit project — 133 tests green at v7 (RngTests,
                                           MechanicsTests, SkillTreeTests, CombatTests, BoundaryTests,
                                           + the M3 Monster/PackAffix/AI/World suites)
 data/xp-ladder.json                       anchors exact per P1 §1.7; intermediate rows interpolated
@@ -203,8 +206,10 @@ src/BabaYaga.Sim/
                                           special verb, DA P2-a) — same seed replays the pack
   UniqueMonster.cs              (33 ln)  unique modifier roll 1/2/3 per band, equal chance,
                                           distinct, partial Fisher-Yates on the seeded Rng
-  MonsterMinion.cs              (54 ln)  3–6 minion escort, reduced band bonus, behaviour-only
-                                          affixes never inherit; XP multiplier lives in the bonus
+  MonsterMinion.cs              (56 ln)  3–6 minion escort, reduced band bonus, behaviour-only
+                                          AND passesToMinions:false affixes never inherit — one
+                                          filter honours both flags, both pools (DA2 P2-N1);
+                                          XP multiplier lives in the bonus
                                           table so KillType stays Normal (no double-count)
   MonsterAI.cs                  (91 ln)  4 pure behaviour scripts over WorldPos (P3 §5.5):
                                           melee strikes in range, ranged herds the target into
@@ -265,22 +270,25 @@ src/BabaYaga.Sim/
                                         two seeded RNG streams (combat vs drop), commands new/
                                         levelto/spend/attack/loot/equip/buy/sell/gamble — each
                                         fully applies or is rejected, nothing half-applied.
-  GameSession.World.cs        (128 ln)  world half (same class, partial): stone discovery,
+  GameSession.World.cs        (131 ln)  world half (same class, partial): stone discovery,
                                         lit-stone travel, quest accept/step/complete with the
                                         P3 §6.4 reward payouts (SkillPoint → GrantSkillPoints,
                                         DA P1-2), Special = the seeded 4:1 group roll engaging a
-                                        bonus-scaled leader (DA P2-a).
-  SaveSerializer.cs          (206 ln)  THE save/dump serializer (Version 2): captures BOTH RNG
+                                        bonus-scaled leader (DA P2-a); unknown monster named
+                                        rejection like Attack (DA2 P4-2).
+  SaveSerializer.cs          (215 ln)  THE save/dump serializer (Version 3): captures BOTH RNG
                                         state words so a loaded session CONTINUES its streams —
-                                        never replays consumed rolls (DA P1-1); version-checked,
+                                        never replays consumed rolls (DA P1-1); restores the
+                                        unspent skill-point pool FROM THE SAVE (DA2 P1-N1);
+                                        version-checked,
                                         corrupt-file → InvalidDataException never a partial load;
                                         quests restore by phase replay (rewards NOT repaid),
                                         carried items land on their exact grid cells; dumps are
                                         byte-identical across save→load→load.
-  SaveDto.cs                  (67 ln)  the SessionSave document shape — declaration order IS
+  SaveDto.cs                  (71 ln)  the SessionSave document shape — declaration order IS
                                         dump order (stable JSON): seed, the two RNG state words,
-                                        items carried/equipped/pending (v2 dropped the quest-
-                                        point bank — the points live in Character now).
+                                        items carried/equipped/pending, the unspentSkillPoints
+                                        pool (v3, DA2 P1-N1).
 src/BabaYaga.Sim.Cli/
   Program.cs                  (38 ln)  arg parse: --seed N --script <path> [--data <dir>].
   CommandRunner.cs            (53 ln)  line loop: one JSON line per command, {"RESULT":"OK"}/exit
@@ -289,10 +297,13 @@ src/BabaYaga.Sim.Cli/
                                         loot/equip lastdrop/buy/sell last/gamble/waypoint/
                                         discover/quest accept|step|complete/save/load/dump) →
                                         GameSession ops; special <monster> (DA P2-a) reports the
-                                        rolled group's kind/units/affixes/bonus-scaled stats.
+                                        rolled group's kind/units/affixes/bonus-scaled stats;
+                                        spend counts < 1 reject like attack/loot (DA2 P4-1).
 src/BabaYaga.Sim.Tests/                   DropPipelineTests, SaveTests, CliScriptTests (17 new)
                                           + DA round-1: save/load RNG-continuation, P1-2 probe,
                                           special-verb tests; BoundaryTests pins 2 mutation survivors
+                                          + DA round-2: quest-point save/load ×2, v1-refusal pin,
+                                          spend -1 / special-unknown CLI rejects, seed-42 minion flag
 tests/journey.txt                          the scripted acceptance journey (18 commands, seed 2)
 tests/probe-p12.txt                        the DA round-1 P1-2 probe journey (quest point spends)
 data/treasureclasses.json                  3 area tiers + 3 item groups (lup_lezny, lup_kopcowy,
@@ -361,9 +372,10 @@ XP/level, 8x8 skill-grid engine, combat resolver, xp-ladder + koldun-skills data
 economy (12 Sim files, 6 data tables, 38 tests) and M3 monsters & world (12 Sim files, 5 data
 tables, 32 tests), the M1 close-out (drop pipeline + session + save/load + CLI) and the DA
 round-1 fixes (save v2 stream persistence, quest skill-point grant, CLI special verb, boundary
-pins) — 127 tests total. One semantic-merge defect (duplicate Difficulty enum across Vendor.cs and
+pins) and the DA round-2 fixes (save v3 unspent-skill-point pool, passesToMinions honoured on the
+unique live path, spend/special CLI rejects, v1-refusal pin) — 133 tests total. One semantic-merge defect (duplicate Difficulty enum across Vendor.cs and
 AreaGraph.cs, each branch green alone) is being resolved as MC 11748; this section reads TRUE
-only when the merged master builds and tests green again (VERIFIED this commit: 0 warnings, 127/127 green). The M2 build replaced planned
+only when the merged master builds and tests green again (VERIFIED this commit: 0 warnings, 133/133 green). The M2 build replaced planned
 RarityRoll/ItemGen/Vendors names with per-concern files; the M3 build superseded MonsterStats/
 MonsterAffixes planned rows (noted inline); the M1 close-out built what the "Planned" list used to
 mislabel as DESIGN — `src/BabaYaga.Sim.Cli/` and the TC-walk drop pipeline (36) are AS-BUILT, not

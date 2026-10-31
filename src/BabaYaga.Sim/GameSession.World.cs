@@ -87,7 +87,10 @@ public sealed partial class GameSession
     /// band's XP multiplier and drop ilvl bump (DA round-1 P2-a live path).</summary>
     public SpecialReport Special(string monsterKey)
     {
-        var row = Monsters.Get(monsterKey);
+        // Named rejection like Attack — never the raw KeyNotFoundException text
+        // through the CLI (DA round-2 P4-2).
+        var row = Monsters.Rows.FirstOrDefault(r => r.Key == monsterKey)
+            ?? throw new SessionRejectedException($"unknown monster '{monsterKey}'");
         if (row.IsBoss)
             throw new SessionRejectedException($"'{monsterKey}' is a boss — bosses never lead packs (P3 §5.2)");
         var area = Areas.Get(CurrentArea);

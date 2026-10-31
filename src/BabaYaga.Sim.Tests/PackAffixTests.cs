@@ -128,6 +128,23 @@ public class PackAffixTests
         }
     }
 
+    /// <summary>DA round-2 P2-N1: the unique pool's passesToMinions:false rows (chciwy)
+    /// stay on the leader too — the LIVE path must honour the flag the champion path
+    /// already reads. Seed 42 is DA's observed reproduction (chciwy rolled, minions
+    /// carried it pre-fix).</summary>
+    [Fact]
+    public void Minions_PassesToMinionsFalse_AffixStaysOnLeader_LivePath()
+    {
+        var data = Packs();
+        var chciwy = data.UniqueAffixes.First(a => a.Key == "chciwy"); // passes:false behaviourOnly:false
+        Assert.Empty(MonsterMinions.InheritedAffixes(new[] { chciwy }));
+
+        var enc = SpecialGroups.ComposeFor(new Rng(42), data, Difficulty.Ordinary, "pokrzywnik");
+        Assert.Equal(SpecialKind.Unique, enc.Kind);
+        Assert.Contains("chciwy", enc.LeaderAffixKeys);
+        Assert.DoesNotContain("chciwy", enc.MinionAffixKeys);
+    }
+
     [Fact]
     public void Minions_EscortSizeReducedBonuses_BehaviourAffixesStayOnLeader()
     {

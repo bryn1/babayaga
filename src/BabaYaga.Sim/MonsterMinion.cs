@@ -12,9 +12,11 @@ public static class MonsterMinions
     public static int RollCount(Rng rng, PackData data) =>
         rng.NextInRange(data.UniqueMinionMin, data.UniqueMinionMax);
 
-    /// Behaviour-only affixes are stripped from what the minions inherit.
+    /// What minions never carry (P3 §5.4): behaviour-only rows, and rows the data
+    /// flags passesToMinions:false — the same flag the champion path reads (DA
+    /// round-2 P2-N1: one filter, both pools honour it).
     public static IReadOnlyList<PackAffixRow> InheritedAffixes(IReadOnlyList<PackAffixRow> leaderAffixes) =>
-        leaderAffixes.Where(a => !a.BehaviourOnly).ToArray();
+        leaderAffixes.Where(a => !a.BehaviourOnly && a.PassesToMinions).ToArray();
 
     /// Spawn the leader's escort at the band's minion bonus: stats are tabled at
     /// spawn level + the bonus level add, then the reduced percent row multiplies
