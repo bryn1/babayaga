@@ -59,8 +59,8 @@ public partial class Act : Node
         if (session is null) return;
         var area = session.Areas.Get(areaKey);
         _renderer.Build(areaKey, area.IsTown);
-        _monsters.Build(areaKey, area.IsTown, _renderer.Walkable);
-        var start = _renderer.CenterCell();
+        var start = _renderer.CenterCell(); // the arrival cell the spawn bands measure from
+        _monsters.Build(areaKey, area.IsTown, _renderer.Walkable, start);
         _hero.Place(start);
         _camera.FocusOn(start, AreaRenderer.W, AreaRenderer.H);
         _hud.Hint(area.Name);

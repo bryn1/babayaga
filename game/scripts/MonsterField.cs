@@ -1,53 +1,67 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 using Godot;
 
 /// <summary>
 /// MONSTER SPRITE OWNER — presentation-side. The Sim stores NO monster positions
-/// (§2 invariant), so the slice's monsters live ONLY here: idle sprites over
+/// (§2 invariant), so the area's monsters live ONLY here: idle sprites over
 /// AreaRenderer's walkable cells, click hit-tests, and the clicked monster KEY
-/// handed to HeroController. The slice area→monster-keys map is a code constant
-/// { "mchy": pokrzywnik }; grodzisko is town (isTown → none spawn). The data-driven
-/// per-area spawn table is the MONSTER-RENDERER DEBT (LEDGER row 77 in the run's
-/// DEBT-ROW block). Spawner seed = Fnv.Hash(area + ":mon") — Fnv.Hash(s) ONLY.
+/// handed to HeroController. The per-area spawn rows are DATA (M4-S3, LEDGER
+/// debt row 77 first payment): data/area-monsters.json rows {kind, count,
+/// placement} loaded through the GameContext.DataDir() surface — the constant
+/// { "mchy": pokrzywnik } is REMOVED (grodzisko is town: isTown → none spawn,
+/// whatever the file says). placement "near-spawn" = Chebyshev <= NearMax from
+/// the arrival cell, "deep" = >= DeepMin; an empty band falls back to all
+/// walkable cells; bad rows warn once per build and are skipped, never crash.
+/// Rows build in file order; spawner seed = Fnv.Hash(area + ":mon") — Fnv.Hash(s)
+/// ONLY. Spawner keys are the monsters.json keys (Sim Attack looks them up there).
 /// </summary>
 public partial class MonsterField : Node2D
 {
-    private static readonly Dictionary<string, string[]> SpawnMap = new()
-    {
-        ["mchy"] = ["pokrzywnik"], // the slice's only wilderness row
-    };
-
-    private const int Count = 4; // one idle row of N=4 sprites until the data table ships
     private const float HitRadius = 60f;
+    private const int NearMax = 3;   // near-spawn band, Chebyshev from arrival cell
+    private const int DeepMin = 5;   // deep band; the 4-ring between may stay empty
+
+    /// <summary>One data-table spawn row, validated at load.</summary>
+    private sealed record SpawnRow(string Kind, int Count, string Placement);
+
+    // Loaded ONCE per process from the dataDir surface — the file never changes
+    // while the game runs (one-way copy of repo data/, never hand-edited).
+    private static Dictionary<string, List<SpawnRow>>? _table;
 
     private readonly List<Entry> _spawned = [];
     private Node2D? _row;
 
     private sealed record Entry(string Key, Vector2I Cell, Sprite2D Sprite);
 
-    public void Build(string areaKey, bool isTown, IReadOnlyList<Vector2I> walkable)
+    public void Build(string areaKey, bool isTown, IReadOnlyList<Vector2I> walkable, Vector2I arrivalCell)
     {
         _row?.QueueFree();
         _spawned.Clear();
         _row = new Node2D { Name = "Monsters" };
         AddChild(_row);
-        if (isTown || !SpawnMap.TryGetValue(areaKey, out var keys) || walkable.Count == 0) return;
+        if (isTown || walkable.Count == 0) return;
+        if (!Table().TryGetValue(areaKey, out var rows)) return;
 
         var rng = new Random((int)Fnv.Hash(areaKey + ":mon"));
-        for (int i = 0; i < Count; i++)
+        foreach (var row in rows)
         {
-            var cell = walkable[rng.Next(walkable.Count)];
-            var key = keys[rng.Next(keys.Length)];
-            var sprite = new Sprite2D
+            var band = Band(walkable, arrivalCell, row.Placement);
+            for (int i = 0; i < row.Count; i++)
             {
-                Texture = MonsterTexture(key),
-                Centered = true,
-                Offset = new Vector2(0, -80f), // feet at cell centre, scale 1.0 (§3 SPRITE DRAW SCALE)
-                Position = IsoCamera.GridToScreen(cell),
-            };
-            _row.AddChild(sprite);
-            _spawned.Add(new Entry(key, cell, sprite));
+                var cell = band[rng.Next(band.Count)];
+                var sprite = new Sprite2D
+                {
+                    Texture = MonsterTexture(row.Kind),
+                    Centered = true,
+                    Offset = new Vector2(0, -80f), // feet at cell centre, scale 1.0 (§3 SPRITE DRAW SCALE)
+                    Position = IsoCamera.GridToScreen(cell),
+                };
+                _row.AddChild(sprite);
+                _spawned.Add(new Entry(row.Kind, cell, sprite));
+            }
         }
     }
 
@@ -76,6 +90,58 @@ public partial class MonsterField : Node2D
         foreach (var e in _spawned)
             if (e.Key == key) return e.Cell;
         return null;
+    }
+
+    /// <summary>The walkable cells of one placement band around the arrival cell
+    /// (Chebyshev, the one metric — same inline form as AreaRenderer.CenterCell);
+    /// an empty band falls back to the full walkable list, never an empty spawn.</summary>
+    private static List<Vector2I> Band(IReadOnlyList<Vector2I> walkable, Vector2I arrivalCell, string placement)
+    {
+        var picked = new List<Vector2I>();
+        foreach (var c in walkable)
+        {
+            int d = Math.Max(Math.Abs(c.X - arrivalCell.X), Math.Abs(c.Y - arrivalCell.Y));
+            if (placement == "deep" ? d >= DeepMin : d <= NearMax) picked.Add(c);
+        }
+        if (picked.Count > 0) return picked;
+        GD.PushWarning($"area-monsters: '{placement}' band empty — falling back to all walkable cells");
+        return new List<Vector2I>(walkable);
+    }
+
+    /// <summary>Loads data/area-monsters.json through the GameContext.DataDir()
+    /// surface (the same read path GameSession.New/Load use). A missing or broken
+    /// file warns ONCE and yields an empty table — the placeholder-pass idiom.</summary>
+    private static Dictionary<string, List<SpawnRow>> Table()
+    {
+        if (_table is not null) return _table;
+        _table = [];
+        try
+        {
+            var path = Path.Combine(GameContext.DataDir(), "area-monsters.json");
+            using var doc = JsonDocument.Parse(File.ReadAllText(path));
+            foreach (var area in doc.RootElement.GetProperty("areas").EnumerateObject())
+            {
+                var rows = new List<SpawnRow>();
+                foreach (var r in area.Value.EnumerateArray())
+                {
+                    var kind = r.GetProperty("kind").GetString() ?? "";
+                    var placement = r.GetProperty("placement").GetString() ?? "";
+                    int count = r.GetProperty("count").GetInt32();
+                    if (kind.Length == 0 || count < 1 || (placement != "deep" && placement != "near-spawn"))
+                    {
+                        GD.PushWarning($"area-monsters: {area.Name} row '{kind}' invalid — skipped");
+                        continue;
+                    }
+                    rows.Add(new SpawnRow(kind, count, placement));
+                }
+                if (rows.Count > 0) _table[area.Name] = rows;
+            }
+        }
+        catch (Exception e)
+        {
+            GD.PushWarning($"area-monsters.json absent or broken — no spawn rows: {e.Message}");
+        }
+        return _table;
     }
 
     /// <summary>
