@@ -1,12 +1,15 @@
-# Baba Yaga — Architecture (v7, 2026-10-31)
+# Baba Yaga — Architecture (v8, 2026-10-31)
 
-version: 7 (DA round-2 fix addendum, card/11757 — save v3 persists the unspent skill-point
+version: 8 (ARCH closing fix, card/11765 — code-fence repair (the M2 as-built block now closes at
+its true end before the M3 header; 14 fences, all blocks balanced) + truth-status fix (Difficulty
+dedup RESOLVED by MC 11751, merge a5d8d26, SharedDifficultyTests pins it); v7 archived in git
+history. Earlier: v7 (DA round-2 fix addendum, card/11757 — save v3 persists the unspent skill-point
 pool, the unique live path honours passesToMinions:false, two CLI grammar rejects — merged
 onto v6, which had merged the M2 items & economy as-built section, MC 11746, the M3 monsters &
 world as-built section, MC 11747, and the DA round-1 fix addendum (card/11755) onto the M1
 foundation, MC 11745; v1 was created by the `design`
 profile, run 202610301950-31593a83, MC 11739; board record MC 11743 — git history is this repo file's
-version store; superseded texts are archived in commits 1351b6c / d0ab182 / 737b0dd / 895a8a4)
+version store; superseded texts are archived in commits 1351b6c / d0ab182 / 737b0dd / 895a8a4 / 5b949f0))
 Maintained per layout v2: the Architect keeps this doc true to the tree. Engine decision is pinned in
 `.audits/202610301950-31593a83/out/T0c-engine-decision.md` (run dir at the Games workspace root);
 mechanics Bible is T0b parts 1–3 in the same `out/` dir.
@@ -188,6 +191,7 @@ data/uniques.json                         6 uniques + 2 sets (7 pieces) + count-
 data/runes.json                           8 rune-stones (scribe-mark names, ORIGINAL)
 data/runewords.json                       4 words incl. one availability-gated (condition 5 exercised)
 data/gems.json                            6 gem rows (raw → next-rank transform rows; cube consumes later)
+```
 
 ### As-built (M3 monsters & world, card/11747) — these files exist and are tested
 
@@ -374,7 +378,8 @@ tables, 32 tests), the M1 close-out (drop pipeline + session + save/load + CLI) 
 round-1 fixes (save v2 stream persistence, quest skill-point grant, CLI special verb, boundary
 pins) and the DA round-2 fixes (save v3 unspent-skill-point pool, passesToMinions honoured on the
 unique live path, spend/special CLI rejects, v1-refusal pin) — 133 tests total. One semantic-merge defect (duplicate Difficulty enum across Vendor.cs and
-AreaGraph.cs, each branch green alone) is being resolved as MC 11748; this section reads TRUE
+AreaGraph.cs, each branch green alone) is resolved by MC 11751 (merge a5d8d26,
+SharedDifficultyTests pins it); this section reads TRUE
 only when the merged master builds and tests green again (VERIFIED this commit: 0 warnings, 133/133 green). The M2 build replaced planned
 RarityRoll/ItemGen/Vendors names with per-concern files; the M3 build superseded MonsterStats/
 MonsterAffixes planned rows (noted inline); the M1 close-out built what the "Planned" list used to
