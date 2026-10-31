@@ -66,6 +66,7 @@ public sealed partial class GameSession
     /// that is not a known potion, and a pool ALREADY at Max (waste is refused).
     public PotionUseReport UsePotion(int slot)
     {
+        RaiseIfDead(); // no healing from a corpse: the belt waits for the stone (Respawn)
         var cell = SlotIndex(slot);
         var item = Belt[cell] ?? throw new SessionRejectedException($"belt slot {slot} is empty");
         string kind = PotionKindOf(item, require: true);

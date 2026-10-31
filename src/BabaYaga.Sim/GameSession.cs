@@ -62,13 +62,21 @@ public sealed partial class GameSession
     /// The M2 economy band in force (sell caps, vendor terms).
     public Difficulty EconomyBand => Difficulty.Dusk;
 
-    public static GameSession New(ulong seed, string classKey, string dataDir) =>
-        new(seed, classKey, dataDir);
+    /// <summary>The world band New stamps — optional parameter, default Ordinary
+    /// (the M4 demo). This beat reads it ONLY for the death penalty (Respawn);
+    /// spawn and pack rolls stay pinned to Ordinary until a world-band adoption
+    /// beat, so choosing Hell changes the death cost, nothing else yet.</summary>
+    public Difficulty Band { get; }
 
-    private GameSession(ulong seed, string classKey, string dataDir)
+    public static GameSession New(ulong seed, string classKey, string dataDir,
+        Difficulty band = Difficulty.Ordinary) =>
+        new(seed, classKey, dataDir, band);
+
+    private GameSession(ulong seed, string classKey, string dataDir, Difficulty band)
     {
         DataDir = dataDir;
         Seed = seed;
+        Band = band;
         string D(string file) => Path.Combine(dataDir, file);
         var profile = Stats.For(classKey); // unknown class → ArgumentException
         Ladder = XpTable.Load(D("xp-ladder.json"));
@@ -126,8 +134,12 @@ public sealed partial class GameSession
     /// abandons the current fight — no flee rules exist yet). Each kill runs the
     /// KillFlow chain: XP already paid by the resolver, event + walk + queue.
     /// A monster that survives the strike counters once (row 69 — EnemyRng only).
+    /// The DEAD gate opens the command and stops the volley: a counter that lands
+    /// the killing blow ends this call mid-times, and no strike is paid from a
+    /// corpse — the report carries the strikes that actually happened.
     public AttackReport Attack(string monsterKey, int times)
     {
+        RaiseIfDead();
         if (times < 1) throw new SessionRejectedException("attack times must be at least 1");
         var row = Monsters.Rows.FirstOrDefault(r => r.Key == monsterKey)
             ?? throw new SessionRejectedException($"unknown monster '{monsterKey}'");
@@ -137,6 +149,7 @@ public sealed partial class GameSession
         long xp = 0;
         for (int i = 0; i < times; i++)
         {
+            if (IsDead) break; // died to a counter: the DEAD gate stops the volley mid-call
             Engaged ??= Spawn(row, area);
             var (outcome, _) = _flow.Strike(CombatRng, DropRng, Character, Engaged, Ladder,
                 AttackDamageMin, AttackDamageMax, TcKeyFor(area.Level), EngagedKind, EngagedAffixKeys,
@@ -154,6 +167,7 @@ public sealed partial class GameSession
     /// swallows the rest) and collects the gold pile into the purse.
     public LootReport Loot(int count)
     {
+        RaiseIfDead();
         if (count < 1) throw new SessionRejectedException("loot count must be at least 1");
         var taken = Drops.TakeUpTo(count, TryCarry);
         long gold = Drops.CollectGold();
@@ -178,6 +192,7 @@ public sealed partial class GameSession
 
     public long Buy(string baseId)
     {
+        RaiseIfDead();
         var baseRow = Bases.Find(baseId) ?? throw new SessionRejectedException($"item base '{baseId}' unknown");
         long price = Vendor.BuyPrice(baseRow, Vendor.Standard);
         if (!Purse.TrySpend(price))
@@ -193,6 +208,7 @@ public sealed partial class GameSession
 
     public long SellLast()
     {
+        RaiseIfDead();
         if (Carried.Count == 0) throw new SessionRejectedException("nothing carried to sell");
         var item = Carried[^1];
         long price = Vendor.SellPrice(item, EconomyBand);
@@ -207,6 +223,7 @@ public sealed partial class GameSession
 
     public (long Price, ItemQuality Quality) Gamble()
     {
+        RaiseIfDead();
         var offer = _gambler.Next(DropRng, Character.Level);
         var item = _gambler.Buy(DropRng, offer, Purse)
             ?? throw new SessionRejectedException($"cannot afford the gamble: {offer.Price} gold");
@@ -232,8 +249,9 @@ public sealed partial class GameSession
     /// One counter by the engaged survivor (row 69): its OWN to-hit row and damage
     /// dice (P3 §5.1 columns), rolled on the third stream so player-side streams
     /// keep their offsets — the same separation DropRng exists for. The defense
-    /// term is the hero's own Attack Rating (P1 §1.4 convention); Life floors at 0
-    /// — hero-death rules ride row 64's live pass, not this card.
+    /// term is the hero's own Attack Rating (P1 §1.4 convention); a counter that
+    /// empties the Life pool kills the hero — the DEAD gate and Respawn live in
+    /// GameSession.Death.cs (row 64).
     private void CounterStrike(Monster attacker)
     {
         if (attacker.DamageMax < 1) return; // dice-less foundation builds never counter

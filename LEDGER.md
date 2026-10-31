@@ -89,7 +89,7 @@ STATUS: row 77 PAYMENT: per-area monster table landed as data/area-monsters.json
 | 61 | Waypoint network, per-char persistence | M3 | BUILT-M3 |
 | 62 | Quest state machine + reward kinds | M3 | BUILT-M3 |
 | 63 | Party XP pot: proximity, +87/256 bonus, level-share | M3 | BUILT-M3 (unit-tested; live path with M4) |
-| 64 | Death: 0/5/10% XP penalty, ¾ corpse return | M3 | BUILT-M3 (unit-tested; live path with M4) |
+| 64 | Death: 0/5/10% XP penalty, ¾ corpse return | M3 | LIVE-M4 (BUILT-M3 math untouched — Respawn CALLS DeathPenalty.Apply only; TakeDamage emptying Life enters DEAD, one gate rejects Attack/UsePotion/Buy/SellLast/TravelTo/Loot/Gamble with "you are dead"; Respawn refills Life to Max (single-player stone-resurrection), relocates to the last discovered town riding the LIT STONES (adjacency bypassed — resurrection rides stones, not roads), band selectable at New (default Ordinary 0%, Hell asserted equal to the helper's own output); DEAD derives from the persisted Life pool so the save stays v4 — v4 readers unbroken; 12 BeltDeathTests + headless death leg HERO_DEAD→DEAD_REJECT→RESPAWN→HERO_ALIVE + HUD_STATE false,true,false + post-death TRADE — DEATH_OK green (plants: no-clear/no-relocate/frozen-HUD all RED) — evidence run .audits/202610301950-31593a83, leg game/scripts/DeathLeg.cs; ¾ corpse-return recovery run stays NOT-BUILT — later beat) |
 | 65 | Hirelings: bracket tables, weight skill roll, hire price | M3 | NOT-BUILT |
 | 66 | Merc XP chain w/ 86/256 + 1/64 cap | M3 | NOT-BUILT |
 | 67 | Inventory 4×10 grid w/ w×h placement | M4 | BUILT-M2 |

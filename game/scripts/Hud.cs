@@ -57,6 +57,12 @@ public partial class Hud : CanvasLayer
     /// shape (the same honesty pattern as HUD_LEVEL).</summary>
     public int BeltFilled { get; private set; }
 
+    /// <summary>The DEAD flag (row 64) the LAST paint showed — captured by the
+    /// same session pull as LevelShown/BeltFilled. The headless death leg prints
+    /// its HUD_STATE lines through this read-back; a frozen literal is that
+    /// gate's planted-red shape (the same honesty pattern as HUD_LEVEL).</summary>
+    public bool DeadShown { get; private set; }
+
     /// <summary>The one pull-only paint pass — _Process rides it; the headless
     /// level-up and belt legs run it explicitly per round (the legs are
     /// synchronous, never frame-bound; zero rules computed here, same as _Process).</summary>
@@ -68,6 +74,7 @@ public partial class Hud : CanvasLayer
         // CURRENT/MAX — the pools joined the Sim with the belt (row 69); Max stays computed.
         _life.Text = $"Life {s.Character.Life}/{s.Character.MaxLife}";
         _mana.Text = $"Mana {s.Character.Mana}/{s.Character.MaxMana}";
+        DeadShown = s.IsDead; // the row 64 flag on the same pull — the death leg reads it back
 
         // Belt row: four cells in slot order, the read-only mirror of session.Belt.
         _belt.Text = "Belt [" + string.Join(" ", s.Belt.Select(

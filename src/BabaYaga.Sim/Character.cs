@@ -60,12 +60,28 @@ public sealed class Character
     }
 
     /// <summary>Monster counter-damage (LEDGER row 69): the pool floors at 0 —
-    /// NO hero-death rules exist yet (the DeathPenalty live path rides row 64's
-    /// M4 pass), so zero is a floor, never a kill.</summary>
+    /// and hitting 0 IS the hero's death (row 64, M4-S6): IsDead reads FROM the
+    /// pool, so this floor and the DEAD flag are the same fact. Only TakeDamage
+    /// is the pinned trigger; the setter stays the restore/authoring door.</summary>
     public void TakeDamage(long amount)
     {
         if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
         Life = Math.Max(0, Life - amount);
+    }
+
+    /// <summary>DEAD as the pool reads (row 64): Life at 0. The session mirrors
+    /// this on GameSession.IsDead; Respawn clears it by refilling the pool.</summary>
+    public bool IsDead => Life == 0;
+
+    /// <summary>Death-penalty landing door (row 64): the session writes the
+    /// XpAfter the DeathPenalty helper COMPUTED — the door never re-derives the
+    /// percent. The helper clamps at the level's start, so a level can never
+    /// drop; the save path keeps its own GrantXp replay untouched.</summary>
+    internal void ApplyDeathXp(long xpAfter)
+    {
+        if (xpAfter < 0 || xpAfter > Xp)
+            throw new ArgumentOutOfRangeException(nameof(xpAfter));
+        Xp = xpAfter;
     }
 
     public int TotalStr => Profile.StartStr + StrAlloc + StrFromItems;

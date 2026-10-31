@@ -16,6 +16,7 @@ public sealed partial class GameSession
 
     public void TravelTo(string areaKey)
     {
+        RaiseIfDead(); // a DEAD hero does not walk: the stones raise him home (Respawn)
         if (!Areas.Areas.Any(a => a.Key == areaKey)) throw new SessionRejectedException($"unknown area '{areaKey}'");
         if (!Waypoints.CanTravel(CurrentArea, areaKey))
             throw new SessionRejectedException($"no lit-stone path from '{CurrentArea}' to '{areaKey}'");
