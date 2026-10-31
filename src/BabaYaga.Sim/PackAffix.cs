@@ -173,13 +173,17 @@ public static class SpecialGroups
     public static Encounter Compose(Rng rng, PackData data, MonsterTable table, Difficulty difficulty)
     {
         var candidates = table.Rows.Where(r => !r.IsBoss).ToArray();
-        var leader = candidates[rng.NextInt(candidates.Length)];
-        return RollKind(rng, data) switch
-        {
-            SpecialKind.Unique => UniqueEncounter(rng, data, difficulty, leader.Key),
-            _ => ChampionEncounter(rng, data, leader.Key),
-        };
+        return ComposeFor(rng, data, difficulty, candidates[rng.NextInt(candidates.Length)].Key);
     }
+
+    /// The same rolls as Compose with the leader named by the caller (the CLI's
+    /// special verb) — one roll mechanism, shared by both paths.
+    public static Encounter ComposeFor(Rng rng, PackData data, Difficulty difficulty, string leaderKey) =>
+        RollKind(rng, data) switch
+        {
+            SpecialKind.Unique => UniqueEncounter(rng, data, difficulty, leaderKey),
+            _ => ChampionEncounter(rng, data, leaderKey),
+        };
 
     private static Encounter UniqueEncounter(Rng rng, PackData data, Difficulty difficulty, string leaderKey)
     {

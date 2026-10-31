@@ -33,6 +33,16 @@ public sealed class Rng
         return (xorShifted >> rot) | (xorShifted << ((-rot) & 31));
     }
 
+    /// <summary>The raw LCG state word — the full stream position a save file
+    /// carries so a loaded session continues the SAME stream (DA round-1 P1-1).
+    /// Internal: only the save serializer reads/writes it; a foreign seed never
+    /// re-seeds a restored stream.</summary>
+    internal ulong State
+    {
+        get => _state;
+        set => _state = value;
+    }
+
     /// <summary>
     /// Uniform integer in [0, maxExclusive), unbiased (rejection on the tail of the
     /// range; the loop runs more than once only with probability ≤ range/2^32).

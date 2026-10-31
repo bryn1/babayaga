@@ -24,6 +24,7 @@ public sealed partial class GameSession
     public ClassSkillData SkillData { get; }
     public ItemBaseTable Bases { get; }
     public MonsterTable Monsters { get; }
+    public PackData Packs { get; }
     public TreasureClassTable Classes { get; }
     public AreaGraph Areas { get; }
     public WaypointGraph Waypoints { get; }
@@ -42,7 +43,6 @@ public sealed partial class GameSession
     public EquipmentPanel Equipment { get; } = new();
     public DropQueue Drops { get; } = new();
     public string CurrentArea { get; private set; }
-    public int QuestSkillRewards { get; internal set; }
     public int StashTabs { get; internal set; }
     public int OtherRewards { get; internal set; }
     public Item? LastLooted { get; internal set; }
@@ -87,6 +87,7 @@ public sealed partial class GameSession
         Waypoints.Discover(Areas.TownKey); // the town stone lights on arrival
         CombatRng = new Rng(seed);
         DropRng = new Rng(seed ^ 0x9E3779B97F4A7C15UL);
+        Packs = PackData.Load(D("packs.json"));
     }
 
     public int Level => Character.Level;
@@ -133,7 +134,7 @@ public sealed partial class GameSession
         {
             Engaged ??= Spawn(row, area);
             var (outcome, _) = _flow.Strike(CombatRng, DropRng, Character, Engaged, Ladder,
-                AttackDamageMin, AttackDamageMax, TcKeyFor(area.Level), SpecialKind.Plain, [],
+                AttackDamageMin, AttackDamageMax, TcKeyFor(area.Level), EngagedKind, EngagedAffixKeys,
                 area.Level, AreaSeed(area), MagicFind, GoldFind);
             strikes++;
             if (outcome.Killed) { kills++; xp += outcome.XpGranted; Engaged = null; EngagedKey = null; }
@@ -215,6 +216,8 @@ public sealed partial class GameSession
     private Monster Spawn(MonsterBaseRow row, AreaRow area)
     {
         EngagedKey = row.Key;
+        EngagedKind = SpecialKind.Plain;
+        EngagedAffixKeys = [];
         Engaged = Monsters.Spawn(row, MonsterTable.ResolveSpawnLevel(row, Difficulty.Ordinary, area));
         return Engaged;
     }

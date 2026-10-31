@@ -1,0 +1,14 @@
+# DA round-1 P1-2 CLI probe (orchestrator reruns this verbatim):
+# dotnet run --project src/BabaYaga.Sim.Cli -- --seed 2 --script tests/probe-p12.txt --data data
+# The Gesi rite's SkillPoint reward must land in the real spendable pool: the
+# final 'spend kolo 1' exits 0 with HARDPOINTS:2 (level 5 grants 4 points, the
+# two spends above consume them; only the quest reward can fund this fifth).
+new koldun
+levelto 5
+spend iskra 3
+spend kolo 1
+quest gesi accept
+attack pokrzywnik 6
+quest gesi step
+quest gesi complete
+spend kolo 1

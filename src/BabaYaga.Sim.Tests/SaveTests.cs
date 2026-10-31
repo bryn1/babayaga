@@ -126,7 +126,8 @@ public class SaveTests
         try
         {
             session.Save(path);
-            var text = File.ReadAllText(path).Replace("\"version\": 1", "\"version\": 99");
+            var text = File.ReadAllText(path)
+                .Replace($"\"version\": {SaveSerializer.SaveVersion}", "\"version\": 99");
             Assert.NotEqual(text, File.ReadAllText(path)); // the tamper landed
             File.WriteAllText(path, text);
             Assert.Throws<InvalidDataException>(() => GameSession.Load(path, TestData.DataDir()));

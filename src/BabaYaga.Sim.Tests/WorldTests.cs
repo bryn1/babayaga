@@ -97,6 +97,21 @@ public class WorldTests
     }
 
     [Fact]
+    public void DeathPenalty_M2EconomyNames_ClampToTopBand_NotThrow()
+    {
+        // DA round-1 P3-1: sessions legitimately hold Dusk/Midnight/WitchNight
+        // (GameSession.EconomyBand) — the world API must not throw on them.
+        // Reading: clamp to the top world band (Hell's 10 %).
+        foreach (var d in new[] { Difficulty.Dusk, Difficulty.Midnight, Difficulty.WitchNight })
+            Assert.Equal(10, DeathPenalty.PenaltyPercent(d));
+
+        var ladder = TestData.Ladder();
+        Assert.Equal(
+            DeathPenalty.Apply(ladder, 1844, 5, Difficulty.Hell),
+            DeathPenalty.Apply(ladder, 1844, 5, Difficulty.Dusk));
+    }
+
+    [Fact]
     public void DeathPenalty_NeverBelowLevelStart_LevelOneLosesNothing()
     {
         var ladder = TestData.Ladder();
@@ -203,5 +218,24 @@ public class WorldTests
         {
             File.Delete(path);
         }
+    }
+
+    [Fact]
+    public void QuestSkillPointReward_LandsInSpendablePool_NotABank()
+    {
+        // DA round-1 P1-2: the reward must reach Character.SkillPoints (P1 §1.1's
+        // 5 quest pts) so the real spend engine accepts it — the session-level
+        // twin of the tests/probe-p12.txt CLI probe.
+        var s = GameSession.New(9UL, "koldun", TestData.DataDir());
+        s.LevelTo(2);
+        s.SpendSkill("iskra");                       // drain the one level-up point
+        Assert.Equal(0, s.Character.SkillPoints);
+        s.QuestAccept("gesi");
+        s.QuestStep("gesi");
+        s.QuestComplete("gesi");                     // the rite pays 1 skill point
+        Assert.Equal(1, s.Character.SkillPoints);
+        s.SpendSkill("iskra");                       // spends WITHOUT throwing
+        Assert.Equal(2, s.Skills.HardPoints("iskra"));
+        Assert.Equal(0, s.Character.SkillPoints);
     }
 }

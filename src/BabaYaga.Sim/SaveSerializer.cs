@@ -9,7 +9,10 @@ namespace BabaYaga.Sim;
 /// </summary>
 public static class SaveSerializer
 {
-    public const int SaveVersion = 1;
+    /// <summary>Save-format version 2 (DA round-1 P1-1): the DTO gained the two
+    /// RNG state words and dropped the quest-point bank; a foreign Version is
+    /// refused rather than silently half-restored.</summary>
+    public const int SaveVersion = 2;
 
     private static readonly JsonSerializerOptions FileOpts = new()
     { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
@@ -42,6 +45,8 @@ public static class SaveSerializer
         return new SessionSave
         {
             Seed = s.Seed,
+            CombatRngState = s.CombatRng.State,
+            DropRngState = s.DropRng.State,
             ClassKey = c.Profile.Key,
             Name = c.Name,
             Xp = c.Xp,
@@ -62,7 +67,6 @@ public static class SaveSerializer
                 .Select(def => new SkillPointsSave(def.Id, s.Skills.HardPoints(def.Id)))
                 .Where(p => p.Points > 0)
                 .OrderBy(p => s.SkillData.Find(p.Id)!.Row).ThenBy(p => p.Id, StringComparer.Ordinal)],
-            QuestSkillRewards = s.QuestSkillRewards,
             StashTabs = s.StashTabs,
             OtherRewards = s.OtherRewards,
             LastLootedIdx = s.LastLooted is null ? -1 : s.Carried.IndexOf(s.LastLooted),
@@ -81,6 +85,11 @@ public static class SaveSerializer
     {
         try
         {
+            // Stream state first (DA P1-1): everything below restores without
+            // consuming, and the loaded session continues where it left off.
+            s.CombatRng.State = d.CombatRngState;
+            s.DropRng.State = d.DropRngState;
+
             var c = s.Character;
             c.GrantXp(d.Xp, s.Ladder);
             Allocate(c, AllocatableStat.Strength, d.StrAlloc);
@@ -127,7 +136,6 @@ public static class SaveSerializer
             if (d.QuestPhases.Count != s.Quests.Quests.Count)
                 throw new InvalidDataException("save lists a different quest count than the table");
 
-            s.QuestSkillRewards = d.QuestSkillRewards;
             s.StashTabs = d.StashTabs;
             s.OtherRewards = d.OtherRewards;
 
