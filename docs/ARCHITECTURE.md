@@ -1,10 +1,18 @@
-# Baba Yaga — Architecture (v9, 2026-10-31)
+# Baba Yaga — Architecture (v10, 2026-10-31)
 
-version: 9 (M4 presentation placement, card/11778 — new §game/ presentation section (PLANNED) matching
-run 202610301950-31593a83 `out/M4-placement.md` exactly (file-level game/ tree, boot flow, InputMap,
-HUD, state bridge = the CLI-proven GameSession public surface ONLY, ZERO Sim edits) + the PLANNED
-assets/ pipeline (art pass → assets/raw/ in git → one-way copy → game/assets/, never hand-modified
-in game/); the two stale planned game/ rows re-pointed; 16 fences, all blocks balanced; v8 archived
+version: 10 (M4 §game/ SYNC + waypoint-order fix, card/11809 — §game/ synced to run
+202610301950-31593a83 `out/M4-placement.md` rev3 (MonsterField.cs + scripts/Fnv.cs join the tree and
+the Act.cs composition; boot flow carries the EXACT headless check, the leg-3b scene-execution smoke
+and the real 2-arg `GameSession.Load(path, dataDir)`, .World.cs:115); the live-probed WAYPOINT ORDER
+CONTRACT (light the DESTINATION stone BEFORE the travel needing it) replaces the discover-after-travel
+rule — a post-travel entry-discover is a guaranteed throw (`stone … is already lit`, probes
+out/.tmp/m4b @ f3d98d9, DA-verdict-m4-c2 P1-c2-1); TILE SCALE 2× + SPRITE DRAW SCALE + the ONE FNV
+helper (`Fnv.Hash`, FNV-1a 32-bit, offset 2166136261 prime 16777619) stated; DoD-precedence line
+added; fences even, all blocks balanced; v9 archived in git history. Earlier: v9 (M4 presentation
+placement, card/11778 — the §game/ presentation section (PLANNED) + the assets/ pipeline (art pass →
+assets/raw/ in git → one-way copy → game/assets/, never hand-modified in game/) + the two stale
+planned game/ rows re-pointed; it matched `out/M4-placement.md` rev1 — placement later moved on and
+DA-verdict-m4-c2 P2-c2-1 caught the twin drift, which v10 closes on rev3; v8 archived
 in git history. Earlier: v8 (ARCH closing fix, card/11765 — code-fence repair (the M2 as-built block now closes at
 its true end before the M3 header; 14 fences, all blocks balanced) + truth-status fix (Difficulty
 dedup RESOLVED by MC 11751, merge a5d8d26, SharedDifficultyTests pins it); v7 archived in git
@@ -67,7 +75,7 @@ babayaga/                     this git tree (root = repo root, layout v2)
   tests/                      CLI journey scripts (tests/journey.txt) + the planned pytest suite
   data/                       ORIGINAL JSON tables: skills, items, monsters, acts (+ affixes,
                               runewords, cube recipes, npcs, quests, waypoints) — content, in git
-  assets/                     3090-generated ORIGINAL art masters — v9 pipeline: the art pass lands
+  assets/                     3090-generated ORIGINAL art masters — pipeline (v9, kept at v10): the art pass lands
                               originals in assets/raw/ (git); a one-way copy feeds game/assets/ before
                               the headless --import step; nothing under game/ is ever hand-modified
                               (fix art at the assets/raw/ source, re-copy, re-import)
@@ -362,9 +370,9 @@ src/BabaYaga.Sim/DataTables.cs            — BUILT distributed: each table ship
 src/BabaYaga.Sim/SaveSerializer.cs        — BUILT as M1 close-out above (SaveSerializer + SaveDto)
 src/BabaYaga.Sim/SimSession.cs            — superseded by GameSession.cs + GameSession.World.cs (M1 close-out; scripted commands, no tick loop yet)
 src/BabaYaga.Sim.Cli/Program.cs           — BUILT as M1 close-out above (Program + CommandRunner + ScriptedSession)
-~~game/Main.cs + Main.tscn~~ — SUPERSEDED by the v9 §game/ placement below: the entry is
+~~game/Main.cs + Main.tscn~~ — SUPERSEDED by the v10 §game/ placement below: the entry is
     game/Main.tscn scripted by scripts/Boot.cs (the Main.cs name retired before it was ever built)
-~~game/scenes/…~~ — SUPERSEDED for the slice by the v9 §game/ placement below; the M4-WIDE
+~~game/scenes/…~~ — SUPERSEDED for the slice by the v10 §game/ placement below; the M4-WIDE
     per-screen list (inventory grid, skill panel, automap overlay, shop, cube, stash, TP) stays
     planned for later slices; T0b P3 §7 inventory
 
@@ -372,46 +380,93 @@ src/BabaYaga.Sim.Cli/Program.cs           — BUILT as M1 close-out above (Progr
 `test_combat.py`, `test_itemgen.py`, `test_monsters.py`, `test_progression.py`, `test_save.py` —
 each asserts on CLI markers/exit codes only.
 
-## game/ — presentation layer (PLANNED at v9, card/11778 — nothing built yet)
+## game/ — presentation layer (PLANNED at v10 — placement card/11778, this sync card/11809; nothing built yet)
 
 The executable file-level plan and the 26-render ART SPEC the art pass consumes verbatim are
 `out/M4-placement.md` in run `202610301950-31593a83` (run dir at the Games workspace root); slice
-acceptance is `out/M4-slice-DoD.md` beside it. The M4 SLICE: Bobrowisko (town) and Mchary (one
-wilderness area) renderable, the hero walks and strikes one monster row, the HUD binds live
-session state, the headless marker leg is green. The list below is the contract the slice builder
-follows verbatim.
+acceptance is `out/M4-slice-DoD.md` beside it. PRECEDENCE (v10, DA-verdict-m4-c2 P2-c2-1): where any
+doc conflicts, `out/M4-slice-DoD.md` rev3 + this section govern; `out/M4-placement.md` is the
+executable detail. The M4 SLICE: Bobrowisko (town) and Mchary (one wilderness area) renderable, the
+hero walks and strikes one monster row, the HUD binds live session state, the headless marker leg is
+green. The tree block below is `out/M4-placement.md` rev3 §1 VERBATIM — byte-diff of the two fenced
+blocks is EMPTY (proof row in the card RESULT); its inline §-refs resolve inside M4-placement.md,
+where the bridge table and ART SPEC live. It is the contract the slice builder follows.
 
 ```
 game/
-  project.godot           features "4.7"+"GL Compatibility"; run/main_scene res://Main.tscn;
-                          [dotnet] assembly_name "Game"; renderer gl_compatibility (llvmpipe-proven
-                          T0c §4); [input] the ONLY input mechanism: move_to (LMB) · attack (RMB) ·
-                          inventory_toggle (Tab) · game_menu (Esc) · save_game (F5)
-  Game.csproj             Godot.NET.Sdk/4.7.2 + net8.0; ProjectReference
-                          ../src/BabaYaga.Sim/BabaYaga.Sim.csproj — its ONLY project reference;
-                          NOT added to BabaYaga.sln (keeps the sim gates engine-free — §trade-offs)
-  Main.tscn               root scripted by scripts/Boot.cs; T0c §4.3 ext_resource shape
-  scenes/MainMenu.tscn    MainMenu.cs — title card + New Game / Continue / Quit                  ~80
-  scenes/Act.tscn         Act.cs — composes IsoCamera + AreaRenderer + HeroController + Hud       ~120
-  scenes/Inventory.tscn   InventoryPanel.cs — panel OVER Act.tscn; one session, never a second   ~150
-  scripts/Boot.cs         headless run: GameSession.New(42,"koldun",dataDir), ≥3 SIM_TICK lines +
-                          ORCH_M4_OK, Quit(0) (T0c §6 marker shape); windowed: → MainMenu. Zero rules ~90
-  scripts/GameContext.cs  the ONE session holder (plain static: New/Save/Load + user:// path);
-                          no autoload singleton                                                  ~60
-  scripts/IsoCamera.cs    Camera2D: grid W×H <-> screen 2:1 iso (tile 128×64); every range check
-                          REUSES WorldPos.DistanceTo (Chebyshev — AreaGraph's single metric)      ~100
-  scripts/AreaRenderer.cs TileMapLayer from res://assets/tiles/*.png; display-only layout seed =
-                          FNV1a(area key) until MapGen (row 59); ResourceLoader.Exists guard →
-                          palette-color diamond placeholders while art is absent                  ~180
-  scripts/HeroController.cs  [input]-driven; click-to-move = world-local grid path (the Sim stores
-                          NO hero position — invariant below); click monster → GameSession.Attack
-                          (key,1); loot key → Loot(1); edge door → TravelTo, rejection = HUD hint ~180
+  project.godot           config/name "BabaYaga"; features PackedStringArray("4.7","GL Compatibility");
+                          run/main_scene="res://Main.tscn"; [dotnet] project/assembly_name="Game";
+                          rendering/method="gl_compatibility"; [input] ONLY here:
+                          move_to (LMB) · attack (RMB) · inventory_toggle (Tab) · game_menu (Esc) · save_game (F5)
+  Game.csproj             Sdk="Godot.NET.Sdk/4.7.2", TargetFramework=net8.0, Nullable=enable,
+                          TreatWarningsAsErrors=true; ProjectReference ../src/BabaYaga.Sim/BabaYaga.Sim.csproj.
+                          NOT added to BabaYaga.sln (deliberate, §6)
+  Main.tscn               root Node scripted by scripts/Boot.cs; shape per T0c §4.3:
+                          [ext_resource type="Script" path="res://scripts/Boot.cs"] (no class=/language=)
+  scenes/MainMenu.tscn    scripts/MainMenu.cs  — title card + New Game / Continue / Quit         ~80 ln
+  scenes/Act.tscn         scripts/Act.cs       — composes IsoCamera+AreaRenderer+MonsterField+
+                                                  HeroController+Hud (rev2: MonsterField joins the
+                                                  composition — the monster sprite owner, below)  ~120 ln
+  scenes/Inventory.tscn   scripts/InventoryPanel.cs — panel OVER Act.tscn; never a 2nd session   ~150 ln
+  scripts/Boot.cs         entry. headless — the EXACT check (rev2, DA P4-1):
+                          `DisplayServer.GetName() == "headless"` (`DisplayServer.Headless` is NOT
+                          in the 4.7.2 bindings — CS0117, DA probe). Then: GameSession.New(42,
+                          "koldun",dataDir) → ≥3 SIM_TICK lines → ONE scenes/Act.tscn instantiate
+                          through the placeholder pass → DA_SCENE_ACT_OK → ORCH_M4_OK → Quit(0)
+                          (T0c §6 marker shape; rev2 leg 3b — compile is not execution; rev3: the
+                          smoke performs NO waypoint verb after any travel — DoD 3b).
+                          windowed: → MainMenu.tscn. Zero rules.                                ~90 ln
+  scripts/GameContext.cs  the ONE session holder passed between scenes — plain static:
+                          New(seed)/Save()/Load()/Session + user://save path. NO autoload singleton. ~60 ln
+  scripts/IsoCamera.cs    Camera2D: grid W×H <-> screen 2:1 iso (sx=(x−y)·TILE_W/2, sy=(x+y)·TILE_H/2,
+                          TILE 128×64 CELLS — art is 256×128 drawn at scale 0.5, §3 TILE SCALE
+                          CONTRACT); drag-clamped to W×H; range/range-check math calls
+                          WorldPos.DistanceTo — Chebyshev, reused, never re-implemented            ~100 ln
+  scripts/AreaRenderer.cs TileMapLayer per area from res://assets/tiles/*.png; display-only layout
+                          seed=Fnv.Hash(area key) (the ONE helper, Fnv.cs below) until MapGen (row
+                          59) ships; ResourceLoader.Exists guard → palette-color diamond
+                          placeholders when art absent (PushWarning once);
+                          EXPOSES its walkable-cell list (rev2: MonsterField lays its row on it)     ~180 ln
+  scripts/MonsterField.cs MONSTER SPRITE OWNER (rev2, DA P2-2 — presentation-side; the Sim stores NO
+                          monster positions, §2 invariant, so the slice's monsters live ONLY here):
+                          draws the M1–M3 idle sprites, hit-tests clicks, hands the clicked monster
+                          KEY to HeroController. Slice area→monster-keys map is a code constant
+                          { "mchy": pokrzywnik }; grodzisko is town (isTown: true — none spawn).
+                          No per-area spawn table exists in data/ (monsters.json carries no area
+                          field — checked rev2): the data-driven table is the MONSTER-RENDERER DEBT,
+                          exact LEDGER row in M4-slice-DoD.md's DEBT-ROW block. Spawner seed =
+                          Fnv.Hash(area + ":mon") (Fnv.Hash(s) ONLY — no second implementation,
+                          Fnv.cs below) over AreaRenderer's walkable cells, one idle row
+                          of N=4 sprites until the data table ships.                                ~110 ln
+  scripts/Fnv.cs          the ONE FNV helper (rev3, DA P3-c2-1): static Fnv.Hash(string) = FNV-1a
+                          32-bit over the string's UTF-8 bytes — h=2166136261 (offset), per byte
+                          h=(h^b)*16777619 (prime), uint32 wrap; AreaRenderer + MonsterField call
+                          Fnv.Hash(s) ONLY — NO second implementation anywhere; seeds are
+                          display-only (placeholder layout, spawner), never persisted state           ~20 ln
+  scripts/HeroController.cs consumes [input] actions ONLY (InputEventMouseButton, no polling);
+                          click-to-move = grid path (A* over walkable cells, WORLD-LOCAL — the Sim
+                          stores no position, §2 invariant); click monster (cell key from
+                          MonsterField) → GameSession.Attack(key,1); loot key → Loot(1); area-edge
+                          door → the WAYPOINT ORDER CONTRACT (§2, the ONE wording, rev3 live-probed): light
+                          the DESTINATION stone BEFORE the travel needing it —
+                          `if (!session.Waypoints.IsDiscovered(dest)) session.DiscoverWaypoint(dest);`
+                          THEN `session.TravelTo(dest)` (catch SessionRejectedException → HUD hint,
+                          never a crash); the rev2 discover-AFTER-travel entry rule is DELETED — a
+                          guaranteed throw (§2 WHY; DA-verdict-m4-c2 P1-c2-1); hero frame =
+                          screen-dominant step, §3 FACING CONVENTION                               ~185 ln
   scripts/Hud.cs          life/mana orbs + XP bar + gold + engaged-target line + rite counter —
-                          PULLS state each frame, zero rules                                      ~150
-  scripts/InventoryPanel.cs  4×10 grid + equipment panel bound to session.Carried/Equipment      ~150
-  data/                   one-way git-tracked COPY of repo data/*.json; dataDir =
-                          GlobalizePath("res://data"); never hand-edited (drift gate in the DoD)
-  assets/                 one-way COPY of repo assets/ (tiles·hero·monsters·ui·title), same rule
+                          reads state each _Process, zero rules                                   ~150 ln
+  scripts/InventoryPanel.cs 4×10 grid + equipment panel bound to session.Carried / Equipment     ~150 ln
+  data/                   ONE-WAY copy of repo data/*.json (git-tracked copy); dataDir for
+                          GameSession.New = ProjectSettings.GlobalizePath("res://data");
+                          never hand-edited — drift gate `diff -r data game/data` (DoD §6; JSON
+                          takes no .import sidecars — DA probe COUNT=0)
+  assets/                 ONE-WAY copy of repo assets/ (tiles·hero·monsters·ui·title). rev2 rule
+                          (DA P1-3): Godot `--import` writes ONE `.import` sidecar beside EACH
+                          source INSIDE game/assets — sidecars are engine-generated, git-tracked,
+                          never hand-edited — so the drift gate compares SOURCES ONLY:
+                          `diff -r assets game/assets -x '*.import'` EMPTY (DoD §6). A plain
+                          `diff -r` here is permanently RED once art lands and must not be used.
 ```
 
 State bridge (invariant — violating it is a bug): `game/` calls the GameSession public surface the
@@ -424,13 +479,48 @@ edits for M4. Hero screen/grid position lives in HeroController.cs alone; the HU
 no Sim event bus is invented to mirror. The orb rows show MAX values until the current-life pool
 (ledger rows 4–5, BUILDING) ships — a documented gap, not a hidden bug.
 
-Boot flow: project.godot → Main.tscn(Boot.cs) → headless: 3 SIM_TICK + ORCH_M4_OK exit 0 /
-windowed: MainMenu → New Game (GameContext.New(seed)) or Continue (GameSession.Load(user://)) →
-Act.tscn renders session.CurrentArea (slice: grodzisko ↔ mchy) → Tab toggles Inventory.tscn.
+WAYPOINT ORDER CONTRACT (v10 — the ONE wording, identical in M4-placement.md §1/§2; live-probed
+this run at `out/.tmp/m4b/probe1..4` on the real CLI @ f3d98d9): the HeroController door intent is
+`if (!session.Waypoints.IsDiscovered(dest)) session.DiscoverWaypoint(dest); session.TravelTo(dest);`
+— the DESTINATION stone lights BEFORE the travel needing it; catch `SessionRejectedException` → HUD
+hint, never a crash. WHY (source + live readings): `WaypointGraph.CanTravel` requires BOTH endpoints'
+stones lit (WaypointGraph.cs:84) and `GameSession.New` lights ONLY the town stone (GameSession.cs:87);
+`DiscoverWaypoint` THROWS on an already-lit stone (.World.cs:11-15). Probe outcomes: discover-then-
+travel = RESULT OK (the journey.txt ln 13→14 order); travel-first = REJECT `no lit-stone path from
+'grodzisko' to 'mchy'`; re-discover = REJECT `stone in 'mchy' is already lit`; and because every
+successful arrival is AT an already-lit stone, a discover-AFTER-travel entry rule throws on 100% of
+travels (live) — it is NOT the mechanism and the placement rev2 rule that carried it is deleted
+(DA-verdict-m4-c2 P1-c2-1). The headless smoke performs no waypoint verb after any travel (DoD 3b).
+
+Boot flow (v10, synced to placement rev3): project.godot → Main.tscn(Boot.cs) → [headless — the
+EXACT check `DisplayServer.GetName() == "headless"` (`DisplayServer.Headless` does not exist in the
+4.7.2 bindings): `GameSession.New(42,"koldun",dataDir)` → ≥3 `SIM_TICK` lines → ONE `scenes/Act.tscn`
+instantiate through the placeholder pass printing `DA_SCENE_ACT_OK` BEFORE `ORCH_M4_OK` (the leg-3b
+scene-execution smoke — compile is not execution) → Quit(0), exit 0] / [windowed: MainMenu → New
+Game (GameContext.New(seed)) or Continue (`GameSession.Load(savePath, dataDir)` — the real 2-arg
+signature `static Load(string path, string dataDir)`, .World.cs:115; savePath is the `user://` save,
+dataDir = `GlobalizePath("res://data")`; a 1-arg call does not exist)] → Act.tscn renders
+`session.CurrentArea` (slice: grodzisko ↔ mchy) → Tab toggles Inventory.tscn.
+
+TILE SCALE CONTRACT (v10, placement rev3 §3): tile ART is 256×128 px; the iso CELL is 128×64 px; the
+TileMapLayer draws each art tile at scale 0.5 — exactly 2× on both axes (256/128 = 128/64 = 2.0);
+cells stay 128×64, art stays 256×128, neither side re-interpreted. SPRITE DRAW SCALE: the 0.5 scale
+belongs to TILE ART ONLY — hero frames (128×128) and monster frames (160×160/frame) draw at scale
+1.0, feet anchored at cell centre, Y-sorted after the tiles (DA-verdict-m4-c2 P4-c2-3 folded).
+
+FNV (v10, DA-verdict-m4-c2 P3-c2-1 — one implementation, mechanism-monogamy): the single helper is
+`scripts/Fnv.cs` — `Fnv.Hash(string)` = FNV-1a 32-bit over the string's UTF-8 bytes (offset
+2166136261, prime 16777619, uint32 wrap). AreaRenderer's layout seed = `Fnv.Hash(area)`;
+MonsterField's spawner seed = `Fnv.Hash(area + ":mon")`; `Fnv.Hash(s)` ONLY — no second FNV loop
+anywhere; both seeds are display-only, never persisted state.
 
 PLANNED assets/ pipeline: 3090 imagegen originals (spec verbatim in out/M4-placement.md §3) →
 repo assets/raw/ (git) → one-way copy → game/assets/ → `"$GODOT" --headless --path game --import`
 → Sprite2D/AnimatedSprite2D/TileMapLayer consume. The R2 wall binds art too: every render ORIGINAL.
+Sidecar rule (placement rev2/rev3 §1, DoD leg 6): `--import` writes git-tracked `.import` sidecars
+beside each source inside game/assets, so the drift gate is SOURCE-ONLY
+(`diff -r assets game/assets -x '*.import'` EMPTY).
+
 
 ## Trade-offs rejected (named, with reason)
 
@@ -466,6 +556,9 @@ xunit CliScriptTests + journey.txt/probe-p12.txt scripted journeys exist — the
 not), `assets/`, MapGen (row 59), NPC roster (60), hirelings (65-66), ritual-craft engine (48),
 stash tabs (74), frame breakpoints (23-25), weapon sets (68). The next build phase must update
 this file to match what it actually created, in the same run. v9 adds DESIGN TEXT ONLY (the §game/
-section, the assets/raw/ pipeline note, the two re-pointed planned rows, five v9 trade-off rows):
+section, the assets/raw/ pipeline note, the two re-pointed planned rows, five v9 trade-off rows);
+v10 is DESIGN TEXT ONLY TOO (the §game/ re-sync to placement rev3 verbatim, the live-probed WAYPOINT
+ORDER CONTRACT, TILE-SCALE/FNV/sidecar notes and the precedence line — the State-bridge paragraph
+stands verbatim, its command set re-proven identical to placement §2, DA-verdict-m4-c2 RC1):
 no game file exists, the As-built sections stand verbatim, and §game/ flips to as-built only in
 the M4 slice's own commit.
