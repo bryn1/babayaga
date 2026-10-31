@@ -51,6 +51,8 @@ public static class MonsterMinions
             AttackRating = st.ToHit,
             Defense = st.Defense,
             ElementalResistPercent = row.ResistPercent,
+            DamageMin = st.DamageMin,
+            DamageMax = st.DamageMax,
         };
     }
 }

@@ -16,6 +16,9 @@ public sealed class SessionSave
     public ulong Seed { get; init; }
     public ulong CombatRngState { get; init; }
     public ulong DropRngState { get; init; }
+    /// <summary>Third stream (v4, row 69): monster counter rolls; restored like
+    /// the other two so a loaded session continues it, never replays it.</summary>
+    public ulong EnemyRngState { get; init; }
     public string ClassKey { get; init; } = "";
     public string Name { get; init; } = "";
     public long Xp { get; init; }
@@ -25,6 +28,10 @@ public sealed class SessionSave
     public int EnerAlloc { get; init; }
     public long FlatLife { get; init; }
     public long FlatMana { get; init; }
+    /// <summary>CURRENT pools (v4, row 69): the belt's life/mana as saved —
+    /// MaxLife/MaxMana stay computed, never stored.</summary>
+    public long Life { get; init; }
+    public long Mana { get; init; }
     public int IncLifePercent { get; init; }
     public int IncManaPercent { get; init; }
     public long WeaponBaseAr { get; init; }
@@ -49,6 +56,9 @@ public sealed class SessionSave
     public int StashTabs { get; init; }
     public int OtherRewards { get; init; }
     public int LastLootedIdx { get; init; } = -1;
+    /// <summary>Belt cells as carried indices, -1 for an empty slot (v4, row 69) —
+    /// the LastLootedIdx pattern: the slot re-points at the RESTORED item copy.</summary>
+    public IReadOnlyList<int> Belt { get; init; } = [];
     public string? EngagedKey { get; init; }
     public long EngagedLife { get; init; }
     public IReadOnlyList<ItemSave> Carried { get; init; } = [];

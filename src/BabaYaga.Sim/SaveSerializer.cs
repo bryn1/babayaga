@@ -13,8 +13,11 @@ public static class SaveSerializer
     /// explicit unspentSkillPoints pool — the pool restores FROM THE SAVE, never
     /// re-derived (quest rewards deliberately skip replay). Version 2 was the
     /// round-1 stream-state fix; a foreign Version is refused rather than
-    /// silently half-restored.</summary>
-    public const int SaveVersion = 3;
+    /// silently half-restored. Version 4 (row 69, M4-S5): the current life/mana
+    /// pools, the third (enemy-counter) stream word, and the belt as carried
+    /// indices — a loaded belt re-points at the restored copies, never at the
+    /// pre-save instances.</summary>
+    public const int SaveVersion = 4;
 
     private static readonly JsonSerializerOptions FileOpts = new()
     { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
@@ -49,11 +52,13 @@ public static class SaveSerializer
             Seed = s.Seed,
             CombatRngState = s.CombatRng.State,
             DropRngState = s.DropRng.State,
+            EnemyRngState = s.EnemyRng.State,
             ClassKey = c.Profile.Key,
             Name = c.Name,
             Xp = c.Xp,
             StrAlloc = c.StrAlloc, DexAlloc = c.DexAlloc, VitAlloc = c.VitAlloc, EnerAlloc = c.EnerAlloc,
             FlatLife = c.FlatLife, FlatMana = c.FlatMana,
+            Life = c.Life, Mana = c.Mana,
             IncLifePercent = c.IncreaseMaxLifePercent, IncManaPercent = c.IncreaseMaxManaPercent,
             WeaponBaseAr = c.WeaponBaseAr, FlatAr = c.FlatAr, ArPercent = c.ArPercent,
             ShieldBlockBase = c.ShieldBlockBase, BlockBonus = c.BlockBonus,
@@ -73,6 +78,7 @@ public static class SaveSerializer
             StashTabs = s.StashTabs,
             OtherRewards = s.OtherRewards,
             LastLootedIdx = s.LastLooted is null ? -1 : s.Carried.IndexOf(s.LastLooted),
+            Belt = [.. s.Belt.Select(i => i is null ? -1 : s.Carried.IndexOf(i))],
             EngagedKey = s.EngagedKey,
             EngagedLife = s.Engaged?.Life ?? 0,
             Carried = [.. s.Carried.Select(i => ItemDto(i, s.CarriedSpots.GetValueOrDefault(i, (-1, -1))))],
@@ -92,6 +98,7 @@ public static class SaveSerializer
             // consuming, and the loaded session continues where it left off.
             s.CombatRng.State = d.CombatRngState;
             s.DropRng.State = d.DropRngState;
+            s.EnemyRng.State = d.EnemyRngState;
 
             var c = s.Character;
             c.GrantXp(d.Xp, s.Ladder);
@@ -101,6 +108,8 @@ public static class SaveSerializer
             Allocate(c, AllocatableStat.Energy, d.EnerAlloc);
             c.FlatLife = d.FlatLife;
             c.FlatMana = d.FlatMana;
+            c.Life = d.Life; // absolute pool restore (v4) — Max stays computed
+            c.Mana = d.Mana;
             c.IncreaseMaxLifePercent = d.IncLifePercent;
             c.IncreaseMaxManaPercent = d.IncManaPercent;
             c.WeaponBaseAr = d.WeaponBaseAr;
@@ -162,6 +171,7 @@ public static class SaveSerializer
                     throw new InvalidDataException("lastLootedIdx outside the carried list");
                 s.LastLooted = s.Carried[d.LastLootedIdx];
             }
+            s.RestoreBelt(d.Belt); // AFTER the carried rebuild — slots point at restored copies
             foreach (var eq in d.Equipment)
                 if (!s.Equipment.Equip(BuildItem(s, eq.Item), Enum.Parse<EquipSlot>(eq.Slot)))
                     throw new InvalidDataException($"equipment slot '{eq.Slot}' refused its item");
