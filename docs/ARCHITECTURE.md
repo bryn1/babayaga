@@ -1,6 +1,11 @@
-# Baba Yaga — Architecture (v8, 2026-10-31)
+# Baba Yaga — Architecture (v9, 2026-10-31)
 
-version: 8 (ARCH closing fix, card/11765 — code-fence repair (the M2 as-built block now closes at
+version: 9 (M4 presentation placement, card/11778 — new §game/ presentation section (PLANNED) matching
+run 202610301950-31593a83 `out/M4-placement.md` exactly (file-level game/ tree, boot flow, InputMap,
+HUD, state bridge = the CLI-proven GameSession public surface ONLY, ZERO Sim edits) + the PLANNED
+assets/ pipeline (art pass → assets/raw/ in git → one-way copy → game/assets/, never hand-modified
+in game/); the two stale planned game/ rows re-pointed; 16 fences, all blocks balanced; v8 archived
+in git history. Earlier: v8 (ARCH closing fix, card/11765 — code-fence repair (the M2 as-built block now closes at
 its true end before the M3 header; 14 fences, all blocks balanced) + truth-status fix (Difficulty
 dedup RESOLVED by MC 11751, merge a5d8d26, SharedDifficultyTests pins it); v7 archived in git
 history. Earlier: v7 (DA round-2 fix addendum, card/11757 — save v3 persists the unspent skill-point
@@ -12,7 +17,9 @@ profile, run 202610301950-31593a83, MC 11739; board record MC 11743 — git hist
 version store; superseded texts are archived in commits 1351b6c / d0ab182 / 737b0dd / 895a8a4 / 5b949f0))
 Maintained per layout v2: the Architect keeps this doc true to the tree. Engine decision is pinned in
 `.audits/202610301950-31593a83/out/T0c-engine-decision.md` (run dir at the Games workspace root);
-mechanics Bible is T0b parts 1–3 in the same `out/` dir.
+mechanics Bible is T0b parts 1–3 in the same `out/` dir. Length rationale (file hygiene): the ONE
+canonical architecture statement stays whole — a split would create a second arch source (rejected);
+the as-built blocks are the only growth, and splitting them is a ruled card, not a drive-by.
 
 ## What the product is
 
@@ -60,8 +67,10 @@ babayaga/                     this git tree (root = repo root, layout v2)
   tests/                      CLI journey scripts (tests/journey.txt) + the planned pytest suite
   data/                       ORIGINAL JSON tables: skills, items, monsters, acts (+ affixes,
                               runewords, cube recipes, npcs, quests, waypoints) — content, in git
-  assets/                     3090-generated ORIGINAL art masters; copied into game/assets/ before
-                              the headless --import step (one-way copy, never edited in game/)
+  assets/                     3090-generated ORIGINAL art masters — v9 pipeline: the art pass lands
+                              originals in assets/raw/ (git); a one-way copy feeds game/assets/ before
+                              the headless --import step; nothing under game/ is ever hand-modified
+                              (fix art at the assets/raw/ source, re-copy, re-import)
 ```
 
 ## Dependency rule (mechanism-monogamy: one place for rules, one for pixels)
@@ -353,12 +362,75 @@ src/BabaYaga.Sim/DataTables.cs            — BUILT distributed: each table ship
 src/BabaYaga.Sim/SaveSerializer.cs        — BUILT as M1 close-out above (SaveSerializer + SaveDto)
 src/BabaYaga.Sim/SimSession.cs            — superseded by GameSession.cs + GameSession.World.cs (M1 close-out; scripted commands, no tick loop yet)
 src/BabaYaga.Sim.Cli/Program.cs           — BUILT as M1 close-out above (Program + CommandRunner + ScriptedSession)
-game/Main.cs + Main.tscn                  — presentation root; instantiates GameSession, no rules — ~150
-game/scenes/…                             — per-screen presentation (inventory grid, skill panel, automap overlay, shop, cube, stash, TP) — each ≤250; T0b P3 §7 inventory
+~~game/Main.cs + Main.tscn~~ — SUPERSEDED by the v9 §game/ placement below: the entry is
+    game/Main.tscn scripted by scripts/Boot.cs (the Main.cs name retired before it was ever built)
+~~game/scenes/…~~ — SUPERSEDED for the slice by the v9 §game/ placement below; the M4-WIDE
+    per-screen list (inventory grid, skill panel, automap overlay, shop, cube, stash, TP) stays
+    planned for later slices; T0b P3 §7 inventory
 
 `tests/` (pytest, one file per mechanic domain, ≤600-line test ceiling): `test_stats.py`,
 `test_combat.py`, `test_itemgen.py`, `test_monsters.py`, `test_progression.py`, `test_save.py` —
 each asserts on CLI markers/exit codes only.
+
+## game/ — presentation layer (PLANNED at v9, card/11778 — nothing built yet)
+
+The executable file-level plan and the 26-render ART SPEC the art pass consumes verbatim are
+`out/M4-placement.md` in run `202610301950-31593a83` (run dir at the Games workspace root); slice
+acceptance is `out/M4-slice-DoD.md` beside it. The M4 SLICE: Bobrowisko (town) and Mchary (one
+wilderness area) renderable, the hero walks and strikes one monster row, the HUD binds live
+session state, the headless marker leg is green. The list below is the contract the slice builder
+follows verbatim.
+
+```
+game/
+  project.godot           features "4.7"+"GL Compatibility"; run/main_scene res://Main.tscn;
+                          [dotnet] assembly_name "Game"; renderer gl_compatibility (llvmpipe-proven
+                          T0c §4); [input] the ONLY input mechanism: move_to (LMB) · attack (RMB) ·
+                          inventory_toggle (Tab) · game_menu (Esc) · save_game (F5)
+  Game.csproj             Godot.NET.Sdk/4.7.2 + net8.0; ProjectReference
+                          ../src/BabaYaga.Sim/BabaYaga.Sim.csproj — its ONLY project reference;
+                          NOT added to BabaYaga.sln (keeps the sim gates engine-free — §trade-offs)
+  Main.tscn               root scripted by scripts/Boot.cs; T0c §4.3 ext_resource shape
+  scenes/MainMenu.tscn    MainMenu.cs — title card + New Game / Continue / Quit                  ~80
+  scenes/Act.tscn         Act.cs — composes IsoCamera + AreaRenderer + HeroController + Hud       ~120
+  scenes/Inventory.tscn   InventoryPanel.cs — panel OVER Act.tscn; one session, never a second   ~150
+  scripts/Boot.cs         headless run: GameSession.New(42,"koldun",dataDir), ≥3 SIM_TICK lines +
+                          ORCH_M4_OK, Quit(0) (T0c §6 marker shape); windowed: → MainMenu. Zero rules ~90
+  scripts/GameContext.cs  the ONE session holder (plain static: New/Save/Load + user:// path);
+                          no autoload singleton                                                  ~60
+  scripts/IsoCamera.cs    Camera2D: grid W×H <-> screen 2:1 iso (tile 128×64); every range check
+                          REUSES WorldPos.DistanceTo (Chebyshev — AreaGraph's single metric)      ~100
+  scripts/AreaRenderer.cs TileMapLayer from res://assets/tiles/*.png; display-only layout seed =
+                          FNV1a(area key) until MapGen (row 59); ResourceLoader.Exists guard →
+                          palette-color diamond placeholders while art is absent                  ~180
+  scripts/HeroController.cs  [input]-driven; click-to-move = world-local grid path (the Sim stores
+                          NO hero position — invariant below); click monster → GameSession.Attack
+                          (key,1); loot key → Loot(1); edge door → TravelTo, rejection = HUD hint ~180
+  scripts/Hud.cs          life/mana orbs + XP bar + gold + engaged-target line + rite counter —
+                          PULLS state each frame, zero rules                                      ~150
+  scripts/InventoryPanel.cs  4×10 grid + equipment panel bound to session.Carried/Equipment      ~150
+  data/                   one-way git-tracked COPY of repo data/*.json; dataDir =
+                          GlobalizePath("res://data"); never hand-edited (drift gate in the DoD)
+  assets/                 one-way COPY of repo assets/ (tiles·hero·monsters·ui·title), same rule
+```
+
+State bridge (invariant — violating it is a bug): `game/` calls the GameSession public surface the
+CLI ALREADY proves — New/Save/Load/Dump; Level/Gold/CurrentArea/EngagedKey; Character.Level/Xp/
+MaxLife/MaxMana; Ladder.TotalXpForLevel/MaxLevel; Purse.Amount; Drops.Pending/Gold/LastDrop;
+Carried (DisplayName/Quality/Base.Width/Height — the per-cell map is internal, the panel
+re-derives); Equipment.Equipped; Areas/Waypoints/Quests; commands Attack/Loot/EquipLastDrop/Buy/
+SellLast/Gamble/Special/TravelTo/DiscoverWaypoint/QuestAccept/QuestStep/QuestComplete. ZERO Sim
+edits for M4. Hero screen/grid position lives in HeroController.cs alone; the HUD is pull-only —
+no Sim event bus is invented to mirror. The orb rows show MAX values until the current-life pool
+(ledger rows 4–5, BUILDING) ships — a documented gap, not a hidden bug.
+
+Boot flow: project.godot → Main.tscn(Boot.cs) → headless: 3 SIM_TICK + ORCH_M4_OK exit 0 /
+windowed: MainMenu → New Game (GameContext.New(seed)) or Continue (GameSession.Load(user://)) →
+Act.tscn renders session.CurrentArea (slice: grodzisko ↔ mchy) → Tab toggles Inventory.tscn.
+
+PLANNED assets/ pipeline: 3090 imagegen originals (spec verbatim in out/M4-placement.md §3) →
+repo assets/raw/ (git) → one-way copy → game/assets/ → `"$GODOT" --headless --path game --import`
+→ Sprite2D/AnimatedSprite2D/TileMapLayer consume. The R2 wall binds art too: every render ORIGINAL.
 
 ## Trade-offs rejected (named, with reason)
 
@@ -368,6 +440,11 @@ each asserts on CLI markers/exit codes only.
 - pytest driving the Godot binary as the primary gate — rejected as PRIMARY (kept as later legs): slower, non-deterministic display path, and rules bugs would hide behind presentation. Engine legs add markers later per T0c.
 - A separate repo for the Sim — rejected: two-repo version dance for one product; in-repo project reference keeps the seam without a second mechanism.
 - Sibling dir naming (`babayaga-audit-*/`, seat-prefixed) — rejected: layout v2 defect (one project = one dir `Games/babayaga/`, group-dir rule).
+- Autoload singleton for the session (v9) — rejected: `GameContext.cs` plain static holder is the one visible C# mechanism; an engine-lifecycle node buys nothing a static doesn't answer for a non-visual concern.
+- Hero position into the Sim as new commands (v9) — rejected: the bridge is the CLI-proven surface; widening it voids the ZERO-Sim-edits contract; movement is presentation-owned state.
+- A second distance metric in game code (euclidean pixel math, v9) — rejected: IsoCamera range checks reuse `WorldPos.DistanceTo` (Chebyshev) — one metric, mechanism-monogamy.
+- HUD recomputing derived numbers (v9) — rejected: game-side rule compute is misplaced code (§dependency rule); the HUD reads only bridge surface.
+- Adding game/Game.csproj to BabaYaga.sln for the slice (v9) — rejected: the xunit/pytest gates stay engine-process- and nuget-free (the sim-first cheap gate, T0c §2); re-admitting it is a full-M4 decision with named engine-leg rows.
 
 ## Truth status of this document
 
@@ -388,4 +465,7 @@ design. What remains DESIGN: `game/`, `tests/` (the pytest-marker suite over CLI
 xunit CliScriptTests + journey.txt/probe-p12.txt scripted journeys exist — the pytest harness does
 not), `assets/`, MapGen (row 59), NPC roster (60), hirelings (65-66), ritual-craft engine (48),
 stash tabs (74), frame breakpoints (23-25), weapon sets (68). The next build phase must update
-this file to match what it actually created, in the same run.
+this file to match what it actually created, in the same run. v9 adds DESIGN TEXT ONLY (the §game/
+section, the assets/raw/ pipeline note, the two re-pointed planned rows, five v9 trade-off rows):
+no game file exists, the As-built sections stand verbatim, and §game/ flips to as-built only in
+the M4 slice's own commit.
