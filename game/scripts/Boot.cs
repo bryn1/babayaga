@@ -48,6 +48,7 @@ public partial class Boot : Node
         {
             JourneyLeg.Run(session, act);
             TradeLeg.Run(session, act); // M4-S2: town vendor trade riding the journey's tail
+            BeltLeg.Run(session, act); // M4-S5: potion belt leg riding the trade leg's town tail
         }
 
         GD.Print("ORCH_M4_OK");

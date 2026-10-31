@@ -49,9 +49,12 @@ public sealed partial class GameSession
     public string? EngagedKey { get; private set; }
     internal Monster? Engaged { get; private set; }
 
-    /// Combat and drop rolls run on separate seeded streams (T0c determinism).
+    /// Combat and drop rolls run on separate seeded streams (T0c determinism);
+    /// monster COUNTER rolls run on a third one (row 69), so the player-side
+    /// combat stream stays bit-identical as the counter mechanic evolves.
     internal Rng CombatRng { get; }
     internal Rng DropRng { get; }
+    internal Rng EnemyRng { get; }
 
     private readonly KillFlow _flow;
     private readonly GambleStore _gambler;
@@ -87,6 +90,7 @@ public sealed partial class GameSession
         Waypoints.Discover(Areas.TownKey); // the town stone lights on arrival
         CombatRng = new Rng(seed);
         DropRng = new Rng(seed ^ 0x9E3779B97F4A7C15UL);
+        EnemyRng = new Rng(seed ^ 0x2545F4914F6CDD1DUL);
         Packs = PackData.Load(D("packs.json"));
     }
 
@@ -121,6 +125,7 @@ public sealed partial class GameSession
     /// Strikes the named monster row (fresh spawn per kill; switching target
     /// abandons the current fight — no flee rules exist yet). Each kill runs the
     /// KillFlow chain: XP already paid by the resolver, event + walk + queue.
+    /// A monster that survives the strike counters once (row 69 — EnemyRng only).
     public AttackReport Attack(string monsterKey, int times)
     {
         if (times < 1) throw new SessionRejectedException("attack times must be at least 1");
@@ -138,6 +143,7 @@ public sealed partial class GameSession
                 area.Level, AreaSeed(area), MagicFind, GoldFind);
             strikes++;
             if (outcome.Killed) { kills++; xp += outcome.XpGranted; Engaged = null; EngagedKey = null; }
+            else CounterStrike(Engaged!); // the survivor hits back once (row 69)
         }
         return new AttackReport(strikes, kills, xp, Drops.Pending, Drops.Gold);
     }
@@ -193,6 +199,7 @@ public sealed partial class GameSession
         Grid.Remove(item);
         Carried.RemoveAt(Carried.Count - 1);
         CarriedSpots.Remove(item);
+        Unbelt(item); // a sold potion must never leave a filled belt slot behind
         if (ReferenceEquals(LastLooted, item)) LastLooted = Carried.Count > 0 ? Carried[^1] : null;
         Purse.Receive(price);
         return price;
@@ -220,6 +227,20 @@ public sealed partial class GameSession
         EngagedAffixKeys = [];
         Engaged = Monsters.Spawn(row, MonsterTable.ResolveSpawnLevel(row, Difficulty.Ordinary, area));
         return Engaged;
+    }
+
+    /// One counter by the engaged survivor (row 69): its OWN to-hit row and damage
+    /// dice (P3 §5.1 columns), rolled on the third stream so player-side streams
+    /// keep their offsets — the same separation DropRng exists for. The defense
+    /// term is the hero's own Attack Rating (P1 §1.4 convention); Life floors at 0
+    /// — hero-death rules ride row 64's live pass, not this card.
+    private void CounterStrike(Monster attacker)
+    {
+        if (attacker.DamageMax < 1) return; // dice-less foundation builds never counter
+        if (!CombatResolver.RollHit(EnemyRng, attacker.AttackRating, Character.AttackRating,
+                attacker.Level, Character.Level))
+            return;
+        Character.TakeDamage(EnemyRng.NextInRange(attacker.DamageMin, attacker.DamageMax));
     }
 
     private bool TryCarry(Item item)

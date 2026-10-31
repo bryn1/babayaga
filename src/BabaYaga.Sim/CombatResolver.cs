@@ -148,6 +148,12 @@ public sealed class Monster
     public long Defense { get; init; } = 10;
     public int ElementalResistPercent { get; init; }
 
+    /// <summary>The row's own damage dice (P3 §5.1 columns) — the counter attack
+    /// rolls them when the monster survives a strike (LEDGER row 69). Rows built
+    /// without them (foundation unit tests) have none and never counter.</summary>
+    public int DamageMin { get; init; }
+    public int DamageMax { get; init; }
+
     public bool IsDead => Life <= 0;
 
     /// Elemental hit against this monster: immune (resist ≥ 100) takes none, else the

@@ -1,15 +1,19 @@
+using System.Linq;
 using Godot;
 
 /// <summary>
 /// Life/mana orbs + XP bar + gold + engaged-target line + rite counter — PULL-ONLY:
 /// reads the GameSession read-only surface each _Process, zero rules computed here
-/// (HUD recompute would be misplaced code per the dependency rule). Life/mana show
-/// MAX values on purpose: no current-life pool exists in the Sim yet (LEDGER rows
-/// 4–5 BUILDING) — a documented gap, not a hidden bug (M4-slice-DoD §2).
+/// (HUD recompute would be misplaced code per the dependency rule). Orbs show
+/// CURRENT/MAX: the current pools joined the Sim with the potion belt (LEDGER row
+/// 69); the Max formulas (rows 4–5) stay the Sim's computed values. The belt row
+/// (row 69's widget) mirrors session.Belt read-only, and keys 1–4 (belt_1..belt_4)
+/// press the SAME public GameSession.UsePotion verb the headless belt leg calls —
+/// rejections become HUD hints, never crashes.
 /// </summary>
 public partial class Hud : CanvasLayer
 {
-    private Label _life = null!, _mana = null!, _xp = null!, _gold = null!,
+    private Label _life = null!, _mana = null!, _belt = null!, _xp = null!, _gold = null!,
         _engaged = null!, _rites = null!, _area = null!, _hint = null!;
 
     public override void _Ready()
@@ -28,6 +32,7 @@ public partial class Hud : CanvasLayer
         // beside their MAX-number labels; the orb art is optional (placeholder pass).
         box.AddChild(OrbRow("res://assets/ui/ui-orb-life.png", "7E1620", out _life, "Life"));
         box.AddChild(OrbRow("res://assets/ui/ui-orb-mana.png", "1F3A8C", out _mana, "Mana"));
+        _belt = Line(box); // the belt row — LEDGER row 69's widget, read-only below
         _xp = Line(box);
         _gold = Line(box);
         _area = Line(box);
@@ -46,17 +51,28 @@ public partial class Hud : CanvasLayer
     /// that gate's planted-red shape.</summary>
     public int LevelShown { get; private set; }
 
+    /// <summary>Filled belt cells the LAST paint showed (0–4) — captured by the
+    /// same session pull as LevelShown. The headless belt leg prints its BELT
+    /// lines through this read-back; a frozen literal is that gate's planted-red
+    /// shape (the same honesty pattern as HUD_LEVEL).</summary>
+    public int BeltFilled { get; private set; }
+
     /// <summary>The one pull-only paint pass — _Process rides it; the headless
-    /// level-up leg runs it explicitly per kill round (the leg is synchronous,
-    /// never frame-bound; zero rules computed here, same as _Process).</summary>
+    /// level-up and belt legs run it explicitly per round (the legs are
+    /// synchronous, never frame-bound; zero rules computed here, same as _Process).</summary>
     public void Refresh()
     {
         var s = GameContext.Session;
         if (s is null) return;
 
-        // MAX values — the current-life pool is LEDGER rows 4–5 (BUILDING), expected.
-        _life.Text = $"Life {s.Character.MaxLife}";
-        _mana.Text = $"Mana {s.Character.MaxMana}";
+        // CURRENT/MAX — the pools joined the Sim with the belt (row 69); Max stays computed.
+        _life.Text = $"Life {s.Character.Life}/{s.Character.MaxLife}";
+        _mana.Text = $"Mana {s.Character.Mana}/{s.Character.MaxMana}";
+
+        // Belt row: four cells in slot order, the read-only mirror of session.Belt.
+        _belt.Text = "Belt [" + string.Join(" ", s.Belt.Select(
+            (item, i) => $"{i + 1}:{item?.Base.Name ?? "-"}")) + "]";
+        BeltFilled = s.Belt.Count(item => item is not null);
 
         long lo = s.Ladder.TotalXpForLevel(s.Level);
         long hi = s.Ladder.TotalXpForLevel(s.Level >= s.Ladder.MaxLevel ? s.Level : s.Level + 1);
@@ -74,6 +90,22 @@ public partial class Hud : CanvasLayer
         foreach (var q in s.Quests.Quests)
             if (q.Phase == BabaYaga.Sim.QuestPhase.Done) done++;
         _rites.Text = $"Rites {done}/{s.Quests.Quests.Count}";
+    }
+
+    /// <summary>Row 69's hotkey row: keys 1–4 (belt_1..belt_4) press the SAME
+    /// public GameSession.UsePotion verb the headless BeltLeg calls — the game
+    /// side carries NO second belt logic. A rejection is a HUD hint, never a
+    /// crash (the HeroController hint idiom).</summary>
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        var s = GameContext.Session;
+        if (s is null) return;
+        for (int i = 0; i < BabaYaga.Sim.GameSession.BeltSlots; i++)
+        {
+            if (!@event.IsActionPressed($"belt_{i + 1}")) continue;
+            try { s.UsePotion(i + 1); }
+            catch (BabaYaga.Sim.SessionRejectedException e) { Hint(e.Message); }
+        }
     }
 
     /// <summary>SessionRejectedException surfaces as a HUD hint, never a crash

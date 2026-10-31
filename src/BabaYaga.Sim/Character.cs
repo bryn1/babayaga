@@ -35,6 +35,13 @@ public sealed class Character
     public int IncreaseMaxLifePercent { get; set; }
     public int IncreaseMaxManaPercent { get; set; }
 
+    /// <summary>The CURRENT pools the belt potions raise (LEDGER row 69) — start
+    /// full, lowered by TakeDamage, floored at 0. The setter is the restore/
+    /// authoring door (the same public-setter idiom as Monster.Life and FlatLife);
+    /// MaxLife/MaxMana stay computed formulas (rows 4–5, untouched here).</summary>
+    public long Life { get; set; }
+    public long Mana { get; set; }
+
     /// Weapon/AR inputs for derived Attack Rating (P1 §1.4).
     public long WeaponBaseAr { get; set; }
     public long FlatAr { get; set; }
@@ -48,6 +55,17 @@ public sealed class Character
     {
         Profile = profile ?? throw new ArgumentNullException(nameof(profile));
         Name = name;
+        Life = MaxLife; // the session's hero arrives full; the pools ride saves (DTO v4)
+        Mana = MaxMana;
+    }
+
+    /// <summary>Monster counter-damage (LEDGER row 69): the pool floors at 0 —
+    /// NO hero-death rules exist yet (the DeathPenalty live path rides row 64's
+    /// M4 pass), so zero is a floor, never a kill.</summary>
+    public void TakeDamage(long amount)
+    {
+        if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
+        Life = Math.Max(0, Life - amount);
     }
 
     public int TotalStr => Profile.StartStr + StrAlloc + StrFromItems;

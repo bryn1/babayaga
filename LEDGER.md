@@ -94,7 +94,7 @@ STATUS: row 77 PAYMENT: per-area monster table landed as data/area-monsters.json
 | 66 | Merc XP chain w/ 86/256 + 1/64 cap | M3 | NOT-BUILT |
 | 67 | Inventory 4×10 grid w/ w×h placement | M4 | BUILT-M2 |
 | 68 | Equipment panel 10 slots + 2 weapon sets | M4 | NOT-BUILT |
-| 69 | Potion belt 4-cell hotkeys 1–4 | M4 | NOT-BUILT |
+| 69 | Potion belt 4-cell hotkeys 1–4 | M4 | BUILT-M4 (napitek-zycia/napitek-manny data rows + Vendor.Standard town stock; belt = session state, AddToBelt/RemoveFromBelt/UsePotion doors, counter-damage lowers the pools; 15 BeltPotionTests + headless belt leg BELT 0/4→2/4→1/4 + POTION_USE + BELT_OK green — evidence run .audits/202610301950-31593a83, leg game/scripts/BeltLeg.cs, hotkeys belt_1..belt_4 share the one UsePotion path; windowed hotkey pass pending the row-76 art window) |
 | 70 | 8 skill hotkey slots + weapon-set toggle | M4 | NOT-BUILT |
 | 71 | Stats/resist character sheet | M4 | NOT-BUILT |
 | 72 | Automap overlay + POIs + waypoint book (act tabs) | M4 | NOT-BUILT |

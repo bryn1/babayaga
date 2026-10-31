@@ -21,12 +21,15 @@ public sealed record ItemBaseRow(
     int ReqStr,
     int ReqDex,
     IReadOnlyList<string> Equiv,
-    /// <summary>false = row is always Normal quality: gems, runes, potions (P2 §4.1 tier gate).</summary>
+    /// <summary>false = row is always Normal quality: gems, runes (P2 §4.1 tier gate).</summary>
     bool QualityRolls,
     /// <summary>true = alvl is L directly, skipping the −qlvl/2 drop (P2 §4.2).</summary>
     bool MagicLevelAdd,
     /// <summary>true = vendor sell applies the class quarter a second time (P2 §4.8).</summary>
-    bool ClassSpecific)
+    bool ClassSpecific,
+    /// <summary>true = belt-side consumable (row 69 potions): never enters the
+    /// Stock roll pipeline (gamble, drops) and needs no durability.</summary>
+    bool Consumable)
 {
     /// <summary>Type name for an itype-or-equiv token match against a runeword's list (P2 §4.5).
     /// Plural/singular spellings are the same type token.</summary>
@@ -57,9 +60,10 @@ public sealed class ItemBaseTable
     public ItemBaseRow? Find(string id) =>
         _byId.TryGetValue(id, out var b) ? b : null;
 
-    /// <summary>Rows a monster/gamble stock may hold (quality-rolling bases only).</summary>
+    /// <summary>Rows a monster/gamble stock may hold (quality-rolling bases only;
+    /// consumables — the belt potions — are stock-side never-rolled too).</summary>
     public IReadOnlyList<ItemBaseRow> Stock =>
-        Bases.Where(b => b.QualityRolls).ToList();
+        Bases.Where(b => b.QualityRolls && !b.Consumable).ToList();
 
     public static ItemBaseTable Load(string jsonPath)
     {
@@ -82,7 +86,8 @@ public sealed class ItemBaseTable
                 e.GetProperty("equiv").EnumerateArray().Select(x => x.GetString()!).ToList(),
                 !e.TryGetProperty("qualityRolls", out var qr) || qr.GetBoolean(),
                 e.TryGetProperty("magicLevelAdd", out var mla) && mla.GetBoolean(),
-                e.TryGetProperty("classSpecific", out var cs) && cs.GetBoolean()));
+                e.TryGetProperty("classSpecific", out var cs) && cs.GetBoolean(),
+                e.TryGetProperty("consumable", out var con) && con.GetBoolean()));
         }
         Validate(rows);
         var table = new ItemBaseTable { Bases = rows };
@@ -104,7 +109,7 @@ public sealed class ItemBaseTable
                 throw new InvalidDataException($"item base '{b.Id}': inventory cells must be at least 1x1");
             if (b.MaxSockets is < 0 or > 6)
                 throw new InvalidDataException($"item base '{b.Id}': socket ceiling outside 0..6 (P2 §4.5)");
-            if (b.QualityRolls && b.Durability < 1 && !IsJewelry(b.Itype))
+            if (b.QualityRolls && !b.Consumable && b.Durability < 1 && !IsJewelry(b.Itype))
                 throw new InvalidDataException($"item base '{b.Id}': wearable needs durability");
             foreach (var t in b.Equiv)
             {
