@@ -1,0 +1,31 @@
+{
+  "note": "Baba Yaga uniques and sets. ORIGINAL IP (docs/ARCHITECTURE.md §R2): names and rows are this world's own; column semantics follow T0b P2 §4.4. lvl = spawn gate (only at/below ilvl rows spawn), rarity = weight class 0..3 (pick weight 60/(rarity+1) — rarer rows win fewer picks), mods roll uniform min..max once per item (nummods pattern). Set pieces share a setId; bonuses unlock at the named equipped-count tiers (P2 §4.4 set-bonus tiers).",
+  "uniques": [
+    { "id": "kosc_millstone",  "name": "Kosc's Millstone",     "baseId": "palica",  "lvl": 12, "rarity": 0, "mods": [ { "stat": "dmg_pct", "min": 50, "max": 90 }, { "stat": "str", "min": 10, "max": 15 }, { "stat": "life", "min": 20, "max": 40 }, { "stat": "durability_pct", "min": 50, "max": 50 } ] },
+    { "id": "hut_leg",         "name": "The Hut's Chicken Leg","baseId": "postak",  "lvl": 18, "rarity": 1, "mods": [ { "stat": "all_attrs", "min": 2, "max": 5 }, { "stat": "mana", "min": 30, "max": 60 }, { "stat": "light", "min": 3, "max": 5 } ] },
+    { "id": "zverya_comb",     "name": "Zverya's Comb",        "baseId": "rawnice", "lvl": 8,  "rarity": 1, "mods": [ { "stat": "dex", "min": 5, "max": 10 }, { "stat": "life", "min": 10, "max": 25 }, { "stat": "walk_speed", "min": 5, "max": 12 } ] },
+    { "id": "poludnitsa",      "name": "Poludnitsa's Shears",  "baseId": "szpula",  "lvl": 14, "rarity": 0, "mods": [ { "stat": "dmg_pct", "min": 80, "max": 140 }, { "stat": "attack_speed", "min": 10, "max": 20 }, { "stat": "life_steal", "min": 3, "max": 6 } ] },
+    { "id": "amber_widow",     "name": "The Amber Widow",      "baseId": "obereg",  "lvl": 20, "rarity": 2, "mods": [ { "stat": "all_res", "min": 10, "max": 20 }, { "stat": "vit", "min": 5, "max": 10 }, { "stat": "magic_find", "min": 10, "max": 20 } ] },
+    { "id": "mokosh_distaff",  "name": "Mokosh's Distaff",     "baseId": "postak",  "lvl": 25, "rarity": 1, "mods": [ { "stat": "mana", "min": 40, "max": 80 }, { "stat": "all_attrs", "min": 3, "max": 6 }, { "stat": "walk_speed", "min": 10, "max": 15 } ] }
+  ],
+  "sets": [
+    { "setId": "kupalo", "id": "kupalo_crown",  "name": "Kupalo's Crown",  "baseId": "oczep",     "lvl": 10, "rarity": 1, "mods": [ { "stat": "fire_res", "min": 15, "max": 25 }, { "stat": "light", "min": 2, "max": 4 } ] },
+    { "setId": "kupalo", "id": "kupalo_embers", "name": "Kupalo's Embers", "baseId": "lapcie",    "lvl": 10, "rarity": 1, "mods": [ { "stat": "walk_speed", "min": 8, "max": 15 }, { "stat": "cold_res", "min": 10, "max": 20 } ] },
+    { "setId": "kupalo", "id": "kupalo_circle", "name": "Kupalo's Circle", "baseId": "pierscien", "lvl": 12, "rarity": 1, "mods": [ { "stat": "life", "min": 15, "max": 30 }, { "stat": "mana", "min": 15, "max": 30 } ] },
+    { "setId": "morana", "id": "morana_veil",   "name": "Morana's Veil",   "baseId": "szyszak",   "lvl": 16, "rarity": 1, "mods": [ { "stat": "cold_res", "min": 18, "max": 28 }, { "stat": "def", "min": 15, "max": 30 } ] },
+    { "setId": "morana", "id": "morana_shroud", "name": "Morana's Shroud", "baseId": "opaszka",   "lvl": 16, "rarity": 1, "mods": [ { "stat": "def", "min": 25, "max": 40 }, { "stat": "life", "min": 20, "max": 35 } ] },
+    { "setId": "morana", "id": "morana_flake",  "name": "Morana's Flake",  "baseId": "sekiera",   "lvl": 18, "rarity": 1, "mods": [ { "stat": "dmg_cold", "min": 6, "max": 14 }, { "stat": "dmg_pct", "min": 30, "max": 60 } ] },
+    { "setId": "morana", "id": "morana_gift",   "name": "Morana's Gift",   "baseId": "tarcza",    "lvl": 18, "rarity": 1, "mods": [ { "stat": "def", "min": 30, "max": 55 }, { "stat": "cold_res", "min": 12, "max": 22 } ] }
+  ],
+  "setBonuses": {
+    "kupalo": [
+      { "count": 2, "mods": [ { "stat": "all_res", "min": 10, "max": 10 } ] },
+      { "count": 3, "mods": [ { "stat": "fire_res", "min": 20, "max": 20 }, { "stat": "life", "min": 50, "max": 50 } ] }
+    ],
+    "morana": [
+      { "count": 2, "mods": [ { "stat": "cold_res", "min": 15, "max": 15 } ] },
+      { "count": 3, "mods": [ { "stat": "dmg_cold", "min": 12, "max": 12 } ] },
+      { "count": 4, "mods": [ { "stat": "life", "min": 60, "max": 60 }, { "stat": "def", "min": 40, "max": 40 } ] }
+    ]
+  }
+}
