@@ -1,7 +1,8 @@
 namespace BabaYaga.Sim;
 
 /// <summary>One itemratio.txt-style row (P2 §4.1): the ratio, the divisor applied to
-/// (ilvl − qlvl), and the per-row minimum c keeps (floor, in ratio units).</summary>
+/// (ilvl − qlvl), and the per-row minimum c keep (floor, in c units, verbatim from
+/// the table's Min columns).</summary>
 public sealed record QualityRatioRow(string Tier, int Ratio, int Divisor, int Minimum);
 
 /// <summary>
@@ -16,22 +17,25 @@ public sealed record QualityRatioRow(string Tier, int Ratio, int Divisor, int Mi
 /// </summary>
 public static class QualityRoll
 {
-    /// <summary>Classic (Version-0) itemratio rows (P2 §4.1 VERIFIED): plain
-    /// Unique 400 divisor 2 / Rare 160 / Set 125 / Magic 30; Uber 240/96/96/3.</summary>
+    /// <summary>Classic (Version-0) itemratio rows, ratio/divisor/min taken verbatim
+    /// from the granted table's plain non-Uber row (P2 §4.1, D2-aligned 2026-10-31):
+    /// Unique 400/2/6400 · Set 125/6/5600 · Rare 160/3/3200 · Magic 30/16/192. The
+    /// Uber variant is the granted Uber row: Unique 240/2/6400 · Set 96/6/5600 ·
+    /// Rare 96/3/3200 · Magic 3/100/192.</summary>
     public static IReadOnlyList<QualityRatioRow> Classic { get; } =
     [
-        new("Unique", 400, 2, 1),
-        new("Set", 125, 1, 1),
-        new("Rare", 160, 1, 1),
-        new("Magic", 30, 1, 1),
+        new("Unique", 400, 2, 6400),
+        new("Set", 125, 6, 5600),
+        new("Rare", 160, 3, 3200),
+        new("Magic", 30, 16, 192),
     ];
 
     public static IReadOnlyList<QualityRatioRow> Uber { get; } =
     [
-        new("Unique", 240, 2, 1),
-        new("Set", 96, 1, 1),
-        new("Rare", 96, 1, 1),
-        new("Magic", 3, 1, 1),
+        new("Unique", 240, 2, 6400),
+        new("Set", 96, 6, 5600),
+        new("Rare", 96, 3, 3200),
+        new("Magic", 3, 100, 192),
     ];
 
     /// <summary>True when ilvl−qlvl is big enough for the row to auto-succeed (c ≤ 128).</summary>
@@ -45,7 +49,7 @@ public static class QualityRoll
         int shift = (ilvl - qlvl) / row.Divisor; // C# integer division truncates toward 0 (§4.1)
         long c = (long)(row.Ratio - shift) * 128;
         c = c * 100 / (100 + Math.Max(magicFind, 0)); // floor; MF is quality-only
-        c = Math.Max(c, (long)row.Minimum * 128);     // at least the row minimum
+        c = Math.Max(c, (long)row.Minimum);          // at least the row minimum (c units, table-verbatim)
         c -= c * Math.Max(tcFactor, 0) / 1024;        // TC quality factor
         return (int)c;
     }

@@ -17,6 +17,8 @@ STATUS: DA-ROUND-1-FIX (2026-10-31, card/11755, verdict .audits/202610301950-315
 STATUS: DA-ROUND-2-FIX (2026-10-31, card/11757, verdict .audits/202610301950-31593a83/out/DA-verdict-c2.md: save format v3 adds unspentSkillPoints — the pool restores FROM THE SAVE, quest points survive save/load BOTH unspent (load→spend kolo HARDPOINTS:2 exit 0) and already-spent (the probe-p12 save now LOADS, dump byte-equal; SaveTests ×2 close the coverage gap); the unique live path honours passesToMinions:false via the same minion filter (seed 42: chciwy stays on the leader, MINION-AFFIXES:[] — xunit pinned on that seed); spend <skill> -1 and special <unknown> reject with named ERROR lines like attack/loot; hand-built v1 refusal pinned by xunit; 133 xunit green, build 0 warnings). OPEN (documented limitation, DA2 P4-3 — kept, not fixed): a save taken MID-special-fight keeps plain-restore behaviour — the saved engagement carries its bonus-scaled LIFE but restores PLAIN (kind/affixes unstored), so the next kill pays the plain XP row; dump→save→load→dump stays byte-identical and the payout is consistent with the restored state; see README Known limits.
 
 STATUS: ARCH-CLOSING (2026-10-31, card/11765, verdict .audits/202610301950-31593a83/out/ARCH-verdict.md §4). OPEN: row 5 mana formula flipped BUILT-M1 → BUILDING — the post-multiplier item terms are NOT implemented (BaseMana takes a flat term only), Stats.BaseMana has zero callers, and no test references Mana (needs wire + test); row 1 per-class START values are asserted by no test (no test pins the ClassProfile start rows — name or pin).
+
+STATUS: D2-ORACLE-ALIGNMENT (2026-10-31, card/11793, owner grant 2026-10-31 — CYCLES R2 record + board cards 11777/11793: the three D2-oracle parity REDS are GREEN — data/xp-ladder.json regenerated as the 99 cumulative rows + ExpRatio curve of the granted reference table verbatim (all class columns verified identical in the table; anchors unchanged), QualityRoll rows adopt the granted item-ratio V0 divisor/min verbatim (Unique 400/2/6400 · Set 125/6/5600 · Rare 160/3/3200 · Magic 30/16/192, min kept in c units; the table minimums sit above 128 so no row auto-succeeds any more), deathpen green from the ladder with NO code change; out/parity 10 passed 0 failed with oracle.py byte-identical, rows 17 and 37 reworded below; 142 xunit green, build 0 errors; parity never fitted to the sim). FINDING: docs/ARCHITECTURE.md:148 still says the ladder rows are "interpolated" — stale after this commit, ARCHITECT pass owed.
 | # | Feature (Baba Yaga ← reference key) | Milestone | Status |
 |---|---|---|---|
 | 1 | 5 attributes with per-class start table [charstats] | M1 | BUILT-M1 |
@@ -35,7 +37,7 @@ STATUS: ARCH-CLOSING (2026-10-31, card/11765, verdict .audits/202610301950-31593
 | 14 | 2H Str-penalty switch (optional difficulty flavour) | M1 | NOT-BUILT |
 | 15 | XP chain: base × killtype × players × level-gap × ExpRatio | M1 | BUILT-M1 |
 | 16 | Level-gap tables both directions + clvl25 rule | M1 | BUILT-M1 |
-| 17 | XP ladder anchors + ExpRatio curve 70→99, Lvl99 stops | M1 | BUILT-M1 |
+| 17 | XP ladder: all 99 cumulative rows verbatim of the granted D2 reference table + ExpRatio curve 71→99 (1024 through L70), Lvl99 caps levels | M1 | BUILT-M1 |
 | 18 | Monsters: table(level) × own-percent stat shape | M3 | BUILT-M3 |
 | 19 | Area-driven monster levels in higher difficulties | M3 | BUILT-M3 |
 | 20 | 3 skill trees per class, row reqs 1/6/12/18/24/30 | M2 | BUILT-M1 |
@@ -55,7 +57,7 @@ STATUS: ARCH-CLOSING (2026-10-31, card/11765, verdict .audits/202610301950-31593
 | 34 | Chill/freeze durations w/ difficulty divisors | M1 | NOT-BUILT |
 | 35 | Stun 1-in-10 on special monsters | M1 | NOT-BUILT |
 | 36 | Drop pipeline: TC walk ≤6 items, forced-pick classes | M2 | BUILT-M1 |
-| 37 | Quality roll U→S→R→M with c-formula + MF | M2 | BUILT-M2 |
+| 37 | Quality roll U→S→R→M with c-formula + MF, V0 ratio/divisor/min verbatim from the granted D2 item-ratio table | M2 | BUILT-M2 |
 | 38 | Classic item-ratio rows (400/160/125/30; Uber 240/96/96/3) | M2 | BUILT-M2 |
 | 39 | Unique/set pick by lvl-gate + rarity weights | M2 | BUILT-M2 |
 | 40 | ilvl sources (drop/champ+2/unique+3/gamble/cube) | M2 | BUILT-M2 |

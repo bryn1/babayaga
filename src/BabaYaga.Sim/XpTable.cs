@@ -14,7 +14,8 @@ public enum KillType
 /// The XP ladder loaded from data/xp-ladder.json: per-level thresholds, ExpRatio curve,
 /// level-up grants, the level-gap tables in both directions, and the whole kill-XP chain
 /// xp = base × killtype × (players+1)/2 × gap × ExpRatio/1024 × (1+bonus%), flooring
-/// every step (P1 §1.7). Lvl 99 gains nothing (ratio 0 there).
+/// every step (P1 §1.7). Rows and the ExpRatio curve are the granted table verbatim
+/// (D2-aligned 2026-10-31): ratio 1024 through L70, tapering to 6/1024 at L99.
 /// </summary>
 public sealed class XpTable
 {
