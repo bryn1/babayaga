@@ -3,14 +3,21 @@ using System.Text.Json;
 namespace BabaYaga.Sim;
 
 /// <summary>
-/// The three world difficulty bands (P3 §6.1, §6.6). Every difficulty-aware table
-/// row (area monster levels, special bonuses, death cost) carries one column per band.
+/// The three world difficulty bands (P3 §6.1, §6.6) plus the item-economy names
+/// the M2 merge brought in (P2 §4.8: Dusk, Midnight, Witch-Night). Every
+/// difficulty-aware table row (area monster levels, special bonuses, death cost)
+/// carries one column per band; band tables index on Ordinary/Nightmare/Hell only.
 /// </summary>
 public enum Difficulty
 {
     Ordinary = 0,
     Nightmare = 1,
     Hell = 2,
+
+    // The M2 vendor-side naming (Vendor.SellCap switches on these); no band column exists for them.
+    Dusk = 3,
+    Midnight = 4,
+    WitchNight = 5,
 }
 
 /// <summary>
