@@ -8,7 +8,11 @@ CONTRACT (light the DESTINATION stone BEFORE the travel needing it) replaces the
 rule — a post-travel entry-discover is a guaranteed throw (`stone … is already lit`, probes
 out/.tmp/m4b @ f3d98d9, DA-verdict-m4-c2 P1-c2-1); TILE SCALE 2× + SPRITE DRAW SCALE + the ONE FNV
 helper (`Fnv.Hash`, FNV-1a 32-bit, offset 2166136261 prime 16777619) stated; DoD-precedence line
-added; fences even, all blocks balanced; v9 archived in git history. Earlier: v9 (M4 presentation
+added; fences even, all blocks balanced; v9 archived in git history. APPENDED 2026-10-31 AT v10
+(DA round-3 micro-fold, card/11815, header stays v10 per the fold card): test-count rows 133→142 —
+the f3d98d9 D2-oracle merge grew the suite (142/142 green VERIFIED on this branch; DA-c3 P1-1) — and
+the §game/ tree-block Boot.cs row re-synced to M4-placement rev4 with the PINNED SIM_TICK format
+(DA-c3 P2-1; the two tree blocks stay byte-identical); v10 body archived in git history. Earlier: v9 (M4 presentation
 placement, card/11778 — the §game/ presentation section (PLANNED) + the assets/ pipeline (art pass →
 assets/raw/ in git → one-way copy → game/assets/, never hand-modified in game/) + the two stale
 planned game/ rows re-pointed; it matched `out/M4-placement.md` rev1 — placement later moved on and
@@ -159,7 +163,7 @@ src/BabaYaga.Sim/                         net8.0 class library — references no
                                           running ÷3-after-cap), physical pipeline weaponED→flat→
                                           %ED→SrcDam with −90 clamp, crit-family order roll,
                                           elemental 75/95 cap + −100 floor, Monster + kill→XP grant
-src/BabaYaga.Sim.Tests/                   net8.0 xunit project — 133 tests green at v7 (RngTests,
+src/BabaYaga.Sim.Tests/                   net8.0 xunit project — 142 tests green at v10 (RngTests,
                                           MechanicsTests, SkillTreeTests, CombatTests, BoundaryTests,
                                           + the M3 Monster/PackAffix/AI/World suites)
 data/xp-ladder.json                       anchors exact per P1 §1.7; intermediate rows interpolated
@@ -411,8 +415,13 @@ game/
   scripts/Boot.cs         entry. headless — the EXACT check (rev2, DA P4-1):
                           `DisplayServer.GetName() == "headless"` (`DisplayServer.Headless` is NOT
                           in the 4.7.2 bindings — CS0117, DA probe). Then: GameSession.New(42,
-                          "koldun",dataDir) → ≥3 SIM_TICK lines → ONE scenes/Act.tscn instantiate
-                          through the placeholder pass → DA_SCENE_ACT_OK → ORCH_M4_OK → Quit(0)
+                          "koldun",dataDir) → ≥3 SIM_TICK lines, PINNED format (rev4, DA-c3 P2-1)
+                          `SIM_TICK n=<int> area=<string> gold=<long> level=<int>` — area/gold/level
+                          READ FROM THE SESSION OBJECT EVERY TICK (`session.CurrentArea`/`.Gold`/
+                          `.Level`, GameSession.cs:45/:94/:93), scripted New + real gold-moving verbs,
+                          3 distinct values — a dead session cannot fake them (DoD leg 3) — then ONE
+                          scenes/Act.tscn instantiate through the placeholder pass → DA_SCENE_ACT_OK →
+                          ORCH_M4_OK → Quit(0)
                           (T0c §6 marker shape; rev2 leg 3b — compile is not execution; rev3: the
                           smoke performs NO waypoint verb after any travel — DoD 3b).
                           windowed: → MainMenu.tscn. Zero rules.                                ~90 ln
@@ -544,10 +553,13 @@ economy (12 Sim files, 6 data tables, 38 tests) and M3 monsters & world (12 Sim 
 tables, 32 tests), the M1 close-out (drop pipeline + session + save/load + CLI) and the DA
 round-1 fixes (save v2 stream persistence, quest skill-point grant, CLI special verb, boundary
 pins) and the DA round-2 fixes (save v3 unspent-skill-point pool, passesToMinions honoured on the
-unique live path, spend/special CLI rejects, v1-refusal pin) — 133 tests total. One semantic-merge defect (duplicate Difficulty enum across Vendor.cs and
+unique live path, spend/special CLI rejects, v1-refusal pin) — 133 tests total through the DA
+round-2 fixes (historically scoped); the D2-oracle merge (f3d98d9) grew the suite to 142 — the
+current truth (DA-c3 P1-1). One semantic-merge defect (duplicate Difficulty enum across Vendor.cs and
 AreaGraph.cs, each branch green alone) is resolved by MC 11751 (merge a5d8d26,
 SharedDifficultyTests pins it); this section reads TRUE
-only when the merged master builds and tests green again (VERIFIED this commit: 0 warnings, 133/133 green). The M2 build replaced planned
+only when the merged master builds and tests green again (VERIFIED 2026-10-31 on this branch, docs-only
+diff over v10 master: 0 warnings, 142/142 green — DA-c3 P1-1 re-count). The M2 build replaced planned
 RarityRoll/ItemGen/Vendors names with per-concern files; the M3 build superseded MonsterStats/
 MonsterAffixes planned rows (noted inline); the M1 close-out built what the "Planned" list used to
 mislabel as DESIGN — `src/BabaYaga.Sim.Cli/` and the TC-walk drop pipeline (36) are AS-BUILT, not
