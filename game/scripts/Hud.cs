@@ -63,6 +63,13 @@ public partial class Hud : CanvasLayer
     /// gate's planted-red shape (the same honesty pattern as HUD_LEVEL).</summary>
     public bool DeadShown { get; private set; }
 
+    /// <summary>The CURRENT mana the LAST paint showed (row 78's read-back) —
+    /// captured by the same session pull as LevelShown/BeltFilled/DeadShown. The
+    /// headless cast leg prints its CAST_STATE lines through this read-back; a
+    /// frozen literal is that gate's planted-red shape (the honesty pattern,
+    /// again — the CURRENT pool; the Max formula on the orb row stays computed).</summary>
+    public long ManaShown { get; private set; }
+
     /// <summary>The one pull-only paint pass — _Process rides it; the headless
     /// level-up and belt legs run it explicitly per round (the legs are
     /// synchronous, never frame-bound; zero rules computed here, same as _Process).</summary>
@@ -74,6 +81,7 @@ public partial class Hud : CanvasLayer
         // CURRENT/MAX — the pools joined the Sim with the belt (row 69); Max stays computed.
         _life.Text = $"Life {s.Character.Life}/{s.Character.MaxLife}";
         _mana.Text = $"Mana {s.Character.Mana}/{s.Character.MaxMana}";
+        ManaShown = s.Character.Mana; // the row 78 cast leg's read-back on the same pull
         DeadShown = s.IsDead; // the row 64 flag on the same pull — the death leg reads it back
 
         // Belt row: four cells in slot order, the read-only mirror of session.Belt.
@@ -101,8 +109,12 @@ public partial class Hud : CanvasLayer
 
     /// <summary>Row 69's hotkey row: keys 1–4 (belt_1..belt_4) press the SAME
     /// public GameSession.UsePotion verb the headless BeltLeg calls — the game
-    /// side carries NO second belt logic. A rejection is a HUD hint, never a
-    /// crash (the HeroController hint idiom).</summary>
+    /// side carries NO second belt logic. cast_1 (row 78's first skill slot,
+    /// the full 8-slot widget stays row 70) presses the SAME public GameSession.
+    /// Cast the headless CastLeg calls, weaving the first learned spark at the
+    /// ENGAGED monster (the Target line's own value — nothing engaged is the
+    /// session's own rejection). A rejection is a HUD hint, never a crash
+    /// (the HeroController hint idiom).</summary>
     public override void _UnhandledInput(InputEvent @event)
     {
         var s = GameContext.Session;
@@ -113,7 +125,16 @@ public partial class Hud : CanvasLayer
             try { s.UsePotion(i + 1); }
             catch (BabaYaga.Sim.SessionRejectedException e) { Hint(e.Message); }
         }
+        if (@event.IsActionPressed("cast_1"))
+        {
+            try { s.Cast(FirstWeave, s.EngagedKey ?? ""); }
+            catch (BabaYaga.Sim.SessionRejectedException e) { Hint(e.Message); }
+        }
     }
+
+    /// <summary>The weave cast_1 presses — the koldun's first row-0 spark
+    /// (hotkey→skill mapping as a widget is row 70's beat, not this slice).</summary>
+    private const string FirstWeave = "iskra";
 
     /// <summary>SessionRejectedException surfaces as a HUD hint, never a crash
     /// (HeroController forwards the reason text here).</summary>

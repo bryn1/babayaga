@@ -1,5 +1,5 @@
 {
-  "note": "Koldun — first playable class of Baba Yaga (ORIGINAL IP: a Slavic hedge-witch who bargains with the forest). Three trees on the 8x8 grid; per-tier hard-point caps 3/2/2/1; prereq edges carry 1 point; synergy lines read hard points only. All names original to this world.",
+  "note": "Koldun — first playable class of Baba Yaga (ORIGINAL IP: a Slavic hedge-witch who bargains with the forest). Three trees on the 8x8 grid; per-tier hard-point caps 3/2/2/1; prereq edges carry 1 point; synergy lines read hard points only. All names original to this world. manaCost rows are ORIGINAL design values: the first mana pool is lean, so a row-0 weave costs 2–4 and a row-2 finisher 8–12 — weaving more than a full pool's worth needs the belt (napitek-manny) until regen lands.",
   "classKey": "koldun",
   "className": "Koldun",
   "trees": [
@@ -10,27 +10,27 @@
   "skills": [
     {
       "id": "iskra", "name": "Iskra", "tree": "popioly", "row": 0, "col": 1,
-      "maxPoints": 3, "damageKind": "ember", "damageMin": 4, "damageMax": 7,
+      "maxPoints": 3, "manaCost": 4, "damageKind": "ember", "damageMin": 4, "damageMax": 7,
       "flavour": "A single cinder flicked from the tongue, faithful as flint.",
       "prereqs": [], "synergies": []
     },
     {
       "id": "zarzewie", "name": "Zarzewie", "tree": "popioly", "row": 1, "col": 1,
-      "maxPoints": 2, "damageKind": "ember", "damageMin": 9, "damageMax": 14,
+      "maxPoints": 2, "manaCost": 6, "damageKind": "ember", "damageMin": 9, "damageMax": 14,
       "flavour": "Tinder-cloth tossed over roots; what it catches does not cool on schedule.",
       "prereqs": [ { "skillId": "iskra", "points": 1 } ],
       "synergies": [ { "sourceId": "iskra", "percentPerPoint": 12 } ]
     },
     {
       "id": "pochodnia", "name": "Pochodnia", "tree": "popioly", "row": 1, "col": 3,
-      "maxPoints": 2, "damageKind": "ember", "damageMin": 3, "damageMax": 5,
+      "maxPoints": 2, "manaCost": 5, "damageKind": "ember", "damageMin": 3, "damageMax": 5,
       "flavour": "A torch that plants itself where it was thrown and keeps watch.",
       "prereqs": [ { "skillId": "iskra", "points": 1 } ],
       "synergies": []
     },
     {
       "id": "popielna_burza", "name": "Popielna Burza", "tree": "popioly", "row": 2, "col": 2,
-      "maxPoints": 2, "damageKind": "ember", "damageMin": 20, "damageMax": 28,
+      "maxPoints": 2, "manaCost": 12, "damageKind": "ember", "damageMin": 20, "damageMax": 28,
       "flavour": "The sky over the clearing turns the colour of a cold stove; ash falls hot.",
       "prereqs": [ { "skillId": "zarzewie", "points": 1 }, { "skillId": "pochodnia", "points": 1 } ],
       "synergies": [
@@ -40,27 +40,27 @@
     },
     {
       "id": "pomrok", "name": "Pomrok", "tree": "uroki", "row": 0, "col": 2,
-      "maxPoints": 3, "damageKind": "hex", "damageMin": 2, "damageMax": 3,
+      "maxPoints": 3, "manaCost": 3, "damageKind": "hex", "damageMin": 2, "damageMax": 3,
       "flavour": "A piece of dusk folded into a sleeve; the cut it makes does not bleed, it dims.",
       "prereqs": [], "synergies": []
     },
     {
       "id": "zmora", "name": "Zmora", "tree": "uroki", "row": 1, "col": 2,
-      "maxPoints": 2, "damageKind": "hex", "damageMin": 6, "damageMax": 9,
+      "maxPoints": 2, "manaCost": 6, "damageKind": "hex", "damageMin": 6, "damageMax": 9,
       "flavour": "Sent to sit on a sleeping thing's chest until it forgets which way is up.",
       "prereqs": [ { "skillId": "pomrok", "points": 1 } ],
       "synergies": [ { "sourceId": "pomrok", "percentPerPoint": 10 } ]
     },
     {
       "id": "otupienie", "name": "Otupienie", "tree": "uroki", "row": 1, "col": 4,
-      "maxPoints": 2, "damageKind": "hex", "damageMin": 4, "damageMax": 6,
+      "maxPoints": 2, "manaCost": 5, "damageKind": "hex", "damageMin": 4, "damageMax": 6,
       "flavour": "Not pain — the absence where pain should have arrived.",
       "prereqs": [ { "skillId": "pomrok", "points": 1 } ],
       "synergies": []
     },
     {
       "id": "kletwa", "name": "Kletwa", "tree": "uroki", "row": 2, "col": 3,
-      "maxPoints": 2, "damageKind": "hex", "damageMin": 14, "damageMax": 18,
+      "maxPoints": 2, "manaCost": 10, "damageKind": "hex", "damageMin": 14, "damageMax": 18,
       "flavour": "Spoken once, backwards, into running water. The water finishes it.",
       "prereqs": [ { "skillId": "zmora", "points": 1 } ],
       "synergies": [
@@ -70,27 +70,27 @@
     },
     {
       "id": "kolo", "name": "Kolo", "tree": "krag", "row": 0, "col": 5,
-      "maxPoints": 3, "damageKind": "ward", "damageMin": 0, "damageMax": 0,
+      "maxPoints": 3, "manaCost": 2, "damageKind": "ward", "damageMin": 0, "damageMax": 0,
       "flavour": "Chalk, a breath, a line most things choose not to cross.",
       "prereqs": [], "synergies": []
     },
     {
       "id": "napor", "name": "Napor", "tree": "krag", "row": 1, "col": 5,
-      "maxPoints": 2, "damageKind": "kinetic", "damageMin": 5, "damageMax": 8,
+      "maxPoints": 2, "manaCost": 4, "damageKind": "kinetic", "damageMin": 5, "damageMax": 8,
       "flavour": "An open palm at empty air; ten paces away, something's nose breaks.",
       "prereqs": [ { "skillId": "kolo", "points": 1 } ],
       "synergies": [ { "sourceId": "kolo", "percentPerPoint": 8 } ]
     },
     {
       "id": "zaslona", "name": "Zaslona", "tree": "krag", "row": 1, "col": 6,
-      "maxPoints": 2, "damageKind": "ward", "damageMin": 0, "damageMax": 0,
+      "maxPoints": 2, "manaCost": 3, "damageKind": "ward", "damageMin": 0, "damageMax": 0,
       "flavour": "A curtain of birch-shadow drawn across the doorway and across you.",
       "prereqs": [ { "skillId": "kolo", "points": 1 } ],
       "synergies": [ { "sourceId": "kolo", "percentPerPoint": 10 } ]
     },
     {
       "id": "kamienna_skora", "name": "Kamienna Skora", "tree": "krag", "row": 2, "col": 5,
-      "maxPoints": 2, "damageKind": "ward", "damageMin": 0, "damageMax": 0,
+      "maxPoints": 2, "manaCost": 8, "damageKind": "ward", "damageMin": 0, "damageMax": 0,
       "flavour": "River-bed stone borrowed for an afternoon; it gives itself back all at once.",
       "prereqs": [ { "skillId": "zaslona", "points": 1 } ],
       "synergies": [
