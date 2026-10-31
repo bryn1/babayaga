@@ -22,7 +22,8 @@ public sealed record SkillDef(
     int DamageMin,
     int DamageMax,
     IReadOnlyList<SkillPrereq> Prereqs,
-    IReadOnlyList<SkillSynergy> Synergies)
+    IReadOnlyList<SkillSynergy> Synergies,
+    int ManaCost)
 {
     /// Grid tier is the 1-based row; tier N unlocks at character level 6×(N−1) (P1 §2.1).
     public int Tier => Row + 1;
@@ -81,7 +82,8 @@ public static class SkillDataLoader
                 s.TryGetProperty("damageMin", out var dmin) ? dmin.GetInt32() : 0,
                 s.TryGetProperty("damageMax", out var dmax) ? dmax.GetInt32() : 0,
                 prereqs,
-                synergies));
+                synergies,
+                s.TryGetProperty("manaCost", out var mc) ? mc.GetInt32() : 0));
         }
         var trees = root.GetProperty("trees").EnumerateArray()
             .Select(t => t.GetProperty("id").GetString()!).ToList();
@@ -109,6 +111,8 @@ public static class SkillDataLoader
                     $"{classKey}: skill '{s.Id}' maxPoints {s.MaxPoints} breaks the tier-{s.Tier} cap {MaxPointsForTier(s.Tier)}");
             if (s.DamageMin > s.DamageMax || s.DamageMin < 0)
                 throw new InvalidDataException($"{classKey}: skill '{s.Id}' damage range invalid");
+            if (s.ManaCost < 0)
+                throw new InvalidDataException($"{classKey}: skill '{s.Id}' manaCost {s.ManaCost} is negative");
         }
         foreach (var s in skills)
         {

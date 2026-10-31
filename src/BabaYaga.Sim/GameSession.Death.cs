@@ -7,7 +7,8 @@ namespace BabaYaga.Sim;
 /// flag are the same fact), so the v4 save that already persists Life carries
 /// DEAD across a round trip with NO format bump. While DEAD every mutating verb
 /// in the pinned set refuses through the ONE gate below (RaiseIfDead, checked
-/// FIRST in each: Attack, UsePotion, Buy, SellLast, TravelTo, Loot, Gamble);
+/// FIRST in each: Attack, UsePotion, Buy, SellLast, TravelTo, Loot, Gamble, and
+/// — since the casting slice (row 78) — Cast, the EIGHTH gated verb);
 /// stone-lighting, rites and belt upkeep stay open — a dead hero may still tidy.
 /// The XP penalty runs THROUGH the built-M3 DeathPenalty API only — the percent
 /// is never re-derived here (0/5/10 % by band, D2-parity-proven by that module).

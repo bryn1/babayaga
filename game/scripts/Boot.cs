@@ -14,7 +14,10 @@ using Godot;
 /// town, Buy + SellLast, every value read from the session) → the M4-S5 potion belt beat
 /// (BeltLeg) → the M4-S6 DEATH BEAT (DeathLeg: real counter-damage kills the hero in
 /// mchy, the DEAD session rejects Attack, the lit stones raise him in town with the
-/// DeathPenalty paid through the Sim door — DEATH_OK) → ORCH_M4_OK → Quit(0).
+/// DeathPenalty paid through the Sim door — DEATH_OK) → the M4-S7 CAST BEAT
+/// (CastLeg: the Gesi point is spent into iskra, the hero weaves a pokrzywnik dead in
+/// mchy — CAST/CAST_DEFEATED — drains the pool to a MANA_REJECT hint, quaffs the belted
+/// napitek-manny and weaves green — MANA_OK) → ORCH_M4_OK → Quit(0).
 /// Windowed → MainMenu.tscn. Zero rules live here (Game → Sim → nothing).
 /// </summary>
 public partial class Boot : Node
@@ -53,6 +56,7 @@ public partial class Boot : Node
             TradeLeg.Run(session, act); // M4-S2: town vendor trade riding the journey's tail
             BeltLeg.Run(session, act); // M4-S5: potion belt leg riding the trade leg's town tail
             DeathLeg.Run(session, act); // M4-S6: death + stone-resurrection riding the belt leg's empty belt
+            CastLeg.Run(session, act); // M4-S7: the iskra cast beat riding the death leg's town tail (mana becomes real)
         }
 
         GD.Print("ORCH_M4_OK");
