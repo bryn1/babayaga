@@ -51,6 +51,15 @@ public partial class MonsterField : Node2D
         }
     }
 
+    /// <summary>The built spawn row (key + cell per entry) — the headless leg's read
+    /// for the Fnv-seed determinism proof. Presentation-side truth, never Sim state.</summary>
+    public List<(string Key, Vector2I Cell)> RowSnapshot()
+    {
+        var row = new List<(string Key, Vector2I Cell)>(_spawned.Count);
+        foreach (var e in _spawned) row.Add((e.Key, e.Cell));
+        return row;
+    }
+
     /// <summary>The monster key under a world point, or null (click hit-test).</summary>
     public string? MonsterAt(Vector2 world)
     {

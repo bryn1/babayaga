@@ -16,6 +16,12 @@ public partial class Act : Node
     private Hud _hud = null!;
     private Control? _panel;
 
+    /// <summary>Read accessors for the headless journey leg (Boot) — the same
+    /// wired objects the windowed game drives, never a second set.</summary>
+    public AreaRenderer Tiles => _renderer;
+    public MonsterField Monsters => _monsters;
+    public HeroController Hero => _hero;
+
     public override void _Ready()
     {
         var session = GameContext.Session;
@@ -40,12 +46,14 @@ public partial class Act : Node
         _hero = new HeroController { Name = "Hero" };
         world.AddChild(_hero);
         _hero.Wire(_renderer, _monsters, _hud);
+        _hero.OnAreaChanged = () => Rebuild(GameContext.Session!.CurrentArea);
 
         Rebuild(session.CurrentArea);
     }
 
-    /// <summary>Re-renders tiles + monster row + hero + camera for one area.</summary>
-    private void Rebuild(string areaKey)
+    /// <summary>Re-renders tiles + monster row + hero + camera for one area — the
+    /// ONE rebuild entry, shared by arrival and by a successful stone travel.</summary>
+    public void Rebuild(string areaKey)
     {
         var session = GameContext.Session;
         if (session is null) return;

@@ -28,6 +28,11 @@ public partial class HeroController : Node2D
     private float _stepTimer;
     private string _facing = "S";
 
+    /// <summary>Wired by Act: after a SUCCESSFUL travel the world (tiles + monster
+    /// row + hero placement + camera) is rebuilt under the NEW area — the door
+    /// path and the headless journey leg share this ONE rebuild entry.</summary>
+    public Action? OnAreaChanged;
+
     public void Wire(AreaRenderer tiles, MonsterField monsters, Hud hud)
     {
         _tiles = tiles;
@@ -41,6 +46,31 @@ public partial class HeroController : Node2D
         _pos = new WorldPos(cell.X, cell.Y);
         _path.Clear();
         _doorTarget = null;
+    }
+
+    /// <summary>The committed grid cell of the hero — the marker/read surface;
+    /// hero position lives HERE ALONE (the Sim stores none).</summary>
+    public Vector2I Cell => new(_pos.X, _pos.Y);
+
+    /// <summary>Scripts a walk intent (the headless marker leg): the SAME A* the
+    /// windowed click plans; an unwalkable goal plans nothing.</summary>
+    public void WalkTo(Vector2I cell)
+    {
+        if (_tiles.IsWalkable(cell)) PlanPath(new WorldPos(cell.X, cell.Y));
+    }
+
+    /// <summary>Commits ONE discrete Chebyshev step — timer-driven in the windowed
+    /// game, scripted directly under headless. False when the path is spent.</summary>
+    public bool StepNext()
+    {
+        if (_path.Count == 0) return false;
+        var next = _path[0];
+        _path.RemoveAt(0);
+        SetFacing(next);
+        _pos = next; // discrete Chebyshev step (easing joins with the real frames)
+        if (_sprite is not null)
+            _sprite.Position = IsoCamera.GridToScreen(new Vector2I(_pos.X, _pos.Y));
+        return true;
     }
 
     public override void _Ready()
@@ -91,12 +121,7 @@ public partial class HeroController : Node2D
         if (_stepTimer < StepInterval) return;
         _stepTimer = 0f;
 
-        var next = _path[0];
-        _path.RemoveAt(0);
-        SetFacing(next);
-        _pos = next; // discrete Chebyshev step (easing joins with the real frames)
-        if (_sprite is not null)
-            _sprite.Position = IsoCamera.GridToScreen(new Vector2I(_pos.X, _pos.Y));
+        StepNext();
         if (_path.Count == 0 && _doorTarget is { } door)
         {
             _doorTarget = null;
@@ -118,8 +143,8 @@ public partial class HeroController : Node2D
         {
             if (!s.Waypoints.IsDiscovered(dest)) s.DiscoverWaypoint(dest);
             s.TravelTo(dest);
+            OnAreaChanged?.Invoke(); // Act rebuilds tiles + monsters + placement under the new area
             _hud.Hint($"the stone carries you to {dest}");
-            Place(_tiles.CenterCell());
         }
         catch (SessionRejectedException e) { _hud.Hint(e.Message); }
     }
