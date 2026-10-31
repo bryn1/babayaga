@@ -290,24 +290,15 @@ each asserts on CLI markers/exit codes only.
 
 ## Truth status of this document
 
-<<<<<<< HEAD
-The two As-built sections above match the tree at this commit (M1 foundation + M3 monsters &
-world: Sim library, 64 xunit tests, xp-ladder/koldun-skills + monsters/packs/act1-areas/
-act1-quests/waypoints data). Everything still under "Planned" remains DESIGN — `game/`,
-`src/BabaYaga.Sim.Cli/`, `tests/` (pytest) and `assets/` do not exist yet, and several planned
-module names were merged into as-built files (noted inline where a row was SUPERSEDED).
-MapGen (procedural layout), hirelings and the NPC roster remain open M3 rows. The next build
-phase must again update this file to match what it actually created, in the same run.
-=======
-The As-built sections above match the tree at this commit (M1 foundation: Sim library, xunit
-tests, xp-ladder + Koldun skill data; M2 items & economy: 12 Sim files, 6 data tables, 70 tests).
-The M2 build replaced the planned RarityRoll/ItemGen/SetUnique/Runewords/Vendors names with the
-per-concern files named in the as-built block (one concern per file; the planned ~250-line
-monoliths would each have mixed three concerns). Everything under "Planned" remains DESIGN — `game/`,
-`src/BabaYaga.Sim.Cli/`, `tests/` (pytest) and `assets/` do not exist yet, and the planned
-module names there (Attributes.cs, LifeManaStam.cs, ToHitBlock.cs, DamagePipeline.cs,
-SkillTrees.cs…) were partly merged into the as-built files for the M1 scope (Stats/Character/
-CombatResolver/SkillData+SkillTree/XpTable); later milestones split further files as named.
-The first later build phase must again update this file to match what it actually created,
-in the same run.
->>>>>>> card/11746
+The As-built sections above match the tree at this commit: M1 foundation (seeded RNG, stats,
+XP/level, 8x8 skill-grid engine, combat resolver, xp-ladder + koldun-skills data), M2 items &
+economy (12 Sim files, 6 data tables, 38 tests) and M3 monsters & world (12 Sim files, 5 data
+tables, 32 tests). One semantic-merge defect (duplicate Difficulty enum across Vendor.cs and
+AreaGraph.cs, each branch green alone) is being resolved as MC 11748; this section reads TRUE
+only when the merged master builds and tests green again. The M2 build replaced planned
+RarityRoll/ItemGen/Vendors names with per-concern files; the M3 build superseded MonsterStats/
+MonsterAffixes planned rows (noted inline). Everything under "Planned" remains DESIGN: `game/`,
+`src/BabaYaga.Sim.Cli/`, `tests/` (pytest), `assets/`, MapGen (row 59), NPC roster (60),
+hirelings (65-66), TC-walk drop pipeline (36), ritual-craft engine (48), frame breakpoints
+(23-25), weapon sets (68). The next build phase must update this file to match what it actually
+created, in the same run.
