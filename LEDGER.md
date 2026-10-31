@@ -19,6 +19,9 @@ STATUS: DA-ROUND-2-FIX (2026-10-31, card/11757, verdict .audits/202610301950-315
 STATUS: ARCH-CLOSING (2026-10-31, card/11765, verdict .audits/202610301950-31593a83/out/ARCH-verdict.md §4). OPEN: row 5 mana formula flipped BUILT-M1 → BUILDING — the post-multiplier item terms are NOT implemented (BaseMana takes a flat term only), Stats.BaseMana has zero callers, and no test references Mana (needs wire + test); row 1 per-class START values are asserted by no test (no test pins the ClassProfile start rows — name or pin).
 
 STATUS: D2-ORACLE-ALIGNMENT (2026-10-31, card/11793, owner grant 2026-10-31 — CYCLES R2 record + board cards 11777/11793: the three D2-oracle parity REDS are GREEN — data/xp-ladder.json regenerated as the 99 cumulative rows + ExpRatio curve of the granted reference table verbatim (all class columns verified identical in the table; anchors unchanged), QualityRoll rows adopt the granted item-ratio V0 divisor/min verbatim (Unique 400/2/6400 · Set 125/6/5600 · Rare 160/3/3200 · Magic 30/16/192, min kept in c units; the table minimums sit above 128 so no row auto-succeeds any more), deathpen green from the ladder with NO code change; out/parity 10 passed 0 failed with oracle.py byte-identical, rows 17 and 37 reworded below; 142 xunit green, build 0 errors; parity never fitted to the sim). FINDING: docs/ARCHITECTURE.md:148 still says the ladder rows are "interpolated" — stale after this commit, ARCHITECT pass owed.
+
+STATUS: SKELETON WAVE LANDED (card 11794, merged to master) — game/ marker protocol VERIFIED (3 live SIM_TICKs, planted-red green, 164 tests); acts2-5/6-classes/cube/hirelings/npc skeletons parse-tested; OWED: 7th sibling class file (roster name owed to content card), screenshot leg (owner device pass), life/mana wiring = rows 4-5 unchanged.
+
 | # | Feature (Baba Yaga ← reference key) | Milestone | Status |
 |---|---|---|---|
 | 1 | 5 attributes with per-class start table [charstats] | M1 | BUILT-M1 |
@@ -96,6 +99,8 @@ STATUS: D2-ORACLE-ALIGNMENT (2026-10-31, card/11793, owner grant 2026-10-31 — 
 | 73 | Town portal scroll w/ return-to-spot | M4 | NOT-BUILT |
 | 74 | Stash multi-tab | M4 | NOT-BUILT |
 | 75 | Shop / craft / game-menu widgets | M4 | NOT-BUILT |
+| 76 | M4-slice DEFERRED-ART: screenshot/windowed leg open until 26 renders land | M4 | DEFERRED (tracked by run .audits/202610301950-31593a83 — close on the ART SPEC delivery (M4-placement.md §3) + the windowed leg; DA-verdict-m4.md P2-1) |
+| 77 | Monster spawn mapping — per-area area→monster-key data table (data/); the slice ships the presentation-side constant map {mchy: pokrzywnik} in scripts/MonsterField.cs | M4 | NOT-BUILT (lands with MapGen row 59; DA-verdict-m4.md P2-2) |
 
 ## ROADMAP — D2 full-parity areas as milestones
 
