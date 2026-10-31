@@ -1,0 +1,29 @@
+{
+ "_comment": "SKELETON (M4 skeleton wave, card/11794): placeholder rows for the ritual-craft recipe engine (LEDGER row 48, NOT-BUILT; the engine owns the real schema and ilvl rules). 5 placeholder recipes with VALID shape: id, name, inputs (itemId x count), output (itemId + quality), ilvlRule, flags. No loader reads this file (NO sim-loader edit in this wave). Original IP only (R2 wall) — the cube UI shape in T0b §7 is INFERRED, the 2x2+transmute frame rides the widgets pass.",
+ "recipes": [
+  { "id": "popiol_iskra", "name": "Ash to Ember (placeholder)",
+    "inputs": [ { "itemId": "PLACEHOLDER:reagent", "count": 3 } ],
+    "output": { "itemId": "PLACEHOLDER:ember_charm", "quality": "magic" },
+    "ilvlRule": "PLACEHOLDER:input-avg", "flags": [] },
+
+  { "id": "kredny_krag", "name": "Chalk Circle Reagent (placeholder)",
+    "inputs": [ { "itemId": "PLACEHOLDER:chalk", "count": 1 }, { "itemId": "PLACEHOLDER:iron_filings", "count": 1 } ],
+    "output": { "itemId": "PLACEHOLDER:ward_dust", "quality": "magic" },
+    "ilvlRule": "PLACEHOLDER:input-avg", "flags": [] },
+
+  { "id": "sol_w_doly", "name": "Salt of the Dolina (placeholder)",
+    "inputs": [ { "itemId": "PLACEHOLDER:salt", "count": 5 } ],
+    "output": { "itemId": "PLACEHOLDER:purified_salt", "quality": "magic" },
+    "ilvlRule": "PLACEHOLDER:input-avg", "flags": [] },
+
+  { "id": "stara_kosc", "name": "Old Bone Setting (placeholder)",
+    "inputs": [ { "itemId": "PLACEHOLDER:bone", "count": 2 }, { "itemId": "PLACEHOLDER:base_ring", "count": 1 } ],
+    "output": { "itemId": "PLACEHOLDER:bone_ring", "quality": "rare" },
+    "ilvlRule": "PLACEHOLDER:output-base", "flags": ["PLACEHOLDER:always-hits"] },
+
+  { "id": "wierzba_wolana", "name": "Called Willow (placeholder)",
+    "inputs": [ { "itemId": "PLACEHOLDER:willow_switch", "count": 4 } ],
+    "output": { "itemId": "PLACEHOLDER:willow_wand", "quality": "magic" },
+    "ilvlRule": "PLACEHOLDER:input-avg+2", "flags": [] }
+ ]
+}

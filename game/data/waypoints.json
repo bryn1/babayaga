@@ -1,0 +1,10 @@
+{
+ "note": "Baba Yaga Act I waypoints — standing stones of the Old Forest; one node per key area, activation permanent per character, travel legal only between lit stones (T0b P3 §6.3). ALL names ORIGINAL. ids unique; areaKey must carry hasWaypoint in act1-areas.json.",
+ "waypoints": [
+  { "id": 1, "areaKey": "grodzisko",  "name": "Brama Bobrowiska" },
+  { "id": 2, "areaKey": "mchy",       "name": "Mchowy Kamień" },
+  { "id": 3, "areaKey": "krecie",     "name": "Krecia Furta" },
+  { "id": 4, "areaKey": "kopcowisko", "name": "Kopcowy Świadek" },
+  { "id": 5, "areaKey": "czelusc",    "name": "Kamień Czeluści" }
+ ]
+}

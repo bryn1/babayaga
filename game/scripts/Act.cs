@@ -1,0 +1,88 @@
+using Godot;
+
+/// <summary>
+/// The act scene — composes IsoCamera + AreaRenderer + MonsterField +
+/// HeroController + Hud around the ONE GameContext session (never a 2nd session).
+/// Tab toggles the Inventory.tscn panel OVER this scene; F5 saves; Esc hints the
+/// menu row (LEDGER 75, ships later). Renders session.CurrentArea (slice:
+/// grodzisko ↔ mchy); a travel rebuilds the tiles + monster row under the new area.
+/// </summary>
+public partial class Act : Node
+{
+    private AreaRenderer _renderer = null!;
+    private MonsterField _monsters = null!;
+    private HeroController _hero = null!;
+    private IsoCamera _camera = null!;
+    private Hud _hud = null!;
+    private Control? _panel;
+
+    public override void _Ready()
+    {
+        var session = GameContext.Session;
+        if (session is null)
+        {
+            GD.PushError("Act: GameContext.Session is null — no second session is ever built here");
+            return;
+        }
+
+        var world = new Node2D { Name = "World", YSortEnabled = true };
+        AddChild(world);
+        _renderer = new AreaRenderer { Name = "Area" };
+        _monsters = new MonsterField { Name = "MonsterField" };
+        world.AddChild(_renderer);
+        world.AddChild(_monsters);
+
+        _camera = new IsoCamera { Name = "IsoCamera" };
+        AddChild(_camera);
+        _hud = new Hud { Name = "Hud" };
+        AddChild(_hud);
+
+        _hero = new HeroController { Name = "Hero" };
+        world.AddChild(_hero);
+        _hero.Wire(_renderer, _monsters, _hud);
+
+        Rebuild(session.CurrentArea);
+    }
+
+    /// <summary>Re-renders tiles + monster row + hero + camera for one area.</summary>
+    private void Rebuild(string areaKey)
+    {
+        var session = GameContext.Session;
+        if (session is null) return;
+        var area = session.Areas.Get(areaKey);
+        _renderer.Build(areaKey, area.IsTown);
+        _monsters.Build(areaKey, area.IsTown, _renderer.Walkable);
+        var start = _renderer.CenterCell();
+        _hero.Place(start);
+        _camera.FocusOn(start, AreaRenderer.W, AreaRenderer.H);
+        _hud.Hint(area.Name);
+    }
+
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (@event.IsActionPressed("inventory_toggle")) ToggleInventory();
+        else if (@event.IsActionPressed("save_game"))
+        {
+            GameContext.Save();
+            _hud.Hint("the stow-hand copies your kit to the save-stone");
+        }
+        else if (@event.IsActionPressed("game_menu"))
+            _hud.Hint("the game menu lands with the widget row (LEDGER 75)");
+    }
+
+    /// <summary>Inventory.tscn is instantiated ONCE and only toggled after — it
+    /// reads GameContext.Session, never builds its own.</summary>
+    private void ToggleInventory()
+    {
+        if (_panel is null)
+        {
+            var packed = GD.Load<PackedScene>("res://scenes/Inventory.tscn");
+            if (packed is null) { GD.PushError("missing res://scenes/Inventory.tscn"); return; }
+            if (packed.Instantiate() is not Control panel)
+            { GD.PushError("Inventory.tscn root is not a Control"); return; }
+            _panel = panel;
+            AddChild(_panel);
+        }
+        _panel.Visible = !_panel.Visible;
+    }
+}

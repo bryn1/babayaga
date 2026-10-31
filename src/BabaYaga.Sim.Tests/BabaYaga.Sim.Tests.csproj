@@ -23,6 +23,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The skeleton-wave data gate lives at repo-root tests/ (beside the pytest
+         seeds) and rides this project's compilation, so dotnet test BabaYaga.sln runs it. -->
+    <Compile Include="..\..\tests\SkeletonDataTests.cs" Link="tests\SkeletonDataTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BabaYaga.Sim\BabaYaga.Sim.csproj" />
     <ProjectReference Include="..\BabaYaga.Sim.Cli\BabaYaga.Sim.Cli.csproj" />
   </ItemGroup>

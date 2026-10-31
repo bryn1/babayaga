@@ -1,0 +1,20 @@
+{
+ "_comment": "SKELETON (M4 skeleton wave, card/11794): Act II 'Pustkowie' placeholder content — VALID minimal rows on the EXACT data/act1-areas.json schema (key, name, act, level, monLvlNightmare, monLvlHell, densityPercent, isTown, isBossLair, hasWaypoint, linkedTo), >=4 linked regions, exactly one town, symmetric edges, waypoint flags consistent. Content is DESIGN DEBT: names/values are placeholders for the act-design pass (LEDGER row 59, MapGen/5-act content). No loader change: AreaGraph.Load reads ONLY act1-areas.json until the acts ship. ALL names ORIGINAL (R2 wall).",
+ "areas": [
+  { "key": "piaski", "name": "Piaszczysty Postol", "act": 2, "level": 9, "monLvlNightmare": 30, "monLvlHell": 55,
+    "densityPercent": 50, "isTown": true, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["wydmuchy", "solna_dolina"] },
+
+  { "key": "wydmuchy", "name": "Wydmy Milczenia", "act": 2, "level": 10, "monLvlNightmare": 32, "monLvlHell": 58,
+    "densityPercent": 90, "isTown": false, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["piaski", "solna_dolina"] },
+
+  { "key": "solna_dolina", "name": "Solna Dolina", "act": 2, "level": 12, "monLvlNightmare": 36, "monLvlHell": 62,
+    "densityPercent": 100, "isTown": false, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["piaski", "wydmuchy", "kosciany_szyj"] },
+
+  { "key": "kosciany_szyj", "name": "Kosciany Szyj", "act": 2, "level": 14, "monLvlNightmare": 40, "monLvlHell": 66,
+    "densityPercent": 40, "isTown": false, "isBossLair": true, "hasWaypoint": true,
+    "linkedTo": ["solna_dolina"] }
+ ]
+}

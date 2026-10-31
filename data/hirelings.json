@@ -1,0 +1,16 @@
+{
+ "_comment": "SKELETON (M4 skeleton wave, card/11794): 3 hireling kinds (LEDGER rows 65-66, NOT-BUILT). Shape follows T0b §6.7 (mercenary = a monster unit reading a hireling table: bracket stats, per-level columns, weighted skill roll, hire price gold*(100+15*levels_above_bracket)/100 — the MATH is the engine's debt, these rows carry the roster). VALUES ARE PLACEHOLDERS (original names, no D2 roster copied). No loader reads this file (NO sim-loader edit in this wave).",
+ "hirelings": [
+  { "id": "strzelczyni", "name": "Strzelczyni (bow-kin, placeholder)",
+    "act": 1, "weapon": "bow", "attackKind": "ranged",
+    "hireGold": 100, "bracket": "PLACEHOLDER", "skillWeights": [] },
+
+  { "id": "witez", "name": "Witez (spear-sworn, placeholder)",
+    "act": 2, "weapon": "spear", "attackKind": "melee",
+    "hireGold": 250, "bracket": "PLACEHOLDER", "skillWeights": [] },
+
+  { "id": "rzutca", "name": "Rzutca (axe-thrower, placeholder)",
+    "act": 5, "weapon": "throwing-axe", "attackKind": "ranged",
+    "hireGold": 500, "bracket": "PLACEHOLDER", "skillWeights": [] }
+ ]
+}

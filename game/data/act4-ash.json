@@ -1,0 +1,20 @@
+{
+ "_comment": "SKELETON (M4 skeleton wave, card/11794): Act IV 'Popielne Pola' placeholder content — VALID minimal rows on the EXACT data/act1-areas.json schema, >=4 linked regions, exactly one town, symmetric edges, waypoint flags consistent. Content is DESIGN DEBT (LEDGER row 59). AreaGraph.Load reads ONLY act1-areas.json until the acts ship. ALL names ORIGINAL (R2 wall).",
+ "areas": [
+  { "key": "popielny_targ", "name": "Popielny Targ", "act": 4, "level": 33, "monLvlNightmare": 70, "monLvlHell": 92,
+    "densityPercent": 50, "isTown": true, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["zaruiny_weglarze", "pole_popieliska"] },
+
+  { "key": "zaruiny_weglarze", "name": "Zaruine Weglarze", "act": 4, "level": 35, "monLvlNightmare": 74, "monLvlHell": 95,
+    "densityPercent": 100, "isTown": false, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["popielny_targ", "pole_popieliska"] },
+
+  { "key": "pole_popieliska", "name": "Pole Popieliska", "act": 4, "level": 37, "monLvlNightmare": 78, "monLvlHell": 97,
+    "densityPercent": 110, "isTown": false, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["popielny_targ", "zaruiny_weglarze", "zyzelowa_szczerba"] },
+
+  { "key": "zyzelowa_szczerba", "name": "Zyzelowa Szczerba", "act": 4, "level": 40, "monLvlNightmare": 84, "monLvlHell": 99,
+    "densityPercent": 40, "isTown": false, "isBossLair": true, "hasWaypoint": true,
+    "linkedTo": ["pole_popieliska"] }
+ ]
+}

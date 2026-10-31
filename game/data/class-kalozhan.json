@@ -1,0 +1,14 @@
+{
+ "_comment": "SKELETON (M4 skeleton wave, card/11794): archetype 2 of the LEDGER 7-class roster — ORIGINAL name, PLACEHOLDER values (the real row is owed by the class-design pass; same placeholder numbers ride all non-koldun siblings). Mirrors the key set of data/class-koldun.json exactly. No loader reads it yet (NO sim-loader edit in this wave).",
+ "key": "kalozhan",
+ "name": "Kalozhan",
+ "startStr": 20,
+ "startDex": 20,
+ "startEner": 20,
+ "startVit": 25,
+ "lifePerLevel": 2,
+ "manaPerLevel": 2,
+ "lifePerVit": 2,
+ "manaPerEner": 2,
+ "blockClassFactor": 25
+}

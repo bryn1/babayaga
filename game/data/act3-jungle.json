@@ -1,0 +1,20 @@
+{
+ "_comment": "SKELETON (M4 skeleton wave, card/11794): Act III 'Puszcza Glosna' placeholder content — VALID minimal rows on the EXACT data/act1-areas.json schema, >=4 linked regions, exactly one town, symmetric edges, waypoint flags consistent. Content is DESIGN DEBT (LEDGER row 59). AreaGraph.Load reads ONLY act1-areas.json until the acts ship. ALL names ORIGINAL (R2 wall).",
+ "areas": [
+  { "key": "wielki_dab", "name": "Wielki Dab", "act": 3, "level": 22, "monLvlNightmare": 50, "monLvlHell": 75,
+    "densityPercent": 50, "isTown": true, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["glosne_korzysko", "mchy_gestwinowe"] },
+
+  { "key": "glosne_korzysko", "name": "Glosne Korzysko", "act": 3, "level": 24, "monLvlNightmare": 54, "monLvlHell": 78,
+    "densityPercent": 100, "isTown": false, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["wielki_dab", "mchy_gestwinowe"] },
+
+  { "key": "mchy_gestwinowe", "name": "Mchy Gestwinowe", "act": 3, "level": 26, "monLvlNightmare": 58, "monLvlHell": 82,
+    "densityPercent": 110, "isTown": false, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["wielki_dab", "glosne_korzysko", "pnienie_widm"] },
+
+  { "key": "pnienie_widm", "name": "Pnienie Widm", "act": 3, "level": 30, "monLvlNightmare": 64, "monLvlHell": 88,
+    "densityPercent": 40, "isTown": false, "isBossLair": true, "hasWaypoint": true,
+    "linkedTo": ["mchy_gestwinowe"] }
+ ]
+}
