@@ -21,6 +21,7 @@ public partial class Act : Node
     public AreaRenderer Tiles => _renderer;
     public MonsterField Monsters => _monsters;
     public HeroController Hero => _hero;
+    public Hud HudPanel => _hud; // the level-up leg's HUD read-back (HUD_LEVEL)
 
     public override void _Ready()
     {

@@ -26,7 +26,10 @@ using Godot;
 /// not adjacent = no Attack call = no marker (the leg's planted-red shape).
 /// Monster HP before/after each kill reads the session's own Dump() JSON
 /// (engagedLife), the one public mirror of the engaged monster. JOURNEY_OK prints
-/// only when the whole chain completed AND the XP-sum honesty leg held.
+/// only when the whole chain completed AND the XP-sum honesty leg held. Then the
+/// M4-S4 LEVEL-UP BEAT (LevelUpBeat) kills the row entries this pass left, until
+/// the session Level rises on the runtime-derived ladder threshold — LEVEL_UP +
+/// HUD_LEVEL evidence, the same MonsterTable/XpTable derivation, bridge-only.
 /// </summary>
 public static class JourneyLeg
 {
@@ -120,6 +123,90 @@ public static class JourneyLeg
             s.CurrentArea == Dest)
             GD.Print("JOURNEY_OK");
         else GD.PushError("journey chain incomplete — the lines above are the evidence");
+
+        LevelUpBeat(s, act, row, targets, ladder, steps);
+    }
+
+    /// <summary>M4-S4 LEVEL-UP BEAT — the hero LEVELS UP inside the loop. Kills the
+    /// SPAWNED ROW entries the per-kind pass left (same walk + adjacency-gated
+    /// Attack) until the session Level rises. The expected next-level threshold is
+    /// derived from data/xp-ladder.json AT RUNTIME through XpTable (D2-verbatim,
+    /// L1→L2 = 500) — never a literal; `XP_EXPECT next-level=&lt;n&gt; total-xp=&lt;n&gt;`
+    /// prints each kill round. `LEVEL_UP n=&lt;int&gt; level=&lt;int&gt; xp=&lt;long&gt;` prints ONLY
+    /// on an observed session.Level increase whose session-read XP clears that
+    /// ladder threshold — a tampered threshold is a named mismatch with no LEVEL_UP
+    /// line, a loop stopped short is a named never-increased red. HUD_LEVEL lines
+    /// pull the HUD's OWN painted level (Hud.Refresh + LevelShown) every round —
+    /// ...,1 / ...,1 / ...,2 across the level-up; `HUD_LEVEL ok` only when >=3
+    /// lines were painted, the last one equals the session Level, and the level
+    /// really went up — a frozen HUD never passes.</summary>
+    private static void LevelUpBeat(
+        GameSession s, Act act, List<(string Key, Vector2I Cell)> row,
+        List<(string Key, Vector2I Cell)> killed, XpTable ladder, int stepBase)
+    {
+        int n = 0, painted = 0, step = stepBase, levelSeen = s.Level;
+        bool levelUp = false;
+        var hero = act.Hero;
+        foreach (var (key, cell) in Remaining(row, killed))
+        {
+            n++;
+            GD.Print($"XP_EXPECT next-level={ladder.TotalXpForLevel(levelSeen + 1)}" +
+                $" total-xp={s.Character.Xp}");
+            hero.WalkTo(cell);
+            while (hero.StepNext())
+                GD.Print($"HERO_STEP n={++step} cell={hero.Cell.X},{hero.Cell.Y} area={s.CurrentArea}");
+            if (!InRange(hero.Cell, cell, 1))
+            {
+                GD.PushWarning($"level-up beat: hero not adjacent to {key} at {cell.X},{cell.Y} — no Attack call");
+                continue;
+            }
+            int kills = 0;
+            for (int strike = 1; kills == 0 && strike <= StrikeCap; strike++)
+                kills = s.Attack(key, 1).Kills;
+            if (kills == 0)
+            {
+                GD.PushWarning($"level-up beat: {key} survived {StrikeCap} strikes — no kill this round");
+                continue;
+            }
+            // NO Loot here — the beat's kill-pile stays on the field; carrying it
+            // would starve the trade leg's pack-space assertions (M4-S2).
+            act.HudPanel.Refresh(); // the HUD's own paint pass, run per kill round
+            painted++;
+            GD.Print($"HUD_LEVEL n={n} level={act.HudPanel.LevelShown}");
+            if (s.Level <= levelSeen) continue;
+            long owed = ladder.TotalXpForLevel(s.Level); // expected threshold, runtime ladder
+            if (s.Character.Xp >= owed)
+            {
+                GD.Print($"LEVEL_UP n={n} level={s.Level} xp={s.Character.Xp}");
+                levelUp = true;
+            }
+            else
+                GD.PushError($"level-up leg: EXPECTED-THRESHOLD MISMATCH — ladder owes {owed} xp" +
+                    $" for level {s.Level}, session paid {s.Character.Xp}");
+            break; // the beat's one level-up — observed (or the red that denies it)
+        }
+        if (!levelUp)
+            GD.PushError($"level-up leg: session level NEVER increased — xp={s.Character.Xp}" +
+                $" below ladder threshold {ladder.TotalXpForLevel(levelSeen + 1)}");
+        if (levelUp && painted >= 3 && act.HudPanel.LevelShown == s.Level)
+            GD.Print($"HUD_LEVEL ok painted={painted} last={act.HudPanel.LevelShown} level={s.Level}");
+        else
+            GD.PushError($"HUD-LEVEL leg: {painted} painted lines, last={act.HudPanel.LevelShown}" +
+                $" vs session level {s.Level} — HUD not live across the level-up");
+    }
+
+    /// <summary>The spawn row minus the entries the per-kind pass already killed
+    /// (one instance per Key+Cell) — the beat's kill queue, presentation-side truth.</summary>
+    private static List<(string Key, Vector2I Cell)> Remaining(
+        List<(string Key, Vector2I Cell)> row, List<(string Key, Vector2I Cell)> killed)
+    {
+        var left = new List<(string Key, Vector2I Cell)>(row);
+        foreach (var t in killed)
+        {
+            int i = left.FindIndex(e => e.Key == t.Key && e.Cell == t.Cell);
+            if (i >= 0) left.RemoveAt(i);
+        }
+        return left;
     }
 
     /// <summary>The XP the data tables owe for one kill of this kind — the SAME
