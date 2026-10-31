@@ -1,0 +1,63 @@
+{
+  "note": "Baba Yaga treasure classes (T0b P2 §4.9). ALL names ORIGINAL to this world (R2 clean-room wall: the reference itemgolds.txt was read for SHAPE only — picks, weighted entries, group recursion, gold piles). Fields: picks = draws per roll, NEGATIVE = forced (guaranteed-drop) walk that may carry no nodrop entry; minIlvl = floor for items this class gives (the mound-fields guard richer finds than the moss); gold = {nuggets, multiplier}, pile = nuggets × mul/256 × (1 + killer GoldFind); entries: kind nodrop|gold|group|item, item uses baseId, group uses ref to another class (acyclic). ≤6 outputs per kill, gold included.",
+  "classes": [
+    { "key": "lup_lezny", "name": "Leśny Łup", "picks": 2, "minIlvl": 24,
+      "gold": { "nuggets": 6, "multiplier": 192 },
+      "entries": [
+        { "weight": 30, "kind": "nodrop" },
+        { "weight": 25, "kind": "gold" },
+        { "weight": 12, "kind": "item", "baseId": "palica" },
+        { "weight": 10, "kind": "item", "baseId": "soluga" },
+        { "weight": 12, "kind": "item", "baseId": "watan" },
+        { "weight": 18, "kind": "group", "ref": "bron" },
+        { "weight": 18, "kind": "group", "ref": "szaty" }
+      ] },
+
+    { "key": "lup_kopcowy", "name": "Kopcowy Łup", "picks": 3, "minIlvl": 30,
+      "gold": { "nuggets": 14, "multiplier": 256 },
+      "entries": [
+        { "weight": 25, "kind": "nodrop" },
+        { "weight": 30, "kind": "gold" },
+        { "weight": 25, "kind": "group", "ref": "bron" },
+        { "weight": 25, "kind": "group", "ref": "szaty" },
+        { "weight": 20, "kind": "group", "ref": "kamienie" }
+      ] },
+
+    { "key": "skarb_leszego", "name": "Skarb Leszego", "picks": -3, "minIlvl": 45,
+      "gold": { "nuggets": 40, "multiplier": 320 },
+      "entries": [
+        { "weight": 30, "kind": "gold" },
+        { "weight": 35, "kind": "group", "ref": "bron" },
+        { "weight": 35, "kind": "group", "ref": "szaty" }
+      ] },
+
+    { "key": "bron", "name": "Gromada Broni", "picks": 1,
+      "entries": [
+        { "weight": 20, "kind": "item", "baseId": "szpula" },
+        { "weight": 15, "kind": "item", "baseId": "sekiera" },
+        { "weight": 15, "kind": "item", "baseId": "palica" },
+        { "weight": 15, "kind": "item", "baseId": "soluga" },
+        { "weight": 10, "kind": "item", "baseId": "postak" },
+        { "weight": 5,  "kind": "item", "baseId": "zdzar" }
+      ] },
+
+    { "key": "szaty", "name": "Gromada Szat", "picks": 1,
+      "entries": [
+        { "weight": 10, "kind": "item", "baseId": "oczep" },
+        { "weight": 15, "kind": "item", "baseId": "szyszak" },
+        { "weight": 20, "kind": "item", "baseId": "watan" },
+        { "weight": 12, "kind": "item", "baseId": "opaszka" },
+        { "weight": 15, "kind": "item", "baseId": "tarcza" },
+        { "weight": 12, "kind": "item", "baseId": "rawnice" },
+        { "weight": 12, "kind": "item", "baseId": "lapcie" },
+        { "weight": 8,  "kind": "item", "baseId": "pojas" }
+      ] },
+
+    { "key": "kamienie", "name": "Gromada Kamieni", "picks": 1,
+      "entries": [
+        { "weight": 40, "kind": "item", "baseId": "jantar" },
+        { "weight": 35, "kind": "item", "baseId": "granat" },
+        { "weight": 25, "kind": "item", "baseId": "oliwin" }
+      ] }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+ "_comment": "SKELETON (M4 skeleton wave, card/11794): the data twin of the BUILT Koldun design row — values verbatim from src/BabaYaga.Sim/Stats.cs ClassProfile Koldun (Stats.cs stays the only reader until the class-data loader lands; NO sim-loader edit in this wave). Key set of this file is the CONTRACT the five sibling class-*.json mirror (checked by SkeletonDataTests). 7-class roster note: LEDGER row '7 playable classes/archetypes' — this wave stands up 6 files; the 7th archetype is content design owed by the class-design pass.",
+ "key": "koldun",
+ "name": "Koldun",
+ "startStr": 15,
+ "startDex": 20,
+ "startEner": 30,
+ "startVit": 20,
+ "lifePerLevel": 2,
+ "manaPerLevel": 2,
+ "lifePerVit": 2,
+ "manaPerEner": 2,
+ "blockClassFactor": 20
+}

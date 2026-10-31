@@ -1,0 +1,20 @@
+{
+ "_comment": "SKELETON (M4 skeleton wave, card/11794): Act V 'Stare Grody' placeholder content — VALID minimal rows on the EXACT data/act1-areas.json schema, >=4 linked regions, exactly one town, symmetric edges, waypoint flags consistent. Content is DESIGN DEBT (LEDGER row 59). AreaGraph.Load reads ONLY act1-areas.json until the acts ship. ALL names ORIGINAL (R2 wall).",
+ "areas": [
+  { "key": "stare_grody", "name": "Stare Grody", "act": 5, "level": 50, "monLvlNightmare": 95, "monLvlHell": 99,
+    "densityPercent": 50, "isTown": true, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["krug_wyrzysk", "podziemia_wiezy"] },
+
+  { "key": "krug_wyrzysk", "name": "Krag Wyrzysk", "act": 5, "level": 55, "monLvlNightmare": 97, "monLvlHell": 99,
+    "densityPercent": 100, "isTown": false, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["stare_grody", "podziemia_wiezy"] },
+
+  { "key": "podziemia_wiezy", "name": "Podziemia Wiezy", "act": 5, "level": 60, "monLvlNightmare": 99, "monLvlHell": 99,
+    "densityPercent": 110, "isTown": false, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["stare_grody", "krug_wyrzysk", "tron_leszego"] },
+
+  { "key": "tron_leszego", "name": "Tron Leszego", "act": 5, "level": 66, "monLvlNightmare": 99, "monLvlHell": 99,
+    "densityPercent": 40, "isTown": false, "isBossLair": true, "hasWaypoint": true,
+    "linkedTo": ["podziemia_wiezy"] }
+ ]
+}

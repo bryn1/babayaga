@@ -1,0 +1,95 @@
+{
+ "note": "Baba Yaga special-group tables — ALL content ORIGINAL (R2 wall: shapes only from the reference; every name invented for this world). specialGroupRoll: 4 parts unique-with-minions to 1 part champion pack (P3 §5.2). Bonus tables carry one row per difficulty band (life/AR adds, level add, XP multiplier). championAffixes = champion pack families; uniqueAffixes = the unique modifier pool, each row flagging whether it passes to minions and whether it is behaviour-only (behaviour effects never reach minions, P3 §5.4).",
+ "specialGroupRoll": { "uniqueWeight": 4, "championWeight": 1 },
+ "championPackSize": { "min": 5, "max": 9 },
+ "uniqueMinions": { "min": 3, "max": 6 },
+ "championBonus": [
+  { "difficulty": "ordinary",  "lifePercentAdd": 200, "arPercentAdd": 67, "levelAdd": 2, "xpMultiplier": 3 },
+  { "difficulty": "nightmare", "lifePercentAdd": 150, "arPercentAdd": 56, "levelAdd": 2, "xpMultiplier": 3 },
+  { "difficulty": "hell",      "lifePercentAdd": 100, "arPercentAdd": 49, "levelAdd": 2, "xpMultiplier": 3 }
+ ],
+ "uniqueBonus": [
+  { "difficulty": "ordinary",  "lifePercentAdd": 300, "arPercentAdd": 90, "levelAdd": 3, "xpMultiplier": 5 },
+  { "difficulty": "nightmare", "lifePercentAdd": 200, "arPercentAdd": 75, "levelAdd": 3, "xpMultiplier": 5 },
+  { "difficulty": "hell",      "lifePercentAdd": 100, "arPercentAdd": 66, "levelAdd": 3, "xpMultiplier": 5 }
+ ],
+ "minionBonus": [
+  { "difficulty": "ordinary",  "lifePercentAdd": 100, "arPercentAdd": 45, "levelAdd": 3, "xpMultiplier": 5 },
+  { "difficulty": "nightmare", "lifePercentAdd": 75,  "arPercentAdd": 37, "levelAdd": 3, "xpMultiplier": 5 },
+  { "difficulty": "hell",      "lifePercentAdd": 50,  "arPercentAdd": 33, "levelAdd": 3, "xpMultiplier": 5 }
+ ],
+ "championAffixes": [
+  { "key": "wichrowaty", "name": "Wichrowaty", "element": "", "elementPercent": 0,
+    "lifePercentAdd": 0, "arPercentAdd": 0, "damagePercentAdd": 0, "resistPercent": 0,
+    "speedPercent": 50, "sizePercent": 0, "crushPercent": 0, "passesToMinions": true, "behaviourOnly": false },
+
+  { "key": "kurdupel", "name": "Kurdupel", "element": "", "elementPercent": 0,
+    "lifePercentAdd": -25, "arPercentAdd": 20, "damagePercentAdd": 0, "resistPercent": 0,
+    "speedPercent": 0, "sizePercent": -50, "crushPercent": 0, "passesToMinions": true, "behaviourOnly": false },
+
+  { "key": "gruzacz", "name": "Gruzacz", "element": "", "elementPercent": 0,
+    "lifePercentAdd": 25, "arPercentAdd": 0, "damagePercentAdd": 0, "resistPercent": 0,
+    "speedPercent": -10, "sizePercent": 0, "crushPercent": 25, "passesToMinions": true, "behaviourOnly": false },
+
+  { "key": "zarliwy", "name": "Żarliwy", "element": "ogien", "elementPercent": 40,
+    "lifePercentAdd": 0, "arPercentAdd": 0, "damagePercentAdd": 20, "resistPercent": 50,
+    "speedPercent": 0, "sizePercent": 0, "crushPercent": 0, "passesToMinions": true, "behaviourOnly": false },
+
+  { "key": "szadziwy", "name": "Szadziwy", "element": "mrz", "elementPercent": 40,
+    "lifePercentAdd": 0, "arPercentAdd": 0, "damagePercentAdd": 15, "resistPercent": 50,
+    "speedPercent": 0, "sizePercent": 0, "crushPercent": 0, "passesToMinions": true, "behaviourOnly": false },
+
+  { "key": "cichy", "name": "Cichy", "element": "", "elementPercent": 0,
+    "lifePercentAdd": 0, "arPercentAdd": 0, "damagePercentAdd": 0, "resistPercent": 0,
+    "speedPercent": 20, "sizePercent": 0, "crushPercent": 0, "passesToMinions": false, "behaviourOnly": true },
+
+  { "key": "kolczasty", "name": "Kolczasty", "element": "", "elementPercent": 0,
+    "lifePercentAdd": 0, "arPercentAdd": 0, "damagePercentAdd": 10, "resistPercent": 0,
+    "speedPercent": 0, "sizePercent": 0, "crushPercent": 0, "passesToMinions": true, "behaviourOnly": false },
+
+  { "key": "odporniak", "name": "Odporniak", "element": "", "elementPercent": 0,
+    "lifePercentAdd": 25, "arPercentAdd": 0, "damagePercentAdd": 0, "resistPercent": 30,
+    "speedPercent": 0, "sizePercent": 0, "crushPercent": 0, "passesToMinions": true, "behaviourOnly": false }
+ ],
+ "uniqueAffixes": [
+  { "key": "zarooddech", "name": "Żarooddech", "element": "ogien", "elementPercent": 50,
+    "lifePercentAdd": 0, "arPercentAdd": 0, "damagePercentAdd": 30, "resistPercent": 0,
+    "speedPercent": 0, "sizePercent": 0, "crushPercent": 0, "passesToMinions": true, "behaviourOnly": false },
+
+  { "key": "mrozyoddech", "name": "Mrozyoddech", "element": "mrz", "elementPercent": 45,
+    "lifePercentAdd": 0, "arPercentAdd": 0, "damagePercentAdd": 25, "resistPercent": 0,
+    "speedPercent": 0, "sizePercent": 0, "crushPercent": 0, "passesToMinions": true, "behaviourOnly": false },
+
+  { "key": "krewopij", "name": "Krewopij", "element": "", "elementPercent": 0,
+    "lifePercentAdd": 25, "arPercentAdd": 0, "damagePercentAdd": 35, "resistPercent": 0,
+    "speedPercent": 0, "sizePercent": 0, "crushPercent": 0, "passesToMinions": true, "behaviourOnly": false },
+
+  { "key": "gruboskora", "name": "Gruboskóra", "element": "", "elementPercent": 0,
+    "lifePercentAdd": 60, "arPercentAdd": 0, "damagePercentAdd": 0, "resistPercent": 25,
+    "speedPercent": 0, "sizePercent": 0, "crushPercent": 0, "passesToMinions": true, "behaviourOnly": false },
+
+  { "key": "slabinacz", "name": "Słabina", "element": "", "elementPercent": 0,
+    "lifePercentAdd": 0, "arPercentAdd": 0, "damagePercentAdd": 0, "resistPercent": -20,
+    "speedPercent": 0, "sizePercent": 0, "crushPercent": 0, "passesToMinions": false, "behaviourOnly": true },
+
+  { "key": "zwinorog", "name": "Zwinorog", "element": "", "elementPercent": 0,
+    "lifePercentAdd": 0, "arPercentAdd": 0, "damagePercentAdd": 0, "resistPercent": 0,
+    "speedPercent": 45, "sizePercent": 0, "crushPercent": 0, "passesToMinions": false, "behaviourOnly": true },
+
+  { "key": "gromoglos", "name": "Gromogłos", "element": "grom", "elementPercent": 55,
+    "lifePercentAdd": 0, "arPercentAdd": 0, "damagePercentAdd": 20, "resistPercent": 0,
+    "speedPercent": 0, "sizePercent": 0, "crushPercent": 0, "passesToMinions": true, "behaviourOnly": false },
+
+  { "key": "kamieniak", "name": "Kamieniak", "element": "", "elementPercent": 0,
+    "lifePercentAdd": 80, "arPercentAdd": 0, "damagePercentAdd": 0, "resistPercent": 10,
+    "speedPercent": -20, "sizePercent": 0, "crushPercent": 15, "passesToMinions": true, "behaviourOnly": false },
+
+  { "key": "mgliciel", "name": "Mgliciel", "element": "", "elementPercent": 0,
+    "lifePercentAdd": 0, "arPercentAdd": 0, "damagePercentAdd": 0, "resistPercent": 0,
+    "speedPercent": 0, "sizePercent": 0, "crushPercent": 0, "passesToMinions": false, "behaviourOnly": true },
+
+  { "key": "chciwy", "name": "Chciwy", "element": "", "elementPercent": 0,
+    "lifePercentAdd": 0, "arPercentAdd": 0, "damagePercentAdd": 0, "resistPercent": 0,
+    "speedPercent": 0, "sizePercent": 0, "crushPercent": 0, "passesToMinions": false, "behaviourOnly": false }
+ ]
+}

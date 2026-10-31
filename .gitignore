@@ -1,6 +1,10 @@
 # Godot
 .godot/
 
+# game/assets/ = one-way copy of assets/raw/ produced by assets/import.sh
+# (raw originals in assets/raw/ are truth; the copy + its .import sidecars never enter git)
+game/assets/
+
 # C# / dotnet
 bin/
 obj/

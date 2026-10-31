@@ -1,0 +1,32 @@
+{
+ "note": "Baba Yaga Act I — 'Bór' (the Old Forest): one town hub, a linked wilderness of moss, nettle, mole-tunnels and mound-fields, and the Maw where Leszy keeps court. ALL names ORIGINAL to this world (R2 wall — the reference act list was read for STRUCTURE only: town + wilderness chain + boss lair, per-area monster levels per band, density, waypoint flags; T0b P3 §6.1).",
+ "areas": [
+  { "key": "grodzisko", "name": "Bobrowisko", "act": 1, "level": 1, "monLvlNightmare": 8, "monLvlHell": 20,
+    "densityPercent": 60, "isTown": true, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["mchy", "pokrzywlasy"] },
+
+  { "key": "mchy", "name": "Mchary", "act": 1, "level": 2, "monLvlNightmare": 9, "monLvlHell": 24,
+    "densityPercent": 90, "isTown": false, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["grodzisko", "krecie", "widlan"] },
+
+  { "key": "pokrzywlasy", "name": "Pokrzywlasy", "act": 1, "level": 3, "monLvlNightmare": 11, "monLvlHell": 28,
+    "densityPercent": 100, "isTown": false, "isBossLair": false, "hasWaypoint": false,
+    "linkedTo": ["grodzisko", "widlan"] },
+
+  { "key": "krecie", "name": "Krecie Korytarze", "act": 1, "level": 4, "monLvlNightmare": 13, "monLvlHell": 32,
+    "densityPercent": 80, "isTown": false, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["mchy", "kopcowisko"] },
+
+  { "key": "widlan", "name": "Widłany Jar", "act": 1, "level": 5, "monLvlNightmare": 16, "monLvlHell": 36,
+    "densityPercent": 110, "isTown": false, "isBossLair": false, "hasWaypoint": false,
+    "linkedTo": ["mchy", "pokrzywlasy", "kopcowisko"] },
+
+  { "key": "kopcowisko", "name": "Kopcowisko", "act": 1, "level": 6, "monLvlNightmare": 20, "monLvlHell": 40,
+    "densityPercent": 120, "isTown": false, "isBossLair": false, "hasWaypoint": true,
+    "linkedTo": ["krecie", "widlan", "czelusc"] },
+
+  { "key": "czelusc", "name": "Czelusc Leszego", "act": 1, "level": 8, "monLvlNightmare": 26, "monLvlHell": 45,
+    "densityPercent": 40, "isTown": false, "isBossLair": true, "hasWaypoint": true,
+    "linkedTo": ["kopcowisko"] }
+ ]
+}

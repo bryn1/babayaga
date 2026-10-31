@@ -1,0 +1,15 @@
+<Project Sdk="Godot.NET.Sdk/4.7.2">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- The ONLY engine-side csproj; deliberately NOT added to BabaYaga.sln
+         (M4-placement §6: the sim xunit gates stay engine-process-free). -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../src/BabaYaga.Sim/BabaYaga.Sim.csproj" />
+  </ItemGroup>
+
+</Project>

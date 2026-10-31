@@ -1,0 +1,66 @@
+{
+ "note": "Baba Yaga monster tables — ALL content ORIGINAL to this world (R2 clean-room wall: the reference tables were read for SHAPE only, never names or cells). 'growth' = per-level scaling rows in force from startLevel up (monlvl shape: stat percents + an absolute XP column). 'monsters' = base rows (monstats shape: ai key, own level, boss/keepsOwnLevel flags, base stats × own percent columns). Final stat = base × growth(level) × ownPercent / 100 (T0b P3 §5.1).",
+ "growth": [
+  { "startLevel": 1,  "lifePercent": 100, "defensePercent": 100, "toHitPercent": 100, "damagePercent": 100, "xpValue": 40 },
+  { "startLevel": 5,  "lifePercent": 130, "defensePercent": 110, "toHitPercent": 115, "damagePercent": 110, "xpValue": 70 },
+  { "startLevel": 10, "lifePercent": 180, "defensePercent": 125, "toHitPercent": 135, "damagePercent": 125, "xpValue": 130 },
+  { "startLevel": 15, "lifePercent": 240, "defensePercent": 140, "toHitPercent": 155, "damagePercent": 145, "xpValue": 210 },
+  { "startLevel": 20, "lifePercent": 310, "defensePercent": 160, "toHitPercent": 180, "damagePercent": 170, "xpValue": 320 },
+  { "startLevel": 30, "lifePercent": 460, "defensePercent": 200, "toHitPercent": 230, "damagePercent": 220, "xpValue": 560 },
+  { "startLevel": 40, "lifePercent": 640, "defensePercent": 250, "toHitPercent": 290, "damagePercent": 280, "xpValue": 880 },
+  { "startLevel": 50, "lifePercent": 860, "defensePercent": 310, "toHitPercent": 360, "damagePercent": 350, "xpValue": 1300 },
+  { "startLevel": 60, "lifePercent": 1120,"defensePercent": 380, "toHitPercent": 440, "damagePercent": 430, "xpValue": 1850 },
+  { "startLevel": 70, "lifePercent": 1420,"defensePercent": 460, "toHitPercent": 530, "damagePercent": 520, "xpValue": 2550 },
+  { "startLevel": 80, "lifePercent": 1760,"defensePercent": 550, "toHitPercent": 630, "damagePercent": 620, "xpValue": 3400 },
+  { "startLevel": 99, "lifePercent": 2200,"defensePercent": 660, "toHitPercent": 760, "damagePercent": 750, "xpValue": 4600 }
+ ],
+ "monsters": [
+  { "key": "pokrzywnik", "name": "Pokrzywnik", "ai": "melee", "ownLevel": 1, "boss": false, "keepsOwnLevel": false,
+    "baseLife": 16, "baseDefense": 6, "baseToHit": 28, "damageMin": 2, "damageMax": 4,
+    "lifePercent": 90, "defensePercent": 90, "toHitPercent": 100, "damagePercent": 90, "xpPercent": 100, "resistPercent": 0 },
+
+  { "key": "ponurak", "name": "Ponurak", "ai": "avoid", "ownLevel": 2, "boss": false, "keepsOwnLevel": false,
+    "baseLife": 14, "baseDefense": 10, "baseToHit": 24, "damageMin": 1, "damageMax": 3,
+    "lifePercent": 100, "defensePercent": 100, "toHitPercent": 100, "damagePercent": 100, "xpPercent": 90, "resistPercent": 0 },
+
+  { "key": "leszun", "name": "Leszun", "ai": "melee", "ownLevel": 3, "boss": false, "keepsOwnLevel": false,
+    "baseLife": 26, "baseDefense": 9, "baseToHit": 36, "damageMin": 3, "damageMax": 6,
+    "lifePercent": 100, "defensePercent": 100, "toHitPercent": 100, "damagePercent": 100, "xpPercent": 100, "resistPercent": 0 },
+
+  { "key": "wierzbowiczka", "name": "Wierzbowiczka", "ai": "ranged", "ownLevel": 4, "boss": false, "keepsOwnLevel": false,
+    "baseLife": 20, "baseDefense": 12, "baseToHit": 40, "damageMin": 4, "damageMax": 7,
+    "lifePercent": 90, "defensePercent": 100, "toHitPercent": 110, "damagePercent": 100, "xpPercent": 110, "resistPercent": 0 },
+
+  { "key": "kretownik", "name": "Kretownik", "ai": "charge", "ownLevel": 4, "boss": false, "keepsOwnLevel": false,
+    "baseLife": 34, "baseDefense": 8, "baseToHit": 32, "damageMin": 4, "damageMax": 8,
+    "lifePercent": 120, "defensePercent": 100, "toHitPercent": 85, "damagePercent": 110, "xpPercent": 100, "resistPercent": 0 },
+
+  { "key": "strzyga", "name": "Strzyga", "ai": "melee", "ownLevel": 6, "boss": false, "keepsOwnLevel": false,
+    "baseLife": 40, "baseDefense": 12, "baseToHit": 48, "damageMin": 5, "damageMax": 9,
+    "lifePercent": 140, "defensePercent": 100, "toHitPercent": 110, "damagePercent": 110, "xpPercent": 110, "resistPercent": 20 },
+
+  { "key": "zmurek", "name": "Zmurek", "ai": "ranged", "ownLevel": 6, "boss": false, "keepsOwnLevel": false,
+    "baseLife": 30, "baseDefense": 14, "baseToHit": 52, "damageMin": 6, "damageMax": 10,
+    "lifePercent": 100, "defensePercent": 100, "toHitPercent": 120, "damagePercent": 100, "xpPercent": 110, "resistPercent": 15 },
+
+  { "key": "bobun", "name": "Bobun", "ai": "charge", "ownLevel": 5, "boss": false, "keepsOwnLevel": false,
+    "baseLife": 48, "baseDefense": 6, "baseToHit": 30, "damageMin": 6, "damageMax": 11,
+    "lifePercent": 160, "defensePercent": 70, "toHitPercent": 75, "damagePercent": 110, "xpPercent": 100, "resistPercent": 0 },
+
+  { "key": "uroczysko", "name": "Uroczysko", "ai": "ranged", "ownLevel": 7, "boss": false, "keepsOwnLevel": false,
+    "baseLife": 36, "baseDefense": 16, "baseToHit": 56, "damageMin": 7, "damageMax": 12,
+    "lifePercent": 100, "defensePercent": 100, "toHitPercent": 100, "damagePercent": 100, "xpPercent": 130, "resistPercent": 35 },
+
+  { "key": "widlast", "name": "Widlast", "ai": "charge", "ownLevel": 8, "boss": false, "keepsOwnLevel": false,
+    "baseLife": 52, "baseDefense": 14, "baseToHit": 58, "damageMin": 8, "damageMax": 14,
+    "lifePercent": 130, "defensePercent": 100, "toHitPercent": 100, "damagePercent": 110, "xpPercent": 110, "resistPercent": 10 },
+
+  { "key": "kikimora", "name": "Kikimora", "ai": "ranged", "ownLevel": 9, "boss": false, "keepsOwnLevel": false,
+    "baseLife": 46, "baseDefense": 18, "baseToHit": 64, "damageMin": 9, "damageMax": 15,
+    "lifePercent": 120, "defensePercent": 100, "toHitPercent": 110, "damagePercent": 100, "xpPercent": 140, "resistPercent": 25 },
+
+  { "key": "leszy", "name": "Leszy", "ai": "melee", "ownLevel": 12, "boss": true, "keepsOwnLevel": true,
+    "baseLife": 180, "baseDefense": 20, "baseToHit": 80, "damageMin": 10, "damageMax": 18,
+    "lifePercent": 300, "defensePercent": 100, "toHitPercent": 100, "damagePercent": 100, "xpPercent": 500, "resistPercent": 20 }
+ ]
+}

@@ -1,0 +1,37 @@
+{
+ "_comment": "SKELETON (M4 skeleton wave, card/11794): the town NPC role set (LEDGER row 60, NOT-BUILT). Role set = shop/repair/gamble/stash/craft/quest/hire/waypoint (T0b §6.2 — the ROLE set is the implementable part; the named roster is ORIGINAL content, no reference-game names copied, R2 wall). The Bór vendor row carries the name the Sim ALREADY speaks: Vendor.Standard = \"Vesna the Pedlar\" (Vendor.cs:20) — one name, one truth. Wayward keeper = the wandering standing-stone tender (waypoint role). >=4 further named Act-I NPCs + placeholder rows for Acts 2-5. No loader reads this file (NO sim-loader edit in this wave).",
+ "npcs": [
+  { "id": "vesna", "name": "Vesna the Pedlar", "act": 1, "areaKey": "grodzisko",
+    "roles": ["shop"], "placeholder": false },
+
+  { "id": "roszko", "name": "Roszko the Wayward Keeper", "act": 1, "areaKey": "grodzisko",
+    "roles": ["waypoint", "stash"], "placeholder": false },
+
+  { "id": "dqbrowa", "name": "Dabrowa the Hedge-Smith", "act": 1, "areaKey": "grodzisko",
+    "roles": ["repair"], "placeholder": false },
+
+  { "id": "koszycka", "name": "Koszycka the Basket-wife", "act": 1, "areaKey": "grodzisko",
+    "roles": ["craft"], "placeholder": false },
+
+  { "id": "gesiarka", "name": "Gesiarka the Goose-Woman", "act": 1, "areaKey": "grodzisko",
+    "roles": ["quest"], "placeholder": false },
+
+  { "id": "wilk", "name": "Wilk the Hedge-Captain", "act": 1, "areaKey": "grodzisko",
+    "roles": ["hire"], "placeholder": false },
+
+  { "id": "neta", "name": "Neta the Fortune-Wife", "act": 1, "areaKey": "grodzisko",
+    "roles": ["gamble"], "placeholder": false },
+
+  { "id": "PLACEHOLDER_a2_vendor", "name": "PLACEHOLDER Act II vendor", "act": 2, "areaKey": "piaski",
+    "roles": ["shop"], "placeholder": true },
+
+  { "id": "PLACEHOLDER_a3_vendor", "name": "PLACEHOLDER Act III vendor", "act": 3, "areaKey": "wielki_dab",
+    "roles": ["shop"], "placeholder": true },
+
+  { "id": "PLACEHOLDER_a4_vendor", "name": "PLACEHOLDER Act IV vendor", "act": 4, "areaKey": "popielny_targ",
+    "roles": ["shop"], "placeholder": true },
+
+  { "id": "PLACEHOLDER_a5_vendor", "name": "PLACEHOLDER Act V vendor", "act": 5, "areaKey": "stare_grody",
+    "roles": ["shop"], "placeholder": true }
+ ]
+}
