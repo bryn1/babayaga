@@ -15,13 +15,15 @@ STATUS: M1-CLOSE-OUT (2026-10-31, MC 11752: kill→drop wiring — KillFlow + Tr
 STATUS: DA-ROUND-1-FIX (2026-10-31, card/11755, verdict .audits/202610301950-31593a83/out/DA-verdict.md: save format v2 PERSISTS BOTH RNG STATE WORDS — a loaded session continues its streams, never replays (continuation xunit + CLI pair green); quest SkillPoint lands in Character.SkillPoints via GrantSkillPoints (probe tests/probe-p12.txt exits 0, spend kolo HARDPOINTS:2); new CLI verb `special <monster>` rolls the seeded 4:1 group so rows 53–57 run live; DeathPenalty clamps the M2 economy names to the 10 % top band; rare-gate-at-27 and row-min-clamp pinned by BoundaryTests (both mutations proven RED on a .tmp tree copy); 127 xunit green, build 0 warnings).
 
 STATUS: DA-ROUND-2-FIX (2026-10-31, card/11757, verdict .audits/202610301950-31593a83/out/DA-verdict-c2.md: save format v3 adds unspentSkillPoints — the pool restores FROM THE SAVE, quest points survive save/load BOTH unspent (load→spend kolo HARDPOINTS:2 exit 0) and already-spent (the probe-p12 save now LOADS, dump byte-equal; SaveTests ×2 close the coverage gap); the unique live path honours passesToMinions:false via the same minion filter (seed 42: chciwy stays on the leader, MINION-AFFIXES:[] — xunit pinned on that seed); spend <skill> -1 and special <unknown> reject with named ERROR lines like attack/loot; hand-built v1 refusal pinned by xunit; 133 xunit green, build 0 warnings). OPEN (documented limitation, DA2 P4-3 — kept, not fixed): a save taken MID-special-fight keeps plain-restore behaviour — the saved engagement carries its bonus-scaled LIFE but restores PLAIN (kind/affixes unstored), so the next kill pays the plain XP row; dump→save→load→dump stays byte-identical and the payout is consistent with the restored state; see README Known limits.
+
+STATUS: ARCH-CLOSING (2026-10-31, card/11765, verdict .audits/202610301950-31593a83/out/ARCH-verdict.md §4). OPEN: row 5 mana formula flipped BUILT-M1 → BUILDING — the post-multiplier item terms are NOT implemented (BaseMana takes a flat term only), Stats.BaseMana has zero callers, and no test references Mana (needs wire + test); row 1 per-class START values are asserted by no test (no test pins the ClassProfile start rows — name or pin).
 | # | Feature (Baba Yaga ← reference key) | Milestone | Status |
 |---|---|---|---|
 | 1 | 5 attributes with per-class start table [charstats] | M1 | BUILT-M1 |
 | 2 | 5 stat pts + 1 skill pt per level; 5 quest skill pts | M1 | BUILT-M1 |
 | 3 | Class-keyed Life/Vit, Mana/Ener, Stam/Vit rates table | M1 | BUILDING |
 | 4 | Life formula incl. Increase-Max-Life multiplier | M1 | BUILT-M1 |
-| 5 | Mana formula with post-multiplier item terms | M1 | BUILT-M1 |
+| 5 | Mana formula with post-multiplier item terms | M1 | BUILDING |
 | 6 | Stamina: run-only drain, class drain rates, heavy-armor 2× | M1 | NOT-BUILT |
 | 7 | Attack Rating = Dex×5 + flats, then %AR | M1 | BUILT-M1 |
 | 8 | To-hit dual-ratio formula, 5/95 clamp, integer floors | M1 | BUILT-M1 |
@@ -62,8 +64,8 @@ STATUS: DA-ROUND-2-FIX (2026-10-31, card/11757, verdict .audits/202610301950-315
 | 43 | Magic affix-count probability table | M2 | BUILT-M2 |
 | 44 | Rare itemgen: 3+3 affixes, group exclusions, req formula | M2 | BUILT-M2 |
 | 45 | Set-item count-bonus tiers | M2 | BUILT-M2 |
-| 46 | Sockets: min(base, type band by ilvl, size≤6) | M2 | BUILT-M2 |
-| 47 | Runewords: 5 conditions incl. exact order + plain-only | M2 | BUILT-M2 |
+| 46 | Sockets: min(base, type band by ilvl, size≤6) | M2 | BUILT-M2 (unit-tested; live path with M4) |
+| 47 | Runewords: 5 conditions incl. exact order + plain-only | M2 | BUILT-M2 (unit-tested; live path with M4) |
 | 48 | Ritual-craft recipe engine (inputs→output, ilvl rules, flags) | M2 | NOT-BUILT |
 | 49 | Gambling vendor: ilvl roll, no MF, tier reveal on buy | M2 | BUILT-M2 |
 | 50 | Vendor price/repair/sell mults + caps + ethereal quarter | M2 | BUILT-M2 |
