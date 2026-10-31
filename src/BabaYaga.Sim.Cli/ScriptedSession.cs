@@ -10,9 +10,10 @@ namespace BabaYaga.Sim.Cli;
 ///   new &lt;class&gt; | levelto &lt;n&gt; | spend &lt;skill&gt; [n] | attack &lt;monster&gt; [times] |
 ///   special &lt;monster&gt; | loot [n] | equip lastdrop | buy &lt;item&gt; | sell last | gamble |
 ///   waypoint &lt;node&gt; | discover &lt;node&gt; | quest &lt;id&gt; accept|step|complete | save &lt;path&gt; | load &lt;path&gt; | dump
+///   | read-only debug verbs (no session) — see DebugVerbs.cs
 /// A rejected change or unknown command throws — the runner owns the ERROR line.
 /// </summary>
-public sealed class ScriptedSession
+public sealed partial class ScriptedSession
 {
     private readonly ulong _seed;
     private readonly string _dataDir;
@@ -32,7 +33,7 @@ public sealed class ScriptedSession
         {
             case "new": return New(payload, parts);
             case "load": return Load(payload, parts);
-            default: return Running(payload, parts);
+            default: return DebugVerb(payload, parts) ?? Running(payload, parts);
         }
     }
 
