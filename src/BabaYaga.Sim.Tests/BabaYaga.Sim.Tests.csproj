@@ -29,6 +29,7 @@
     <Compile Include="..\..\tests\BeltPotionTests.cs" Link="tests\BeltPotionTests.cs" />
     <Compile Include="..\..\tests\BeltDeathTests.cs" Link="tests\BeltDeathTests.cs" />
     <Compile Include="..\..\tests\BeltCastTests.cs" Link="tests\BeltCastTests.cs" />
+    <Compile Include="..\..\tests\BeltQuestTests.cs" Link="tests\BeltQuestTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
