@@ -14,8 +14,17 @@ using Godot;
 /// town, Buy + SellLast, every value read from the session) → the M4-S5 potion belt beat
 /// (BeltLeg) → the M4-S6 DEATH BEAT (DeathLeg: real counter-damage kills the hero in
 /// mchy, the DEAD session rejects Attack, the lit stones raise him in town with the
-/// DeathPenalty paid through the Sim door — DEATH_OK) → the M4-S7 CAST BEAT
-/// (CastLeg: the Gesi point is spent into iskra, the hero weaves a pokrzywnik dead in
+/// DeathPenalty paid through the Sim door — DEATH_OK) → the M4-S8 QUEST BEAT
+/// (QuestLeg: Zaginione Gęsi accepted on the FSM's own rules, the goal ground
+/// visited for real, the step taken ON it, the rite completed — QUEST_ACCEPT/
+/// QUEST_STEP/QUEST_COMPLETE + QUEST_REWARD points_before/after read around the
+/// payment + QUEST_STATE×3 pulled from the live Hud — the paid SkillPoint spends
+/// into iskra and ONE reward-bought weave lands (the CAST-after-reward proof);
+/// the leg carries the hero home, so the cast leg's town start is unchanged —
+/// QUEST_OK) → the M4-S7 CAST BEAT
+/// (CastLeg: the iskra weave the QUEST rite paid for is ASSERTED learned (the
+/// S7 leg no longer mints its own point — S8's real quest loop owns the rite),
+/// the hero weaves a pokrzywnik dead in
 /// mchy — CAST/CAST_DEFEATED — drains the pool to a MANA_REJECT hint, quaffs the belted
 /// napitek-manny and weaves green — MANA_OK) → ORCH_M4_OK → Quit(0).
 /// Windowed → MainMenu.tscn. Zero rules live here (Game → Sim → nothing).
@@ -56,7 +65,8 @@ public partial class Boot : Node
             TradeLeg.Run(session, act); // M4-S2: town vendor trade riding the journey's tail
             BeltLeg.Run(session, act); // M4-S5: potion belt leg riding the trade leg's town tail
             DeathLeg.Run(session, act); // M4-S6: death + stone-resurrection riding the belt leg's empty belt
-            CastLeg.Run(session, act); // M4-S7: the iskra cast beat riding the death leg's town tail (mana becomes real)
+            QuestLeg.Run(session, act); // M4-S8: the gesi loop pays the point that weaves iskra (rides the death leg's town tail)
+            CastLeg.Run(session, act); // M4-S7: the iskra cast beat riding the quest leg's town tail (the weave is already learned)
         }
 
         GD.Print("ORCH_M4_OK");

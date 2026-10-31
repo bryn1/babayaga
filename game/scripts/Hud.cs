@@ -70,6 +70,14 @@ public partial class Hud : CanvasLayer
     /// again — the CURRENT pool; the Max formula on the orb row stays computed).</summary>
     public long ManaShown { get; private set; }
 
+    /// <summary>The current rite the LAST paint showed, as "key:Phase" — the quest
+    /// with the LATEST phase the log holds ("" while every rite sits Inactive).
+    /// Captured by the same session pull as LevelShown/BeltFilled/DeadShown/
+    /// ManaShown. The headless quest leg prints its QUEST_STATE lines through this
+    /// read-back; a frozen literal is that gate's planted-red shape (row 62's
+    /// live pass, M4-S8).</summary>
+    public string QuestShown { get; private set; } = "";
+
     /// <summary>The one pull-only paint pass — _Process rides it; the headless
     /// level-up and belt legs run it explicitly per round (the legs are
     /// synchronous, never frame-bound; zero rules computed here, same as _Process).</summary>
@@ -102,9 +110,14 @@ public partial class Hud : CanvasLayer
             : $"Target {s.Monsters.Get(s.EngagedKey).Name}";
 
         int done = 0;
+        string current = ""; // the rite with the LATEST phase — "" while every rite waits Inactive
         foreach (var q in s.Quests.Quests)
+        {
             if (q.Phase == BabaYaga.Sim.QuestPhase.Done) done++;
-        _rites.Text = $"Rites {done}/{s.Quests.Quests.Count}";
+            if (q.Phase != BabaYaga.Sim.QuestPhase.Inactive) current = $"{q.Row.Key}:{q.Phase}";
+        }
+        _rites.Text = $"Rites {done}/{s.Quests.Quests.Count}" + (current.Length == 0 ? "" : $" — {current}");
+        QuestShown = current; // the row 62 quest leg's read-back on the same pull
     }
 
     /// <summary>Row 69's hotkey row: keys 1–4 (belt_1..belt_4) press the SAME

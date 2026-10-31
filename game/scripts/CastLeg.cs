@@ -3,10 +3,11 @@ using Godot;
 
 /// <summary>
 /// The M4-S7 headless CAST LEG — run ONCE by Boot's headless branch after the
-/// death leg (the hero stands in town, alive, belt empty, the mana pool
-/// untouched since New). Chain: the Gesi rite pays ONE skill point (the
-/// accept→step→complete idiom of probe-p12) -> SpendSkill("iskra") — the SAME
-/// public point door the CLI spends -> Buy napitek-manny + belt it (the refill
+/// quest leg (the hero stands in town, alive, belt empty, the mana pool holding
+/// ONLY the quest leg's single reward-bought weave). Chain: ASSERT the iskra
+/// weave the M4-S8 gesi rite paid for (the point is spent in QuestLeg — the
+/// real quest loop is the ONLY point source since card/11856; a missing weave
+/// is a named RED, no side-channel mint) -> Buy napitek-manny + belt it (the refill
 /// the pool has until regen lands, row 79) -> the pinned WAYPOINT ORDER
 /// CONTRACT to mchy + act.Rebuild (the ONE rebuild entry) -> walk the nearest
 /// pokrzywnik, adjacency-gated (the same InRange gate as every leg — no
@@ -31,19 +32,18 @@ public static class CastLeg
 
     public static void Run(GameSession s, Act act)
     {
-        // ---- the Gesi rite pays the skill point (existing idiom, probe-p12) ----
-        try
+        // ---- the weave must already be learned: the M4-S8 QUEST rite (QuestLeg)
+        // accepts→steps→completes gesi, its paid SkillPoint is spent into iskra
+        // THERE, and the leg carries the hero home. This leg ASSERTS the woven
+        // point instead of minting one — the quest loop is the only point source
+        // (rewired 11856: S7's old inline accept→step→complete prep retired; the
+        // economy closes THROUGH the real quest, both legs stay green on it). ----
+        if (s.Skills.HardPoints("iskra") != 1)
         {
-            s.QuestAccept("gesi");
-            s.QuestStep("gesi");
-            s.QuestComplete("gesi");
-        }
-        catch (SessionRejectedException e)
-        {
-            GD.PushError($"cast leg: the gesi rite refused — {e.Message}");
+            GD.PushError($"cast leg: iskra holds {s.Skills.HardPoints("iskra")} hard point(s)," +
+                " expected the one the quest rite paid — the quest leg must run first");
             return;
         }
-        s.SpendSkill("iskra"); // the public SpendSkill door (SkillSpendRejected = a crash here is a RED, not a hint)
         long cost = s.SkillData.Find("iskra")!.ManaCost; // the DATA row drives every debit assert below
         GD.Print($"CAST_PREP skill=iskra points={s.Skills.HardPoints("iskra")} cost={cost} mana={s.Character.Mana}");
         if (cost <= 0)
