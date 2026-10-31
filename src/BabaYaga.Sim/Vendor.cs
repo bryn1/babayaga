@@ -1,9 +1,5 @@
 namespace BabaYaga.Sim;
 
-/// <summary>The three difficulties, original Baba Yaga naming: Dusk (Normal),
-/// Midnight (the deeper), Witch-Night (the deepest).</summary>
-public enum Difficulty { Dusk, Midnight, WitchNight }
-
 /// <summary>One vendor's terms: the buy multiplier over the 1024 base (P2 §4.8
 /// sell_mult rows: 1024 standard · 1088 · 960 · 2048) and an optional hard cap on
 /// any single purchase price.</summary>
