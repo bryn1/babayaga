@@ -110,6 +110,85 @@ public class SaveTests
         finally { File.Delete(path); }
     }
 
+    /// <summary>The DA round-2 P1-N1 seam: level 5 grants 4 points, 4 are spent into
+    /// hard points, and the completed Gesi rite pays the fifth (probe-p12's bank).
+    /// Mirrors the CLI directions (a) save with the quest point UNSPENT and (b) spend
+    /// it first — the state pre-fix made even the SAVE unloadable.</summary>
+    private static GameSession QuestPointSession(bool spendTheQuestPoint)
+    {
+        var s = GameSession.New(2, "koldun", TestData.DataDir());
+        s.LevelTo(5);
+        s.SpendSkill("iskra"); s.SpendSkill("iskra"); s.SpendSkill("iskra");
+        s.SpendSkill("kolo");
+        s.QuestAccept("gesi"); s.QuestStep("gesi"); s.QuestComplete("gesi"); // pays 1 pt
+        if (spendTheQuestPoint) s.SpendSkill("kolo");                        // HARDPOINTS:2 state
+        return s;
+    }
+
+    /// <summary>DA round-2 P1-N1 (a): an UNSPENT quest point survives save/load —
+    /// the pool comes from the save, not re-derived from level grants (quest
+    /// rewards deliberately skip phase replay, so re-derivation loses it).</summary>
+    [Fact]
+    public void SaveLoad_QuestSkillPointUnspent_SurvivesAndSpendsAfterLoad()
+    {
+        var session = QuestPointSession(spendTheQuestPoint: false);
+        Assert.Equal(1, session.Character.SkillPoints);
+        var before = session.Dump();
+        var path = TempPath();
+        try
+        {
+            session.Save(path);
+            var restored = GameSession.Load(path, TestData.DataDir());
+            Assert.Equal(before, restored.Dump());
+            restored.SpendSkill("kolo");                       // the CLI direction (a) leg
+            Assert.Equal(2, restored.Skills.HardPoints("kolo"));
+            Assert.Equal(0, restored.Character.SkillPoints);
+        }
+        finally { File.Delete(path); }
+    }
+
+    /// <summary>DA round-2 P1-N1 (b), the worse variant: the ALREADY-SPENT quest point
+    /// (total hard points exceed the level grants) must load CLEANLY — pre-fix the
+    /// whole legal save refused to restore — and the dump is byte-equal.</summary>
+    [Fact]
+    public void SaveLoad_QuestSkillPointAlreadySpent_LoadsCleanly_DumpEqual()
+    {
+        var session = QuestPointSession(spendTheQuestPoint: true);
+        Assert.Equal(0, session.Character.SkillPoints);
+        Assert.Equal(2, session.Skills.HardPoints("kolo"));    // 5 total > 4 level grants
+        var before = session.Dump();
+        var path = TempPath();
+        try
+        {
+            session.Save(path);
+            var restored = GameSession.Load(path, TestData.DataDir());
+            Assert.Equal(before, restored.Dump());
+        }
+        finally { File.Delete(path); }
+    }
+
+    /// <summary>DA round-2 P4-4: the upgrade story pinned — a hand-built real
+    /// version-1 save is refused by name and leaves the live session untouched.</summary>
+    [Fact]
+    public void Load_RefusesHandBuiltVersionOne_SessionUntouched()
+    {
+        var session = Journeyish();
+        var untouched = session.Dump();
+        var path = TempPath();
+        try
+        {
+            session.Save(path);
+            var text = File.ReadAllText(path)
+                .Replace($"\"version\": {SaveSerializer.SaveVersion}", "\"version\": 1");
+            Assert.NotEqual(text, File.ReadAllText(path));     // the downgrade landed
+            File.WriteAllText(path, text);
+            var e = Assert.Throws<InvalidDataException>(() => GameSession.Load(path, TestData.DataDir()));
+            Assert.Contains("save version 1 unsupported", e.Message);
+            Assert.Equal(untouched, session.Dump());           // refusal touched nothing
+        }
+        finally { File.Delete(path); }
+    }
+
     [Fact]
     public void Load_RefusesCorruptJson_AndForeignVersion()
     {

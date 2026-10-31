@@ -112,6 +112,15 @@ public sealed class Character
         SkillPoints--;
         return true;
     }
+
+    /// <summary>Serializer restore hook (DA round-2 P1-N1, same pattern as the
+    /// session's RestorePurse): the pool lands AS SAVED. SaveSerializer is the only
+    /// caller; the game-rule doors stay GrantSkillPoints/TrySpendSkillPoint.</summary>
+    internal void RestoreSkillPoints(int points)
+    {
+        if (points < 0) throw new ArgumentOutOfRangeException(nameof(points));
+        SkillPoints = points;
+    }
 }
 
 /// <summary>The four allocatable primary attributes (P1 §1.1).</summary>
