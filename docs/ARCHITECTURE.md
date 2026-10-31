@@ -1,6 +1,12 @@
-# Baba Yaga — Architecture (v10, 2026-10-31)
+# Baba Yaga — Architecture (v11, 2026-10-31)
 
-version: 10 (M4 §game/ SYNC + waypoint-order fix, card/11809 — §game/ synced to run
+version: 11 (rev-pointer sweep, card/11817 — DA-verdict-m4-c4 P2-A: the six §game/ body
+rev-pointers that claim CURRENT sync re-labelled rev3→rev4 (v10 lines 392/395/504/514/529/572 —
+the tree block is byte-identical to `out/M4-placement.md` rev4 §1, DA-c4 C5; the DoD that governs
+is `out/M4-slice-DoD.md` rev4, its :15 names itself; fences stay even); historical-scoped rev3
+labels STAY — the changelog narrative (v10 :4/:19) and the tree-block inline authoring tags
+(:425/:450/:459), which ride the byte-identical twin and may not drift from placement §1; v10
+archived in git history. Earlier: v10 (M4 §game/ SYNC + waypoint-order fix, card/11809 — §game/ synced to run
 202610301950-31593a83 `out/M4-placement.md` rev3 (MonsterField.cs + scripts/Fnv.cs join the tree and
 the Act.cs composition; boot flow carries the EXACT headless check, the leg-3b scene-execution smoke
 and the real 2-arg `GameSession.Load(path, dataDir)`, .World.cs:115); the live-probed WAYPOINT ORDER
@@ -389,10 +395,10 @@ each asserts on CLI markers/exit codes only.
 The executable file-level plan and the 26-render ART SPEC the art pass consumes verbatim are
 `out/M4-placement.md` in run `202610301950-31593a83` (run dir at the Games workspace root); slice
 acceptance is `out/M4-slice-DoD.md` beside it. PRECEDENCE (v10, DA-verdict-m4-c2 P2-c2-1): where any
-doc conflicts, `out/M4-slice-DoD.md` rev3 + this section govern; `out/M4-placement.md` is the
+doc conflicts, `out/M4-slice-DoD.md` rev4 + this section govern; `out/M4-placement.md` is the
 executable detail. The M4 SLICE: Bobrowisko (town) and Mchary (one wilderness area) renderable, the
 hero walks and strikes one monster row, the HUD binds live session state, the headless marker leg is
-green. The tree block below is `out/M4-placement.md` rev3 §1 VERBATIM — byte-diff of the two fenced
+green. The tree block below is `out/M4-placement.md` rev4 §1 VERBATIM — byte-diff of the two fenced
 blocks is EMPTY (proof row in the card RESULT); its inline §-refs resolve inside M4-placement.md,
 where the bridge table and ART SPEC live. It is the contract the slice builder follows.
 
@@ -501,7 +507,7 @@ successful arrival is AT an already-lit stone, a discover-AFTER-travel entry rul
 travels (live) — it is NOT the mechanism and the placement rev2 rule that carried it is deleted
 (DA-verdict-m4-c2 P1-c2-1). The headless smoke performs no waypoint verb after any travel (DoD 3b).
 
-Boot flow (v10, synced to placement rev3): project.godot → Main.tscn(Boot.cs) → [headless — the
+Boot flow (v10, synced to placement rev4): project.godot → Main.tscn(Boot.cs) → [headless — the
 EXACT check `DisplayServer.GetName() == "headless"` (`DisplayServer.Headless` does not exist in the
 4.7.2 bindings): `GameSession.New(42,"koldun",dataDir)` → ≥3 `SIM_TICK` lines → ONE `scenes/Act.tscn`
 instantiate through the placeholder pass printing `DA_SCENE_ACT_OK` BEFORE `ORCH_M4_OK` (the leg-3b
@@ -511,7 +517,7 @@ signature `static Load(string path, string dataDir)`, .World.cs:115; savePath is
 dataDir = `GlobalizePath("res://data")`; a 1-arg call does not exist)] → Act.tscn renders
 `session.CurrentArea` (slice: grodzisko ↔ mchy) → Tab toggles Inventory.tscn.
 
-TILE SCALE CONTRACT (v10, placement rev3 §3): tile ART is 256×128 px; the iso CELL is 128×64 px; the
+TILE SCALE CONTRACT (v10, placement rev4 §3): tile ART is 256×128 px; the iso CELL is 128×64 px; the
 TileMapLayer draws each art tile at scale 0.5 — exactly 2× on both axes (256/128 = 128/64 = 2.0);
 cells stay 128×64, art stays 256×128, neither side re-interpreted. SPRITE DRAW SCALE: the 0.5 scale
 belongs to TILE ART ONLY — hero frames (128×128) and monster frames (160×160/frame) draw at scale
@@ -526,7 +532,7 @@ anywhere; both seeds are display-only, never persisted state.
 PLANNED assets/ pipeline: 3090 imagegen originals (spec verbatim in out/M4-placement.md §3) →
 repo assets/raw/ (git) → one-way copy → game/assets/ → `"$GODOT" --headless --path game --import`
 → Sprite2D/AnimatedSprite2D/TileMapLayer consume. The R2 wall binds art too: every render ORIGINAL.
-Sidecar rule (placement rev2/rev3 §1, DoD leg 6): `--import` writes git-tracked `.import` sidecars
+Sidecar rule (placement rev2/rev4 §1, DoD leg 6): `--import` writes git-tracked `.import` sidecars
 beside each source inside game/assets, so the drift gate is SOURCE-ONLY
 (`diff -r assets game/assets -x '*.import'` EMPTY).
 
@@ -569,7 +575,7 @@ not), `assets/`, MapGen (row 59), NPC roster (60), hirelings (65-66), ritual-cra
 stash tabs (74), frame breakpoints (23-25), weapon sets (68). The next build phase must update
 this file to match what it actually created, in the same run. v9 adds DESIGN TEXT ONLY (the §game/
 section, the assets/raw/ pipeline note, the two re-pointed planned rows, five v9 trade-off rows);
-v10 is DESIGN TEXT ONLY TOO (the §game/ re-sync to placement rev3 verbatim, the live-probed WAYPOINT
+v10 is DESIGN TEXT ONLY TOO (the §game/ re-sync to placement rev4 verbatim, the live-probed WAYPOINT
 ORDER CONTRACT, TILE-SCALE/FNV/sidecar notes and the precedence line — the State-bridge paragraph
 stands verbatim, its command set re-proven identical to placement §2, DA-verdict-m4-c2 RC1):
 no game file exists, the As-built sections stand verbatim, and §game/ flips to as-built only in
