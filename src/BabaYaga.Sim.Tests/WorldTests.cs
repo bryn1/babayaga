@@ -79,21 +79,21 @@ public class WorldTests
     public void DeathPenalty_Bands0_5_10_OfCurrentLevelSpan()
     {
         var ladder = TestData.Ladder();
-        // Level 5 spans 1845−1331 = 514 XP; stand one short of the top.
+        // Level 5 spans 14175−7875 = 6300 XP; stand one short of the top.
         Assert.Equal(0, DeathPenalty.PenaltyPercent(Difficulty.Ordinary));
         Assert.Equal(5, DeathPenalty.PenaltyPercent(Difficulty.Nightmare));
         Assert.Equal(10, DeathPenalty.PenaltyPercent(Difficulty.Hell));
 
-        var ordinary = DeathPenalty.Apply(ladder, 1844, 5, Difficulty.Ordinary);
-        Assert.Equal((1844L, 0L, 0L), (ordinary.XpAfter, ordinary.Lost, ordinary.CorpseXp));
+        var ordinary = DeathPenalty.Apply(ladder, 14174, 5, Difficulty.Ordinary);
+        Assert.Equal((14174L, 0L, 0L), (ordinary.XpAfter, ordinary.Lost, ordinary.CorpseXp));
 
-        var nightmare = DeathPenalty.Apply(ladder, 1844, 5, Difficulty.Nightmare);
-        Assert.Equal(1844 - 25, nightmare.XpAfter); // 514×5/100 = 25.7 → 25
-        Assert.Equal(18, nightmare.CorpseXp);        // ¾ of 25
+        var nightmare = DeathPenalty.Apply(ladder, 14174, 5, Difficulty.Nightmare);
+        Assert.Equal(14174 - 315, nightmare.XpAfter); // 6300×5/100 = 315
+        Assert.Equal(236, nightmare.CorpseXp);         // ¾ of 315
 
-        var hell = DeathPenalty.Apply(ladder, 1844, 5, Difficulty.Hell);
-        Assert.Equal(1844 - 51, hell.XpAfter);       // 514×10/100 = 51.4 → 51
-        Assert.Equal(38, hell.CorpseXp);             // ¾ of 51
+        var hell = DeathPenalty.Apply(ladder, 14174, 5, Difficulty.Hell);
+        Assert.Equal(14174 - 630, hell.XpAfter);       // 6300×10/100 = 630
+        Assert.Equal(472, hell.CorpseXp);              // ¾ of 630
     }
 
     [Fact]
@@ -107,16 +107,16 @@ public class WorldTests
 
         var ladder = TestData.Ladder();
         Assert.Equal(
-            DeathPenalty.Apply(ladder, 1844, 5, Difficulty.Hell),
-            DeathPenalty.Apply(ladder, 1844, 5, Difficulty.Dusk));
+            DeathPenalty.Apply(ladder, 14174, 5, Difficulty.Hell),
+            DeathPenalty.Apply(ladder, 14174, 5, Difficulty.Dusk));
     }
 
     [Fact]
     public void DeathPenalty_NeverBelowLevelStart_LevelOneLosesNothing()
     {
         var ladder = TestData.Ladder();
-        var floor = DeathPenalty.Apply(ladder, 1340, 5, Difficulty.Hell); // only 9 above the start
-        Assert.Equal(1331, floor.XpAfter); // floor at the level-5 start, not below
+        var floor = DeathPenalty.Apply(ladder, 7884, 5, Difficulty.Hell); // only 9 above the start
+        Assert.Equal(7875, floor.XpAfter); // floor at the level-5 start, not below
         Assert.Equal(9, floor.Lost);
         Assert.Equal(6, floor.CorpseXp);   // ¾ of what actually came off
 

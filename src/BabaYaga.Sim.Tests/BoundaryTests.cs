@@ -28,13 +28,14 @@ public class BoundaryTests
 
     /// <summary>Pin #2: huge MF shrinks c below the row floor BEFORE the clamp —
     /// deleting the Math.Max clamp leaks the raw floors (3 and 48 here), and each
-    /// tier would auto-succeed at any ilvl. The clamp keeps both at 1 × 128.</summary>
+    /// tier would over-fire at any ilvl. The clamp holds the granted table's
+    /// minimums (192 / 6400).</summary>
     [Fact]
     public void HugeMagicFind_ClampsAtRowMinimum()
     {
-        var magic = QualityRoll.Classic.Single(r => r.Tier == "Magic");   // 30/1, min 1 → raw floor 3
-        var unique = QualityRoll.Classic.Single(r => r.Tier == "Unique"); // 400/2, min 1 → raw floor 48
-        Assert.Equal(128, QualityRoll.CValue(magic, ilvl: 10, qlvl: 10, magicFind: 100_000, tcFactor: 0));
-        Assert.Equal(128, QualityRoll.CValue(unique, ilvl: 40, qlvl: 5, magicFind: 100_000, tcFactor: 0));
+        var magic = QualityRoll.Classic.Single(r => r.Tier == "Magic");    // 30/16, min 192 → raw floor 3
+        var unique = QualityRoll.Classic.Single(r => r.Tier == "Unique");  // 400/2, min 6400 → raw floor 48
+        Assert.Equal(192, QualityRoll.CValue(magic, ilvl: 10, qlvl: 10, magicFind: 100_000, tcFactor: 0));
+        Assert.Equal(6400, QualityRoll.CValue(unique, ilvl: 40, qlvl: 5, magicFind: 100_000, tcFactor: 0));
     }
 }

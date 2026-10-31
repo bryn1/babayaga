@@ -132,9 +132,10 @@ public class MechanicsTests
         Assert.Equal(285_041_630, ladder.TotalXpForLevel(70));
         Assert.Equal(3_520_485_254, ladder.TotalXpForLevel(99));
         Assert.Equal(1024, ladder.ExpRatioForLevel(30));
-        Assert.Equal(976, ladder.ExpRatioForLevel(70));
-        Assert.Equal(6, ladder.ExpRatioForLevel(98));
-        Assert.Equal(0, ladder.ExpRatioForLevel(99));
+        Assert.Equal(1024, ladder.ExpRatioForLevel(70)); // the curve stays flat through 70…
+        Assert.Equal(976, ladder.ExpRatioForLevel(71));  // …and the granted table starts its taper at 71
+        Assert.Equal(8, ladder.ExpRatioForLevel(98));
+        Assert.Equal(6, ladder.ExpRatioForLevel(99));    // lvl 99 still drips XP at 6/1024
     }
 
     [Fact]
@@ -164,7 +165,7 @@ public class MechanicsTests
         var capped = TestData.Koldun();
         capped.GrantXp(9_000_000_000L, ladder);
         Assert.Equal(99, capped.Level);
-        Assert.Equal(0, capped.GrantXp(1_000_000, ladder)); // lvl 99 gains nothing (P1 §1.7)
+        Assert.Equal(0, capped.GrantXp(1_000_000, ladder)); // lvl 99 gains no LEVEL (P1 §1.7)
     }
 
     [Fact]

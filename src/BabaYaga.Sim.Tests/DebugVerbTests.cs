@@ -113,7 +113,7 @@ public class DebugVerbTests
     public void Deathpen_ThreeDifficultiesCostZeroFiveTenOfTheLevelSpan()
     {
         var ladder = TestData.Ladder();
-        const long cur = 960 + 831 / 2; // mid of level 4's span (P3 §6.6 reading)
+        const long cur = 3750 + 4125 / 2; // mid of level 4's span 7875−3750 (P3 §6.6 reading)
         foreach (int d in new[] { 0, 1, 2 })
         {
             var expected = DeathPenalty.Apply(ladder, cur, 4, (Difficulty)d);
@@ -133,8 +133,10 @@ public class DebugVerbTests
         var total = new[] { "UNIQUE", "RARE", "MAGIC", "NORMAL" }
             .Sum(k => first[k]!.GetValue<int>());
         Assert.Equal(2000, total);
-        // ilvl 60 on a qlvl-5 base: the magic row auto-succeeds (c ≤ 128) when reached (P2 §4.1).
-        Assert.True(first["MAGIC"]!.GetValue<int>() > 1000, "magic must dominate when its row auto-succeeds");
+        // ilvl 60 on a qlvl-5 base: with the table's divisors NO row auto-succeeds —
+        // the white family dominates and magic stays a few percent (P2 §4.1).
+        Assert.True(first["NORMAL"]!.GetValue<int>() > first["MAGIC"]!.GetValue<int>(),
+            "no row auto-succeeds at ilvl 60: white must outrun magic");
     }
 
     [Fact]

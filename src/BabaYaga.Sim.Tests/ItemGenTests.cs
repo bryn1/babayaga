@@ -15,7 +15,7 @@ public class ItemGenTests
     [Fact]
     public void CValue_MatchesTheFourSpecLines()
     {
-        var magic = QualityRoll.Classic.Single(r => r.Tier == "Magic");   // 30 / 1
+        var magic = QualityRoll.Classic.Single(r => r.Tier == "Magic");   // 30 / 16
         var unique = QualityRoll.Classic.Single(r => r.Tier == "Unique"); // 400 / 2
         Assert.Equal(30 * 128, QualityRoll.CValue(magic, ilvl: 10, qlvl: 10, magicFind: 0, tcFactor: 0));
         // MF 100% halves c: floor(3840 × 100/200) = 1920.
@@ -24,8 +24,8 @@ public class ItemGenTests
         Assert.Equal(383 * 128, QualityRoll.CValue(unique, 40, 5, 0, 0));
         // TC quality factor 512 removes half of c.
         Assert.Equal(1920, QualityRoll.CValue(magic, 10, 10, 0, tcFactor: 512));
-        // ilvl below qlvl divides toward zero: (ilvl 5 − qlvl 20) = −15 → ratio grows to 45.
-        Assert.Equal(45 * 128, QualityRoll.CValue(magic, 5, 20, 0, 0));
+        // ilvl below qlvl divides toward zero: (5 − 20) = −15, ÷16 truncates to 0 → ratio stands.
+        Assert.Equal(30 * 128, QualityRoll.CValue(magic, 5, 20, 0, 0));
     }
 
     [Fact]
@@ -62,12 +62,18 @@ public class ItemGenTests
     }
 
     [Fact]
-    public void QualityRoll_AutoSuccess_WhenIlvlOutrunsQlvl()
+    public void QualityRoll_TableMinimums_NoRowAutoSucceeds()
     {
-        var szpula = Bases().For("szpula"); // qlvl 5 → ilvl 40: magic row c = (30−35)×128 < 0
+        // The granted table's minimums (192..6400) sit ABOVE the c ≤ 128 auto-success
+        // threshold: no Classic row ever auto-succeeds, however far ilvl outruns qlvl.
+        foreach (var row in QualityRoll.Classic)
+            Assert.False(QualityRoll.AutoSucceeds(row, ilvl: 9999, qlvl: 5));
+        // The old divisor-1/pin-1 behaviour (magic auto at ilvl 40) is gone: at ilvl 40
+        // the szpula roll is white-dominated, magic a few percent.
+        var szpula = Bases().For("szpula");
         var rng = new Rng(5UL);
-        for (int i = 0; i < 25; i++)
-            Assert.Equal(ItemQuality.Magic, QualityRoll.Roll(rng, szpula, ilvl: 40)); // no rows → magic guaranteed
+        Assert.Contains(ItemQuality.Normal,
+            Enumerable.Range(0, 200).Select(_ => QualityRoll.Roll(rng, szpula, ilvl: 40)));
     }
 
     [Fact]
