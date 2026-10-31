@@ -19,6 +19,12 @@ public partial class InventoryPanel : Control
         Refresh();
     }
 
+    /// <summary>The read-only count of what this panel's view is built from: the
+    /// carried items — the panel's ONE read source, zero writes into the Sim.
+    /// The headless trade-leg proof prints through it so the INV_COUNT lines
+    /// come from the panel's own public read view.</summary>
+    public static int ViewCount(BabaYaga.Sim.GameSession s) => s.Carried.Count;
+
     private void Refresh()
     {
         foreach (var child in GetChildren()) child.QueueFree();

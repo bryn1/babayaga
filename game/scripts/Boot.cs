@@ -8,7 +8,8 @@ using Godot;
 /// pass (DA_SCENE_ACT_OK prints only after a NON-NULL instantiate — a null scene
 /// goes to PushError and never prints the marker), and the retained Act rides the
 /// M4-SLICE journey legs (JourneyLeg: HERO_STEP walk + MONSTER_DEFEATED strike in
-/// mchy, bridge-only) → ORCH_M4_OK → Quit(0).
+/// mchy, bridge-only) → the M4-S2 vendor trade beat (TradeLeg: stone home to the
+/// town, Buy + SellLast, every value read from the session) → ORCH_M4_OK → Quit(0).
 /// Windowed → MainMenu.tscn. Zero rules live here (Game → Sim → nothing).
 /// </summary>
 public partial class Boot : Node
@@ -41,7 +42,11 @@ public partial class Boot : Node
 
         // The slice legs ride the SAME instantiated Act the scene smoke produces.
         var act = InstantiateActSmoke();
-        if (act is not null) JourneyLeg.Run(session, act);
+        if (act is not null)
+        {
+            JourneyLeg.Run(session, act);
+            TradeLeg.Run(session, act); // M4-S2: town vendor trade riding the journey's tail
+        }
 
         GD.Print("ORCH_M4_OK");
         GetTree().Quit(0);
