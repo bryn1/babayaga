@@ -38,7 +38,18 @@ public partial class Hud : CanvasLayer
         AddChild(_hint);
     }
 
-    public override void _Process(double delta)
+    public override void _Process(double delta) => Refresh();
+
+    /// <summary>The level the HUD last PAINTED — captured by the same session pull
+    /// that writes the XP line's "(lvl N)". The headless level-up leg calls
+    /// Refresh + reads this back every kill round (HUD_LEVEL); a frozen literal is
+    /// that gate's planted-red shape.</summary>
+    public int LevelShown { get; private set; }
+
+    /// <summary>The one pull-only paint pass — _Process rides it; the headless
+    /// level-up leg runs it explicitly per kill round (the leg is synchronous,
+    /// never frame-bound; zero rules computed here, same as _Process).</summary>
+    public void Refresh()
     {
         var s = GameContext.Session;
         if (s is null) return;
@@ -51,6 +62,7 @@ public partial class Hud : CanvasLayer
         long hi = s.Ladder.TotalXpForLevel(s.Level >= s.Ladder.MaxLevel ? s.Level : s.Level + 1);
         long xp = s.Character.Xp;
         _xp.Text = hi > lo ? $"XP {xp - lo}/{hi - lo} (lvl {s.Level})" : $"XP {xp} (lvl {s.Level} MAX)";
+        LevelShown = s.Level; // the value this paint put on screen, from the SAME pull
 
         _gold.Text = $"Gold {s.Gold}";
         _area.Text = $"Area {s.CurrentArea}";

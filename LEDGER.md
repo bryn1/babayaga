@@ -22,6 +22,8 @@ STATUS: D2-ORACLE-ALIGNMENT (2026-10-31, card/11793, owner grant 2026-10-31 — 
 
 STATUS: SKELETON WAVE LANDED (card 11794, merged to master) — game/ marker protocol VERIFIED (3 live SIM_TICKs, planted-red green, 164 tests); acts2-5/6-classes/cube/hirelings/npc skeletons parse-tested; OWED: 7th sibling class file (roster name owed to content card), screenshot leg (owner device pass), life/mana wiring = rows 4-5 unchanged.
 
+STATUS: row 77 PAYMENT: per-area monster table landed as data/area-monsters.json (card 11825); remainder: MapGen live generation (row 59) — M4-S4, card/11828, 2026-10-31.
+
 | # | Feature (Baba Yaga ← reference key) | Milestone | Status |
 |---|---|---|---|
 | 1 | 5 attributes with per-class start table [charstats] | M1 | BUILT-M1 |

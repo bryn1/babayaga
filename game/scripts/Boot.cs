@@ -8,7 +8,9 @@ using Godot;
 /// pass (DA_SCENE_ACT_OK prints only after a NON-NULL instantiate — a null scene
 /// goes to PushError and never prints the marker), and the retained Act rides the
 /// M4-SLICE journey legs (JourneyLeg: HERO_STEP walk + one MONSTER_DEFEATED per
-/// kind the data table spawns in mchy + the XP_EXPECT honesty leg, bridge-only) → the M4-S2 vendor trade beat (TradeLeg: stone home to the
+/// kind the data table spawns in mchy + the XP_EXPECT honesty leg + the M4-S4
+/// level-up beat (LEVEL_UP on the runtime ladder threshold, HUD_LEVEL pulled from
+/// the live Hud), bridge-only) → the M4-S2 vendor trade beat (TradeLeg: stone home to the
 /// town, Buy + SellLast, every value read from the session) → ORCH_M4_OK → Quit(0).
 /// Windowed → MainMenu.tscn. Zero rules live here (Game → Sim → nothing).
 /// </summary>
