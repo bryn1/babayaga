@@ -6,13 +6,16 @@ namespace BabaYaga.Sim;
 /// The save-file DTO — the whole session as one JSON document at a caller-given
 /// path (P3 §6: stones, rites and loot persist WITH the character). Property
 /// order below IS the dump order — fixed, so save -> load -> dump is
-/// byte-identical. The RNG streams are deliberately NOT persisted: replays
-/// resume from the session seed, not mid-stream.
+/// byte-identical. The RNG streams persist as their raw PCG state words, not
+/// the seed: a loaded session CONTINUES the streams it had at save time, it
+/// never replays rolls already consumed (DA round-1 P1-1).
 /// </summary>
 public sealed class SessionSave
 {
     public int Version { get; init; } = SaveSerializer.SaveVersion;
     public ulong Seed { get; init; }
+    public ulong CombatRngState { get; init; }
+    public ulong DropRngState { get; init; }
     public string ClassKey { get; init; } = "";
     public string Name { get; init; } = "";
     public long Xp { get; init; }
@@ -39,7 +42,6 @@ public sealed class SessionSave
     public IReadOnlyList<string> Waypoints { get; init; } = [];
     public IReadOnlyList<int> QuestPhases { get; init; } = [];
     public IReadOnlyList<SkillPointsSave> Skills { get; init; } = [];
-    public int QuestSkillRewards { get; init; }
     public int StashTabs { get; init; }
     public int OtherRewards { get; init; }
     public int LastLootedIdx { get; init; } = -1;

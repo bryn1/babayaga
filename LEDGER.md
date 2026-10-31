@@ -11,6 +11,8 @@ STATUS: M1-FOUNDATION + M2-ITEMS (item & economy system 2026-10-30, MC 11746: qu
 STATUS: M3-MONSTERS-WORLD (2026-10-30, MC 11747: monster tables, champion packs/uniques/minions, 4 AI behaviours, area+waypoint graphs, quest FSM, party XP 87/256, death penalty; rows 18–19, 53–58, 61–64 BUILT-M3). OPEN: row 59 procedural layout (MapGen), row 60 NPC roles, rows 65–66 hirelings.
 
 STATUS: M1-CLOSE-OUT (2026-10-31, MC 11752: kill→drop wiring — KillFlow + TreasureClass walk over data/treasureclasses.json, row 36 BUILT-M1; deterministic save/load — SaveSerializer + byte-identical dump, BUILT-M1; headless scripted session driver src/BabaYaga.Sim.Cli/ + tests/journey.txt, BUILT-M1; 120 xunit tests green, build 0 warnings). STILL NOT-BUILT: the pytest tests/ suite (CLI-marker journeys — journey.txt is its seed), stash tabs (row 74), ritual-craft (row 48).
+
+STATUS: DA-ROUND-1-FIX (2026-10-31, card/11755, verdict .audits/202610301950-31593a83/out/DA-verdict.md: save format v2 PERSISTS BOTH RNG STATE WORDS — a loaded session continues its streams, never replays (continuation xunit + CLI pair green); quest SkillPoint lands in Character.SkillPoints via GrantSkillPoints (probe tests/probe-p12.txt exits 0, spend kolo HARDPOINTS:2); new CLI verb `special <monster>` rolls the seeded 4:1 group so rows 53–57 run live; DeathPenalty clamps the M2 economy names to the 10 % top band; rare-gate-at-27 and row-min-clamp pinned by BoundaryTests (both mutations proven RED on a .tmp tree copy); 127 xunit green, build 0 warnings).
 | # | Feature (Baba Yaga ← reference key) | Milestone | Status |
 |---|---|---|---|
 | 1 | 5 attributes with per-class start table [charstats] | M1 | BUILT-M1 |
@@ -65,18 +67,18 @@ STATUS: M1-CLOSE-OUT (2026-10-31, MC 11752: kill→drop wiring — KillFlow + Tr
 | 50 | Vendor price/repair/sell mults + caps + ethereal quarter | M2 | BUILT-M2 |
 | 51 | Gold piles: TC mul/256 × killer GoldFind | M2 | BUILT-M2 |
 | 52 | MF quality-only rule (never quantity) | M2 | BUILT-M2 |
-| 53 | Special-group roll 4:1 unique:champion; packs | M3 | BUILT-M3 |
-| 54 | Champ/unique/minion life-AR-XP bonus table | M3 | BUILT-M3 |
-| 55 | Champion families (5+ families as data rows) | M3 | BUILT-M3 |
-| 56 | Unique affix pool: 1/2/3 rolls, minion inherit flag | M3 | BUILT-M3 |
-| 57 | Minion count 3–6, reduced bonuses, behaviour-immunity | M3 | BUILT-M3 |
-| 58 | AI script set (Melee/Ranged/Charge/Avoid) — 4 behaviours, card/11747; teleport/boss variants later | M3 | BUILT-M3 |
+| 53 | Special-group roll 4:1 unique:champion; packs | M3 | BUILT-M3 (live: CLI special) |
+| 54 | Champ/unique/minion life-AR-XP bonus table | M3 | BUILT-M3 (leader live via CLI special; minion bonus row unit-tested, live path with M4) |
+| 55 | Champion families (5+ families as data rows) | M3 | BUILT-M3 (live: CLI special) |
+| 56 | Unique affix pool: 1/2/3 rolls, minion inherit flag | M3 | BUILT-M3 (1-roll live via CLI special; 2/3 roll unit-tested, live path with M4) |
+| 57 | Minion count 3–6, reduced bonuses, behaviour-immunity | M3 | BUILT-M3 (count+inherit live via CLI special; reduced-bonus spawn unit-tested, live path with M4) |
+| 58 | AI script set (Melee/Ranged/Charge/Avoid) — 4 behaviours, card/11747; teleport/boss variants later | M3 | BUILT-M3 (unit-tested; live path with M4) |
 | 59 | 5 acts, area graph w/ procedural + preset layouts | M3 | BUILDING |
 | 60 | NPC role set: shop/repair/gamble/stash/craft/quest/hire/waypoint | M3 | NOT-BUILT |
-| 61 | Waypoint network, per-char persistence, portal interop | M3 | BUILT-M3 |
+| 61 | Waypoint network, per-char persistence | M3 | BUILT-M3 |
 | 62 | Quest state machine + reward kinds | M3 | BUILT-M3 |
-| 63 | Party XP pot: proximity, +87/256 bonus, level-share | M3 | BUILT-M3 |
-| 64 | Death: 0/5/10% XP penalty, ¾ corpse return | M3 | BUILT-M3 |
+| 63 | Party XP pot: proximity, +87/256 bonus, level-share | M3 | BUILT-M3 (unit-tested; live path with M4) |
+| 64 | Death: 0/5/10% XP penalty, ¾ corpse return | M3 | BUILT-M3 (unit-tested; live path with M4) |
 | 65 | Hirelings: bracket tables, weight skill roll, hire price | M3 | NOT-BUILT |
 | 66 | Merc XP chain w/ 86/256 + 1/64 cap | M3 | NOT-BUILT |
 | 67 | Inventory 4×10 grid w/ w×h placement | M4 | BUILT-M2 |

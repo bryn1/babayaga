@@ -1,7 +1,8 @@
-# Baba Yaga — Architecture (v5, 2026-10-31)
+# Baba Yaga — Architecture (v6, 2026-10-31)
 
-version: 4 (merge of the M2 items & economy as-built section, MC 11746, and the M3 monsters &
-world as-built section, MC 11747, onto the M1 foundation, MC 11745; v1 was created by the `design`
+version: 6 (merge of the M2 items & economy as-built section, MC 11746, the M3 monsters &
+world as-built section, MC 11747, and the DA round-1 fix addendum (card/11755) onto the M1
+foundation, MC 11745; v1 was created by the `design`
 profile, run 202610301950-31593a83, MC 11739; board record MC 11743 — git history is this repo file's
 version store; superseded texts are archived in commits 1351b6c / d0ab182 / 737b0dd / 895a8a4)
 Maintained per layout v2: the Architect keeps this doc true to the tree. Engine decision is pinned in
@@ -115,26 +116,29 @@ Carried habits (T0c §4 pitfalls): one worktree per concurrent engine run; never
 ### As-built (M1 foundation, first code commit, MC 11745) — these files exist and are tested
 
 ```
-BabaYaga.sln                              solution: Sim + Tests (game/ + Cli join at their milestones)
+BabaYaga.sln                              solution: Sim + Cli + Tests (game/ joins at its milestone)
 src/BabaYaga.Sim/                         net8.0 class library — references nothing (dependency rule held)
-  Rng.cs                        (66 ln)   seeded PCG-XSH-RR 32/64; BCL Random forbidden, not used
-  Stats.cs                      (102 ln)  ClassProfile rows + life/mana/AR derivations + per-group
+  Rng.cs                        (74 ln)   seeded PCG-XSH-RR 32/64; internal State get/set carries
+                                          the raw stream word into the save DTO (DA P1-1)
+  Stats.cs                      (95 ln)  ClassProfile rows + life/mana/AR derivations + per-group
                                           Str/Dex damage bonuses; Koldun design row
-  Character.cs                  (113 ln)  attribute allocation, XP intake → level-up grants (5+1)
+  Character.cs                  (124 ln)  attribute allocation, XP intake → level-up grants (5+1),
+                                          GrantSkillPoints = the single reward-point grant door
+                                          (DA P1-2; TrySpendSkillPoint stays the only debit)
   XpTable.cs                    (128 ln)  ladder loader+validator, ExpRatio, level-gap tables,
                                           full kill-XP chain (floor every step)
   SkillData.cs                  (133 ln)  JSON skill-table loader; validation IS the content gate
                                           (tier caps 3/2/2/1, ≤3 prereqs, prereq edges up-row)
-  SkillTree.cs                  (81 ln)   spend engine: row level reqs, prereqs, tier caps,
+  SkillTree.cs                  (78 ln)   spend engine: row level reqs, prereqs, tier caps,
                                           hard-point synergy math, effective level on +skills
   CombatResolver.cs             (162 ln)  to-hit 2AR/(AR+DEF)×alvl/(alvl+dlvl) clamped 5..95,
                                           running-always-hit, block (Dex−15, class factor, 75 cap,
                                           running ÷3-after-cap), physical pipeline weaponED→flat→
                                           %ED→SrcDam with −90 clamp, crit-family order roll,
                                           elemental 75/95 cap + −100 floor, Monster + kill→XP grant
-src/BabaYaga.Sim.Tests/                   net8.0 xunit project — 64 tests green (RngTests,
-                                          MechanicsTests, SkillTreeTests, CombatTests, + the M3
-                                          Monster/PackAffix/AI/World suites)
+src/BabaYaga.Sim.Tests/                   net8.0 xunit project — 127 tests green at v6 (RngTests,
+                                          MechanicsTests, SkillTreeTests, CombatTests, BoundaryTests,
+                                          + the M3 Monster/PackAffix/AI/World suites)
 data/xp-ladder.json                       anchors exact per P1 §1.7; intermediate rows interpolated
 data/koldun-skills.json                   Koldun = first playable class (ORIGINAL IP): 3 trees
                                           (Popioly/Uroki/Krag × 4 skills), prereqs, synergies
@@ -164,7 +168,7 @@ src/BabaYaga.Sim/                         (M2 additions — same net8.0 library,
                                           white-only, exact count, exact order, availability), re-checkable
   Gamble.cs                      (69 ln)  §4.7: ilvl = clamp(clvl−5+0..9, 5, 99), face-down offer,
                                           tier revealed on buy, MF pinned 0
-  Vendor.cs                      (72 ln)  §4.8 buy ×mult/1024 (1024/1088/960/2048 original rows) +cap,
+  Vendor.cs                      (68 ln)  §4.8 buy ×mult/1024 (1024/1088/960/2048 original rows) +cap,
                                           sell ×512/1024 ethereal ÷4 class ÷4, act/difficulty caps
                                           5k–25k/30k/35k, repair ×missing/max×128/1024, purse gate
   Gold.cs                        (40 ln)  gold pile = TC gold × mul/256 × (1+killer GF), floored;
@@ -192,10 +196,11 @@ src/BabaYaga.Sim/
                                           spawn-level stamping (Ordinary = own level; Nightmare/
                                           Hell stamp the AREA's level on ordinary monsters, bosses
                                           keep own), foundation-Monster factory
-  PackAffix.cs                 (234 ln)  data/packs.json shape (the ONLY reader): 4:1 special-group
+  PackAffix.cs                 (238 ln)  data/packs.json shape (the ONLY reader): 4:1 special-group
                                           roll, champion pack sizes + family affixes, band bonus
-                                          tables (life/AR/level/XP), Encounter composition —
-                                          same seed replays the identical pack
+                                          tables (life/AR/level/XP), Encounter composition,
+                                          ComposeFor = the same rolls with a named leader (the CLI
+                                          special verb, DA P2-a) — same seed replays the pack
   UniqueMonster.cs              (33 ln)  unique modifier roll 1/2/3 per band, equal chance,
                                           distinct, partial Fisher-Yates on the seeded Rng
   MonsterMinion.cs              (54 ln)  3–6 minion escort, reduced band bonus, behaviour-only
@@ -205,7 +210,7 @@ src/BabaYaga.Sim/
                                           melee strikes in range, ranged herds the target into
                                           band [2..6], charge commits to closing, avoid flees
                                           within its threshold or when hurt
-  AreaGraph.cs                 (147 ln)  Difficulty bands + WorldPos (Chebyshev metric) +
+  AreaGraph.cs                 (154 ln)  Difficulty bands + WorldPos (Chebyshev metric) +
                                           data/act1-areas.json graph: one town, symmetric edges,
                                           per-band area monster levels (P3 §6.1)
   WaypointGraph.cs             (102 ln)  data/waypoints.json: permanent per-char discovery,
@@ -218,8 +223,9 @@ src/BabaYaga.Sim/
   XpShare.cs                    (59 ln)  party pot ×(256+87·(n−1))/256, living members within
                                           80 units, level-weighted split, floors only — payout
                                           never exceeds the pot (P3 §6.6)
-  DeathPenalty.cs               (39 ln)  0/5/10 % of the current level's span, floor at the
-                                          level start, level 1 free, ¾ waits on the corpse (§6.6)
+  DeathPenalty.cs               (40 ln)  0/5/10 % of the current level's span, floor at the
+                                          level start, level 1 free, ¾ waits on the corpse (§6.6);
+                                          the M2 economy names clamp to the 10 % top band (DA P3-1)
   DeathDropEvent.cs             (28 ln)  plain emit-record {AffixKind, Ilvl, AreaSeed} on a kill;
                                           calls NO item-generation code — the sibling owns that,
                                           a later phase wires them (M2/M3 seam)
@@ -254,30 +260,41 @@ src/BabaYaga.Sim/
                                         TreasureClass walk → DropQueue. Survivor emits nothing.
   DropQueue.cs                (51 ln)  pending loot: TakeUpTo(count, accept) never swallows the
                                         rest behind a refused item; gold collected separately.
-  GameSession.cs             (245 ln)  the plain-C# session the CLI/pytest drive (Godot later):
-                                        tables loaded from an injected data dir, two seeded RNG
-                                        streams (combat vs drop), commands new/levelto/spend/
-                                        attack/loot/equip/buy/sell/gamble — each fully applies
-                                        or is rejected, nothing half-applied.
-  GameSession.World.cs        (87 ln)  world half (same class, partial): stone discovery,
+  GameSession.cs             (248 ln)  the plain-C# session the CLI/pytest drive (Godot later):
+                                        tables (incl. packs.json) loaded from an injected data dir,
+                                        two seeded RNG streams (combat vs drop), commands new/
+                                        levelto/spend/attack/loot/equip/buy/sell/gamble — each
+                                        fully applies or is rejected, nothing half-applied.
+  GameSession.World.cs        (128 ln)  world half (same class, partial): stone discovery,
                                         lit-stone travel, quest accept/step/complete with the
-                                        P3 §6.4 reward payouts.
-  SaveSerializer.cs          (198 ln)  THE save/dump serializer: version-checked, corrupt-file →
-                                        InvalidDataException never a partial load; quests restore
-                                        by phase replay (rewards NOT repaid), carried items land
-                                        on their exact grid cells; dumps are byte-identical
-                                        across save→load→load.
-  SaveDto.cs                  (65 ln)  the SessionSave document shape — declaration order IS
-                                        dump order (stable JSON), items carried/equipped/pending.
+                                        P3 §6.4 reward payouts (SkillPoint → GrantSkillPoints,
+                                        DA P1-2), Special = the seeded 4:1 group roll engaging a
+                                        bonus-scaled leader (DA P2-a).
+  SaveSerializer.cs          (206 ln)  THE save/dump serializer (Version 2): captures BOTH RNG
+                                        state words so a loaded session CONTINUES its streams —
+                                        never replays consumed rolls (DA P1-1); version-checked,
+                                        corrupt-file → InvalidDataException never a partial load;
+                                        quests restore by phase replay (rewards NOT repaid),
+                                        carried items land on their exact grid cells; dumps are
+                                        byte-identical across save→load→load.
+  SaveDto.cs                  (67 ln)  the SessionSave document shape — declaration order IS
+                                        dump order (stable JSON): seed, the two RNG state words,
+                                        items carried/equipped/pending (v2 dropped the quest-
+                                        point bank — the points live in Character now).
 src/BabaYaga.Sim.Cli/
   Program.cs                  (38 ln)  arg parse: --seed N --script <path> [--data <dir>].
   CommandRunner.cs            (53 ln)  line loop: one JSON line per command, {"RESULT":"OK"}/exit
                                         0 at the end, first rejection = {"ERROR":"…"} + exit 1.
-  ScriptedSession.cs         (236 ln)  the command grammar (new/levelto/spend/attack/loot/equip
-                                        lastdrop/buy/sell last/gamble/waypoint/discover/quest
-                                        accept|step|complete/save/load/dump) → GameSession ops.
+  ScriptedSession.cs         (250 ln)  the command grammar (new/levelto/spend/attack/special/
+                                        loot/equip lastdrop/buy/sell last/gamble/waypoint/
+                                        discover/quest accept|step|complete/save/load/dump) →
+                                        GameSession ops; special <monster> (DA P2-a) reports the
+                                        rolled group's kind/units/affixes/bonus-scaled stats.
 src/BabaYaga.Sim.Tests/                   DropPipelineTests, SaveTests, CliScriptTests (17 new)
+                                          + DA round-1: save/load RNG-continuation, P1-2 probe,
+                                          special-verb tests; BoundaryTests pins 2 mutation survivors
 tests/journey.txt                          the scripted acceptance journey (18 commands, seed 2)
+tests/probe-p12.txt                        the DA round-1 P1-2 probe journey (quest point spends)
 data/treasureclasses.json                  3 area tiers + 3 item groups (lup_lezny, lup_kopcowy,
                                            skarb_leszego — forced-picks class, negative picks;
                                            ORIGINAL names), gold ranges, weighted entries
@@ -291,23 +308,23 @@ NOT-BUILT) — journey.txt is its first scripted journey and does not duplicate 
 All paths below are under `src/BabaYaga.Sim/` unless prefixed otherwise. Rule sources cite the
 T0b spec part/section (P1 = T0b-mechanics-spec.md, P2 = -2, P3 = -3).
 
-src/BabaYaga.Sim/Attributes.cs            — 5-attribute model, per-archetype start table, stat/skill-point grants — ~150 (P1 §1.1–1.2)
-src/BabaYaga.Sim/LifeManaStam.cs          — Life/Mana/Stamina formulas incl. multiplier slots, class rates — ~200 (P1 §1.3)
-src/BabaYaga.Sim/ToHitBlock.cs            — Attack Rating, dual-ratio to-hit 5/95 clamp, block formula + class factors — ~200 (P1 §1.4–1.5)
-src/BabaYaga.Sim/DamagePipeline.cs        — physical damage order: weapon ED → flat → %ED → SrcDam; str/dex per-weapon-group — ~250 (P1 §1.6)
-src/BabaYaga.Sim/CombatResolver.cs        — hit resolution order, crit→CS→DS family, Crushing Blow, Open Wounds, hit recovery, stun — ~250 (P2 §3.3, §3.5)
+src/BabaYaga.Sim/Attributes.cs            — BUILT as M1 Stats.cs + Character.cs (grants incl. quest points via GrantSkillPoints, DA P1-2) (P1 §1.1–1.2)
+src/BabaYaga.Sim/LifeManaStam.cs          — BUILT as M1 Stats.cs life/mana derivations (stamina has no spec row yet) (P1 §1.3)
+src/BabaYaga.Sim/ToHitBlock.cs            — BUILT inside M1 CombatResolver.cs (to-hit 5/95, block formula) (P1 §1.4–1.5)
+src/BabaYaga.Sim/DamagePipeline.cs        — BUILT inside M1 CombatResolver.cs (physical order + per-group bonuses) (P1 §1.6)
+src/BabaYaga.Sim/CombatResolver.cs        — PARTIALLY BUILT as M1 CombatResolver.cs (resolution order, crit→CS→DS family, elemental caps); Crushing Blow / Open Wounds / hit recovery / stun ride the status stack (P2 §3.3, §3.5)
 src/BabaYaga.Sim/StatusEffectStack.cs     — curse/buff/aura timed-mod stack engine, refresh, ⅕ immune rule, Conviction curve — ~250 (P2 §3.1–3.2)
 src/BabaYaga.Sim/DotSystem.cs             — poison rate×length, chill/freeze durations + difficulty divisors — ~150 (P2 §3.4)
-src/BabaYaga.Sim/SkillTrees.cs            — 3 trees/archetype, row reqs, prerequisite graph, synergy-on-hard-points — ~250 (P1 §2.1–2.2)
+src/BabaYaga.Sim/SkillTrees.cs            — BUILT as M1 SkillData.cs + SkillTree.cs (P1 §2.1–2.2)
 src/BabaYaga.Sim/FrameBreakpoints.cs      — FCR compression, FHR, IAS+WSM frame tables — ~200 (P1 §2.3–2.4)
 ~~RarityRoll.cs~~ BUILT as QualityRoll.cs (as-built M2 block above)
 ~~ItemGen.cs~~ BUILT split as Item.cs + ItemBaseTable.cs + AffixPool.cs + RareGen.cs (as-built M2)
 ~~SetUnique.cs~~ BUILT as SetUniqueItems.cs (as-built M2)
 ~~Runewords.cs~~ BUILT as Runewords.cs + Socketing.cs (as-built M2; the socket roll split into its own file)
 src/BabaYaga.Sim/CubeRecipes.cs           — recipe engine: inputs → output, ilvl rules, flags — ~150 (P2 §4.6)
-src/BabaYaga.Sim/TreasureClass.cs         — drop pipeline: TC walk ≤6 items, forced picks, gold piles, MF-quality-only — ~250 (P2 §4.1, §4.8–4.9)
+src/BabaYaga.Sim/TreasureClass.cs         — BUILT as M1 close-out above (TC walk + ItemForge) (P2 §4.1, §4.8–4.9)
 ~~Vendors.cs~~ BUILT split as Vendor.cs + Gamble.cs + Gold.cs (as-built M2; TC gold-drop INPUT still arrives with TreasureClass.cs)
-src/BabaYaga.Sim/Vendors.cs               — buy/sell/gamble/repair price multipliers, caps, gamble ilvl roll — ~200 (P2 §4.7–4.8)
+src/BabaYaga.Sim/Vendors.cs               — BUILT (dup of the struck row above): Vendor.cs + Gamble.cs + Gold.cs, as-built M2 (P2 §4.7–4.8)
 src/BabaYaga.Sim/MonsterStats.cs          — SUPERSEDED by the M3 as-built MonsterBase.cs + MonsterTable.cs (same scope P3 §5.1–5.2)
 src/BabaYaga.Sim/MonsterAffixes.cs        — SUPERSEDED by the M3 as-built PackAffix.cs + UniqueMonster.cs + MonsterMinion.cs (P3 §5.2–5.4)
 src/BabaYaga.Sim/MonsterAI.cs             — BUILT as M3 above with the 4 DoD-named behaviours (melee/ranged/charge/avoid); caster-teleport/boss scripts arrive with the skills phase (P3 §5.5)
@@ -317,11 +334,11 @@ src/BabaYaga.Sim/Hirelings.cs             — merc bracket tables, weight skill 
 src/BabaYaga.Sim/QuestState.cs            — BUILT as M3 above (P3 §6.4)
 src/BabaYaga.Sim/WaypointGraph.cs         — BUILT as M3 above (P3 §6.1, §6.3)
 src/BabaYaga.Sim/MapGen.cs                — preset + procedural area layout rules, density roll, quest-object slots — ~250 (P3 §6.5)
-src/BabaYaga.Sim/DataTables.cs            — load/validate data/*.json into typed tables (the ONLY file touching table shape) — ~200
+src/BabaYaga.Sim/DataTables.cs            — BUILT distributed: each table ships its own loader+validator (MonsterTable/TreasureClass/QuestLog/… — one file per table shape)
 src/BabaYaga.Sim/SaveSerializer.cs        — BUILT as M1 close-out above (SaveSerializer + SaveDto)
 src/BabaYaga.Sim/SimSession.cs            — superseded by GameSession.cs + GameSession.World.cs (M1 close-out; scripted commands, no tick loop yet)
 src/BabaYaga.Sim.Cli/Program.cs           — BUILT as M1 close-out above (Program + CommandRunner + ScriptedSession)
-game/Main.cs + Main.tscn                  — presentation root; instantiates SimSession, no rules — ~150
+game/Main.cs + Main.tscn                  — presentation root; instantiates GameSession, no rules — ~150
 game/scenes/…                             — per-screen presentation (inventory grid, skill panel, automap overlay, shop, cube, stash, TP) — each ≤250; T0b P3 §7 inventory
 
 `tests/` (pytest, one file per mechanic domain, ≤600-line test ceiling): `test_stats.py`,
@@ -342,12 +359,16 @@ each asserts on CLI markers/exit codes only.
 The As-built sections above match the tree at this commit: M1 foundation (seeded RNG, stats,
 XP/level, 8x8 skill-grid engine, combat resolver, xp-ladder + koldun-skills data), M2 items &
 economy (12 Sim files, 6 data tables, 38 tests) and M3 monsters & world (12 Sim files, 5 data
-tables, 32 tests) and the M1 close-out (drop pipeline + session + save/load + CLI, 120 tests total). One semantic-merge defect (duplicate Difficulty enum across Vendor.cs and
+tables, 32 tests), the M1 close-out (drop pipeline + session + save/load + CLI) and the DA
+round-1 fixes (save v2 stream persistence, quest skill-point grant, CLI special verb, boundary
+pins) — 127 tests total. One semantic-merge defect (duplicate Difficulty enum across Vendor.cs and
 AreaGraph.cs, each branch green alone) is being resolved as MC 11748; this section reads TRUE
-only when the merged master builds and tests green again (VERIFIED this commit: 0 warnings, 120/120 green). The M2 build replaced planned
+only when the merged master builds and tests green again (VERIFIED this commit: 0 warnings, 127/127 green). The M2 build replaced planned
 RarityRoll/ItemGen/Vendors names with per-concern files; the M3 build superseded MonsterStats/
-MonsterAffixes planned rows (noted inline). Everything under "Planned" remains DESIGN: `game/`,
-`src/BabaYaga.Sim.Cli/`, `tests/` (pytest), `assets/`, MapGen (row 59), NPC roster (60),
-hirelings (65-66), TC-walk drop pipeline (36), ritual-craft engine (48), frame breakpoints
-(23-25), weapon sets (68). The next build phase must update this file to match what it actually
-created, in the same run.
+MonsterAffixes planned rows (noted inline); the M1 close-out built what the "Planned" list used to
+mislabel as DESIGN — `src/BabaYaga.Sim.Cli/` and the TC-walk drop pipeline (36) are AS-BUILT, not
+design. What remains DESIGN: `game/`, `tests/` (the pytest-marker suite over CLI stdout; the
+xunit CliScriptTests + journey.txt/probe-p12.txt scripted journeys exist — the pytest harness does
+not), `assets/`, MapGen (row 59), NPC roster (60), hirelings (65-66), ritual-craft engine (48),
+stash tabs (74), frame breakpoints (23-25), weapon sets (68). The next build phase must update
+this file to match what it actually created, in the same run.

@@ -8,9 +8,8 @@ namespace BabaYaga.Sim.Cli;
 /// payload of its output line. Grammar (one command per line; '#' starts a
 /// comment, blank lines are ignored):
 ///   new &lt;class&gt; | levelto &lt;n&gt; | spend &lt;skill&gt; [n] | attack &lt;monster&gt; [times] |
-///   loot [n] | equip lastdrop | buy &lt;item&gt; | sell last | gamble |
-///   waypoint &lt;node&gt; | discover &lt;node&gt; | quest &lt;id&gt; accept|step|complete |
-///   save &lt;path&gt; | load &lt;path&gt; | dump
+///   special &lt;monster&gt; | loot [n] | equip lastdrop | buy &lt;item&gt; | sell last | gamble |
+///   waypoint &lt;node&gt; | discover &lt;node&gt; | quest &lt;id&gt; accept|step|complete | save &lt;path&gt; | load &lt;path&gt; | dump
 /// A rejected change or unknown command throws — the runner owns the ERROR line.
 /// </summary>
 public sealed class ScriptedSession
@@ -65,6 +64,7 @@ public sealed class ScriptedSession
             "levelto" => LevelTo(payload, parts),
             "spend" => Spend(payload, parts),
             "attack" => Attack(payload, parts),
+            "special" => Special(payload, parts),
             "loot" => Loot(payload, parts),
             "equip" => Equip(payload, parts),
             "buy" => Buy(payload, parts),
@@ -95,6 +95,20 @@ public sealed class ScriptedSession
         for (int i = 0; i < times; i++) S.SpendSkill(parts[1]); // SkillSpendRejectedException propagates
         p["SKILL"] = parts[1];
         p["HARDPOINTS"] = S.Skills.HardPoints(parts[1]);
+        return p;
+    }
+
+    private Dictionary<string, object?> Special(Dictionary<string, object?> p, string[] parts)
+    {
+        Arg(parts, 2, "special <monster>");
+        var r = S.Special(parts[1]); // seeded 4:1 group; boss rows are refused
+        p["KIND"] = r.Kind;
+        p["MONSTER"] = parts[1];
+        p["UNITS"] = r.Units;
+        p["AFFIXES"] = r.Affixes;
+        p["MINION-AFFIXES"] = r.MinionAffixes;
+        p["LIFE"] = r.Life;
+        p["XP"] = r.BaseXp;
         return p;
     }
 

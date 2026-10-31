@@ -57,13 +57,52 @@ public sealed partial class GameSession
         {
             case QuestRewardKind.LifePotion: Character.FlatLife += PotionOfLifeFlat * row.RewardAmount; break;
             case QuestRewardKind.WaypointUnlock when Waypoints.HasNode(row.GoalAreaKey): Waypoints.Discover(row.GoalAreaKey); break;
-            // ponytail: a quest skill point cannot reach Character.SkillPoints —
-            // the foundation exposes no public grant hook (its row 2 half lands
-            // with the skills UI). Banked + dumped here; the spend engine is untouched.
-            case QuestRewardKind.SkillPoint: QuestSkillRewards += row.RewardAmount; break;
+            // The rite's skill point lands in the real pool (P1 §1.1, DA round-1 P1-2):
+            // GrantSkillPoints is the single grant door; TrySpendSkillPoint the debit.
+            case QuestRewardKind.SkillPoint: Character.GrantSkillPoints(row.RewardAmount); break;
             case QuestRewardKind.StashTab: StashTabs += row.RewardAmount; break; // stash itself is row 74
             default: OtherRewards += row.RewardAmount; break;
         }
+    }
+
+    // ---- special encounters (P3 §5.2) ----
+
+    /// What kind of encounter the engaged monster is (DA round-1 P2-a): the CLI's
+    /// special command sets it; a plain Spawn or a save-restored engagement resets
+    /// it — and Attack hands it to the kill chain so the ilvl bump and XP tables run.
+    internal SpecialKind EngagedKind { get; set; } = SpecialKind.Plain;
+    internal IReadOnlyList<string> EngagedAffixKeys { get; set; } = [];
+
+    /// <summary>A rolled special group as the CLI reports it: kind, leader, total
+    /// unit count, the leader's affix keys and the keys its escort carries, and
+    /// the bonus-scaled leader stats the following attack must fight.</summary>
+    public sealed record SpecialReport(
+        string Kind, string Leader, int Units,
+        IReadOnlyList<string> Affixes, IReadOnlyList<string> MinionAffixes,
+        long Life, long BaseXp);
+
+    /// <summary>Roll the seeded 4:1 unique:champion group over the named row
+    /// (PackAffix/UniqueMonster code), engage its bonus-scaled leader, and hand
+    /// the kind to the kill chain — attack the returned monster to pay the
+    /// band's XP multiplier and drop ilvl bump (DA round-1 P2-a live path).</summary>
+    public SpecialReport Special(string monsterKey)
+    {
+        var row = Monsters.Get(monsterKey);
+        if (row.IsBoss)
+            throw new SessionRejectedException($"'{monsterKey}' is a boss — bosses never lead packs (P3 §5.2)");
+        var area = Areas.Get(CurrentArea);
+        var enc = SpecialGroups.ComposeFor(CombatRng, Packs, Difficulty.Ordinary, row.Key);
+        var bonus = enc.Kind == SpecialKind.Unique
+            ? Packs.UniqueBonus(Difficulty.Ordinary)
+            : Packs.ChampionBonus(Difficulty.Ordinary);
+        var affixRows = enc.LeaderAffixKeys.Select(k => SpecialGroups.FindAffix(Packs, k)).ToArray();
+        Engaged = MonsterMinions.SpawnOne(
+            Monsters, row, MonsterTable.ResolveSpawnLevel(row, Difficulty.Ordinary, area), bonus, affixRows);
+        EngagedKey = row.Key;
+        EngagedKind = enc.Kind;
+        EngagedAffixKeys = enc.LeaderAffixKeys;
+        return new SpecialReport(enc.Kind.ToString(), row.Name, enc.UnitCount,
+            enc.LeaderAffixKeys, enc.MinionAffixKeys, Engaged.Life, Engaged.BaseXp);
     }
 
     // ---- persistence ----
@@ -79,6 +118,8 @@ public sealed partial class GameSession
     internal void SetEngaged(string? key, long life)
     {
         EngagedKey = key;
+        EngagedKind = SpecialKind.Plain; // the save file stores no special state
+        EngagedAffixKeys = [];
         if (key is null) { Engaged = null; return; }
         // Ordinary band: spawn resolution is the row's own level (P3 §5.1).
         Engaged = Monsters.Spawn(Monsters.Get(key), Monsters.Get(key).OwnLevel);

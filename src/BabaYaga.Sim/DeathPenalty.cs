@@ -14,13 +14,14 @@ public readonly record struct DeathResult(long XpAfter, long Lost, long CorpseXp
 /// </summary>
 public static class DeathPenalty
 {
-    /// The band's cost of the current level's span, in percent (P3 §6.6).
+    /// The band's cost of the current level's span, in percent (P3 §6.6). The M2
+    /// economy names (Dusk/Midnight/WitchNight) have no world tier of their own:
+    /// they clamp to the top world band, Hell's 10 % (DA round-1 P3-1 reading).
     public static int PenaltyPercent(Difficulty difficulty) => difficulty switch
     {
         Difficulty.Ordinary => 0,
         Difficulty.Nightmare => 5,
-        Difficulty.Hell => 10,
-        _ => throw new ArgumentOutOfRangeException(nameof(difficulty)),
+        _ => 10,
     };
 
     public static DeathResult Apply(XpTable ladder, long xp, int level, Difficulty difficulty)

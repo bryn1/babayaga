@@ -98,6 +98,14 @@ public sealed class Character
         return true;
     }
 
+    /// <summary>Adds EARNED reward skill points to the spendable pool (P1 §1.1's
+    /// 5 quest pts, DA round-1 P1-2). Debit stays exclusively TrySpendSkillPoint's.</summary>
+    public void GrantSkillPoints(int points)
+    {
+        if (points < 0) throw new ArgumentOutOfRangeException(nameof(points));
+        SkillPoints += points;
+    }
+
     public bool TrySpendSkillPoint()
     {
         if (SkillPoints <= 0) return false;
