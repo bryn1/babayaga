@@ -1,4 +1,4 @@
-# Baba Yaga — Architecture (v4, 2026-10-31)
+# Baba Yaga — Architecture (v5, 2026-10-31)
 
 version: 4 (merge of the M2 items & economy as-built section, MC 11746, and the M3 monsters &
 world as-built section, MC 11747, onto the M1 foundation, MC 11745; v1 was created by the `design`
@@ -51,7 +51,7 @@ babayaga/                     this git tree (root = repo root, layout v2)
   src/BabaYaga.Sim.Cli/       dotnet console driver: scripted headless sim sessions = the pytest target
   game/                       Godot 4.7 mono project (project.godot, babayaga.csproj) — presentation
                               ONLY; consumes the Sim public API, holds no game rules
-  tests/                      pytest suite driving BabaYaga.Sim.Cli (stdout markers + exit codes)
+  tests/                      CLI journey scripts (tests/journey.txt) + the planned pytest suite
   data/                       ORIGINAL JSON tables: skills, items, monsters, acts (+ affixes,
                               runewords, cube recipes, npcs, quests, waypoints) — content, in git
   assets/                     3090-generated ORIGINAL art masters; copied into game/assets/ before
@@ -85,8 +85,9 @@ Single-player desktop only. No server, no listening port, no IPC, no localhost d
 
 ## Entrypoints
 
-1. `src/BabaYaga.Sim.Cli` — `dotnet run --project src/BabaYaga.Sim.Cli -- <session-script>`:
-   runs a scripted sim session, prints named markers, exits 0/1. The pytest target.
+1. `src/BabaYaga.Sim.Cli` — `dotnet run --project src/BabaYaga.Sim.Cli -- --seed N
+   --script <path> [--data <dir>]`: runs a scripted sim session, one JSON line per command,
+   final `{"RESULT":"OK"}` exit 0, one `{"ERROR":"…"}` line exit 1. The pytest target.
 2. Godot main scene `game/Main.tscn` (root script `Main.cs`) — presentation host; instantiates a
    Sim session and renders its state. Same binary runs `--headless` and windowed (T0c §4).
 
@@ -237,6 +238,54 @@ The xunit project sits under `src/` beside the library; the planned `tests/` pyt
 arrives with `src/BabaYaga.Sim.Cli/` (later M1 leg) — it drives the CLI stdout markers and will not
 duplicate these unit contracts.
 
+### As-built (M1 close-out, card/11752) — these files exist and are tested
+
+```
+src/BabaYaga.Sim/
+  TreasureClass.cs           (233 ln)  data/treasureclasses.json loader+validator (unique keys,
+                                        picks≠0, forced classes carry no NoDrop entry, refs and
+                                        group cycles checked at load) + the walk: |picks| draws,
+                                        ≤6 outputs incl. gold, forced picks re-roll NoDrop,
+                                        gold pile nuggets×mul/256×(1+GF) via Gold.Pile, MF moves
+                                        quality only — never quantity (P2 §4.8–4.9). ItemForge
+                                        shares the drop item shape with the gamble path.
+  KillFlow.cs                 (55 ln)  kill→drop wiring: CombatResolver strike → XpTable grant →
+                                        DeathDropEvent.ForKill (Champion +2 / Unique +3 ilvl) →
+                                        TreasureClass walk → DropQueue. Survivor emits nothing.
+  DropQueue.cs                (51 ln)  pending loot: TakeUpTo(count, accept) never swallows the
+                                        rest behind a refused item; gold collected separately.
+  GameSession.cs             (245 ln)  the plain-C# session the CLI/pytest drive (Godot later):
+                                        tables loaded from an injected data dir, two seeded RNG
+                                        streams (combat vs drop), commands new/levelto/spend/
+                                        attack/loot/equip/buy/sell/gamble — each fully applies
+                                        or is rejected, nothing half-applied.
+  GameSession.World.cs        (87 ln)  world half (same class, partial): stone discovery,
+                                        lit-stone travel, quest accept/step/complete with the
+                                        P3 §6.4 reward payouts.
+  SaveSerializer.cs          (198 ln)  THE save/dump serializer: version-checked, corrupt-file →
+                                        InvalidDataException never a partial load; quests restore
+                                        by phase replay (rewards NOT repaid), carried items land
+                                        on their exact grid cells; dumps are byte-identical
+                                        across save→load→load.
+  SaveDto.cs                  (65 ln)  the SessionSave document shape — declaration order IS
+                                        dump order (stable JSON), items carried/equipped/pending.
+src/BabaYaga.Sim.Cli/
+  Program.cs                  (38 ln)  arg parse: --seed N --script <path> [--data <dir>].
+  CommandRunner.cs            (53 ln)  line loop: one JSON line per command, {"RESULT":"OK"}/exit
+                                        0 at the end, first rejection = {"ERROR":"…"} + exit 1.
+  ScriptedSession.cs         (236 ln)  the command grammar (new/levelto/spend/attack/loot/equip
+                                        lastdrop/buy/sell last/gamble/waypoint/discover/quest
+                                        accept|step|complete/save/load/dump) → GameSession ops.
+src/BabaYaga.Sim.Tests/                   DropPipelineTests, SaveTests, CliScriptTests (17 new)
+tests/journey.txt                          the scripted acceptance journey (18 commands, seed 2)
+data/treasureclasses.json                  3 area tiers + 3 item groups (lup_lezny, lup_kopcowy,
+                                           skarb_leszego — forced-picks class, negative picks;
+                                           ORIGINAL names), gold ranges, weighted entries
+```
+
+The CLI ships; the pytest suite over its markers is still the planned test leg (LEDGER keeps it
+NOT-BUILT) — journey.txt is its first scripted journey and does not duplicate the unit contracts.
+
 ### Planned (design, not built yet)
 
 All paths below are under `src/BabaYaga.Sim/` unless prefixed otherwise. Rule sources cite the
@@ -269,9 +318,9 @@ src/BabaYaga.Sim/QuestState.cs            — BUILT as M3 above (P3 §6.4)
 src/BabaYaga.Sim/WaypointGraph.cs         — BUILT as M3 above (P3 §6.1, §6.3)
 src/BabaYaga.Sim/MapGen.cs                — preset + procedural area layout rules, density roll, quest-object slots — ~250 (P3 §6.5)
 src/BabaYaga.Sim/DataTables.cs            — load/validate data/*.json into typed tables (the ONLY file touching table shape) — ~200
-src/BabaYaga.Sim/SaveSerializer.cs        — deterministic JSON save/load for whole session state — ~200
-src/BabaYaga.Sim/SimSession.cs            — seeded session driver: init → tick loop → scripted commands → markers — ~250
-src/BabaYaga.Sim.Cli/Program.cs           — arg parse (--seed --script --data --mode), run SimSession, print markers, exit code — ~150
+src/BabaYaga.Sim/SaveSerializer.cs        — BUILT as M1 close-out above (SaveSerializer + SaveDto)
+src/BabaYaga.Sim/SimSession.cs            — superseded by GameSession.cs + GameSession.World.cs (M1 close-out; scripted commands, no tick loop yet)
+src/BabaYaga.Sim.Cli/Program.cs           — BUILT as M1 close-out above (Program + CommandRunner + ScriptedSession)
 game/Main.cs + Main.tscn                  — presentation root; instantiates SimSession, no rules — ~150
 game/scenes/…                             — per-screen presentation (inventory grid, skill panel, automap overlay, shop, cube, stash, TP) — each ≤250; T0b P3 §7 inventory
 
@@ -293,9 +342,9 @@ each asserts on CLI markers/exit codes only.
 The As-built sections above match the tree at this commit: M1 foundation (seeded RNG, stats,
 XP/level, 8x8 skill-grid engine, combat resolver, xp-ladder + koldun-skills data), M2 items &
 economy (12 Sim files, 6 data tables, 38 tests) and M3 monsters & world (12 Sim files, 5 data
-tables, 32 tests). One semantic-merge defect (duplicate Difficulty enum across Vendor.cs and
+tables, 32 tests) and the M1 close-out (drop pipeline + session + save/load + CLI, 120 tests total). One semantic-merge defect (duplicate Difficulty enum across Vendor.cs and
 AreaGraph.cs, each branch green alone) is being resolved as MC 11748; this section reads TRUE
-only when the merged master builds and tests green again. The M2 build replaced planned
+only when the merged master builds and tests green again (VERIFIED this commit: 0 warnings, 120/120 green). The M2 build replaced planned
 RarityRoll/ItemGen/Vendors names with per-concern files; the M3 build superseded MonsterStats/
 MonsterAffixes planned rows (noted inline). Everything under "Planned" remains DESIGN: `game/`,
 `src/BabaYaga.Sim.Cli/`, `tests/` (pytest), `assets/`, MapGen (row 59), NPC roster (60),

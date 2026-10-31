@@ -6,10 +6,11 @@ Feature rows seeded from the PARITY CHECKLIST in
 Bracketed keys are reference keys into the D2 mechanics spec only — product names are ORIGINAL
 (clean-room rule, docs/ARCHITECTURE.md §R2). Statuses: NOT-BUILT / BUILDING / TESTED / VERIFIED.
 
-STATUS: M1-FOUNDATION + M2-ITEMS (item & economy system 2026-10-30, MC 11746: quality roll, affixes, rares, uniques/sets, sockets/runes/runewords, gamble, vendors, gold, inventory-grid model — 70 xunit tests green). BUILT-M2 = mechanic fully implemented+tested in the Sim as of that commit; the M1 line below stays true for everything it claims. Still open after M2-items: TC-walk drop pipeline (row 36), ritual-craft recipe engine (row 48), frame breakpoints (rows 23–25 — next M2 leg), equipment weapon-sets (row 68 — row 67 grid model delivered early with the item system; its Godot widget stays M4).
+STATUS: M1-FOUNDATION + M2-ITEMS (item & economy system 2026-10-30, MC 11746: quality roll, affixes, rares, uniques/sets, sockets/runes/runewords, gamble, vendors, gold, inventory-grid model — 70 xunit tests green). BUILT-M2 = mechanic fully implemented+tested in the Sim as of that commit; the M1 line below stays true for everything it claims. Still open after M2-items: ritual-craft recipe engine (row 48), frame breakpoints (rows 23–25 — next M2 leg), equipment weapon-sets (row 68 — row 67 grid model delivered early with the item system; its Godot widget stays M4).
 
 STATUS: M3-MONSTERS-WORLD (2026-10-30, MC 11747: monster tables, champion packs/uniques/minions, 4 AI behaviours, area+waypoint graphs, quest FSM, party XP 87/256, death penalty; rows 18–19, 53–58, 61–64 BUILT-M3). OPEN: row 59 procedural layout (MapGen), row 60 NPC roles, rows 65–66 hirelings.
 
+STATUS: M1-CLOSE-OUT (2026-10-31, MC 11752: kill→drop wiring — KillFlow + TreasureClass walk over data/treasureclasses.json, row 36 BUILT-M1; deterministic save/load — SaveSerializer + byte-identical dump, BUILT-M1; headless scripted session driver src/BabaYaga.Sim.Cli/ + tests/journey.txt, BUILT-M1; 120 xunit tests green, build 0 warnings). STILL NOT-BUILT: the pytest tests/ suite (CLI-marker journeys — journey.txt is its seed), stash tabs (row 74), ritual-craft (row 48).
 | # | Feature (Baba Yaga ← reference key) | Milestone | Status |
 |---|---|---|---|
 | 1 | 5 attributes with per-class start table [charstats] | M1 | BUILT-M1 |
@@ -47,7 +48,7 @@ STATUS: M3-MONSTERS-WORLD (2026-10-30, MC 11747: monster tables, champion packs/
 | 33 | Poison rate×length model with mastery + SrcDam | M1 | NOT-BUILT |
 | 34 | Chill/freeze durations w/ difficulty divisors | M1 | NOT-BUILT |
 | 35 | Stun 1-in-10 on special monsters | M1 | NOT-BUILT |
-| 36 | Drop pipeline: TC walk ≤6 items, forced-pick classes | M2 | NOT-BUILT |
+| 36 | Drop pipeline: TC walk ≤6 items, forced-pick classes | M2 | BUILT-M1 |
 | 37 | Quality roll U→S→R→M with c-formula + MF | M2 | BUILT-M2 |
 | 38 | Classic item-ratio rows (400/160/125/30; Uber 240/96/96/3) | M2 | BUILT-M2 |
 | 39 | Unique/set pick by lvl-gate + rarity weights | M2 | BUILT-M2 |

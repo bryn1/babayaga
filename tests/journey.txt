@@ -1,0 +1,21 @@
+# Baba Yaga — M1 close-out scripted journey (CLI acceptance script).
+# Run: dotnet run --project src/BabaYaga.Sim.Cli -- --seed 2 --script tests/journey.txt
+# Grammar: one command per line; '#' comments and blank lines ignored.
+new koldun
+levelto 5
+spend iskra 1
+attack pokrzywnik 5
+loot 10
+equip lastdrop
+buy jantar
+sell last
+gamble
+discover mchy
+waypoint mchy
+quest wrzeciono accept
+quest wrzeciono step
+quest wrzeciono complete
+save /tmp/save7.json
+dump
+load /tmp/save7.json
+dump

@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BabaYaga.Sim\BabaYaga.Sim.csproj" />
+    <ProjectReference Include="..\BabaYaga.Sim.Cli\BabaYaga.Sim.Cli.csproj" />
   </ItemGroup>
 
 </Project>
