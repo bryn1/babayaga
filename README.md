@@ -7,8 +7,9 @@ docs/ARCHITECTURE.md §R2).
 
 - Engine: **Godot 4.7.2-stable, official .NET (mono) build** (pinned by run T0c). Language: **C# / net8.0**.
 - Shape: game rules live in a pure-C# library (`src/BabaYaga.Sim/`, zero Godot references);
-  Godot (`game/`) is presentation only. Tests drive the headless CLI (`src/BabaYaga.Sim.Cli/`)
-  via pytest — no engine process needed for rule tests.
+  Godot (`game/`) is presentation only. The headless CLI (`src/BabaYaga.Sim.Cli/`) drives
+  scripted sessions (`tests/journey.txt`); rule contracts run as xunit — no engine process
+  needed for rule tests.
 - Status: see `LEDGER.md`. Architecture (tree map, dependency rule, modules, data stores):
   `docs/ARCHITECTURE.md`.
 
@@ -26,8 +27,16 @@ dotnet build <project>/babayaga.csproj        # Sdk="Godot.NET.Sdk/4.7.2", Targe
 rm -rf <project>/.godot/mono/temp && dotnet build <project>/babayaga.csproj
 ```
 
-Headless rule-test leg (no engine):
-`dotnet run --project src/BabaYaga.Sim.Cli -- --seed <n> --script <file.json> --data data/`
-Test suite: `pytest tests/`.
+Headless scripted session + rule tests (no engine — current gate):
+
+```bash
+dotnet build BabaYaga.sln
+dotnet test BabaYaga.sln            # xunit rule contracts
+dotnet run --project src/BabaYaga.Sim.Cli -- --seed 2 --script tests/journey.txt --data data
+```
+
+The CLI prints one JSON line per command and a final `{"RESULT":"OK"}` (exit 0);
+any rejection prints one `{"ERROR":"…"}` line and exits nonzero. The planned
+`pytest tests/` marker suite (same CLI, more journeys) is NOT-BUILT yet — see LEDGER.
 
 Note: `dotnet` SDK 8.0.133 at `/usr/bin/dotnet` is sufficient (T0c verified; no new install needed).
