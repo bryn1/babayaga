@@ -27,6 +27,7 @@
          seeds) and rides this project's compilation, so dotnet test BabaYaga.sln runs it. -->
     <Compile Include="..\..\tests\SkeletonDataTests.cs" Link="tests\SkeletonDataTests.cs" />
     <Compile Include="..\..\tests\BeltPotionTests.cs" Link="tests\BeltPotionTests.cs" />
+    <Compile Include="..\..\tests\BeltDeathTests.cs" Link="tests\BeltDeathTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
