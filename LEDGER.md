@@ -6,7 +6,7 @@ Feature rows seeded from the PARITY CHECKLIST in
 Bracketed keys are reference keys into the D2 mechanics spec only — product names are ORIGINAL
 (clean-room rule, docs/ARCHITECTURE.md §R2). Statuses: NOT-BUILT / BUILDING / TESTED / VERIFIED.
 
-STATUS: M1-FOUNDATION (first code commit 2026-10-30, MC 11745: src/BabaYaga.Sim + xunit tests + xp-ladder/koldun-skills data green). BUILT-M1 = mechanic fully implemented+tested in the Sim (class content rows for the other six classes, stamina (row 6), phys-50 cap + difficulty penalties (row 26), ⅕ rule (row 27), crush/open-wounds/DoT/stun (31–35) and everything later remain open).
+STATUS: M1-FOUNDATION + M2-ITEMS (item & economy system 2026-10-30, MC 11746: quality roll, affixes, rares, uniques/sets, sockets/runes/runewords, gamble, vendors, gold, inventory-grid model — 70 xunit tests green). BUILT-M2 = mechanic fully implemented+tested in the Sim as of that commit; the M1 line below stays true for everything it claims. Still open after M2-items: TC-walk drop pipeline (row 36), ritual-craft recipe engine (row 48), frame breakpoints (rows 23–25 — next M2 leg), equipment weapon-sets (row 68 — row 67 grid model delivered early with the item system; its Godot widget stays M4).
 
 | # | Feature (Baba Yaga ← reference key) | Milestone | Status |
 |---|---|---|---|
@@ -46,22 +46,22 @@ STATUS: M1-FOUNDATION (first code commit 2026-10-30, MC 11745: src/BabaYaga.Sim 
 | 34 | Chill/freeze durations w/ difficulty divisors | M1 | NOT-BUILT |
 | 35 | Stun 1-in-10 on special monsters | M1 | NOT-BUILT |
 | 36 | Drop pipeline: TC walk ≤6 items, forced-pick classes | M2 | NOT-BUILT |
-| 37 | Quality roll U→S→R→M with c-formula + MF | M2 | NOT-BUILT |
-| 38 | Classic item-ratio rows (400/160/125/30; Uber 240/96/96/3) | M2 | NOT-BUILT |
-| 39 | Unique/set pick by lvl-gate + rarity weights | M2 | NOT-BUILT |
-| 40 | ilvl sources (drop/champ+2/unique+3/gamble/cube) | M2 | NOT-BUILT |
-| 41 | alvl affix gate formula (steeper near 99) | M2 | NOT-BUILT |
-| 42 | Prefix/suffix pools w/ alvl ranges + one-per-group | M2 | NOT-BUILT |
-| 43 | Magic affix-count probability table | M2 | NOT-BUILT |
-| 44 | Rare itemgen: 3+3 affixes, group exclusions, req formula | M2 | NOT-BUILT |
-| 45 | Set-item count-bonus tiers | M2 | NOT-BUILT |
-| 46 | Sockets: min(base, type band by ilvl, size≤6) | M2 | NOT-BUILT |
-| 47 | Runewords: 5 conditions incl. exact order + plain-only | M2 | NOT-BUILT |
+| 37 | Quality roll U→S→R→M with c-formula + MF | M2 | BUILT-M2 |
+| 38 | Classic item-ratio rows (400/160/125/30; Uber 240/96/96/3) | M2 | BUILT-M2 |
+| 39 | Unique/set pick by lvl-gate + rarity weights | M2 | BUILT-M2 |
+| 40 | ilvl sources (drop/champ+2/unique+3/gamble/cube) | M2 | BUILT-M2 |
+| 41 | alvl affix gate formula (steeper near 99) | M2 | BUILT-M2 |
+| 42 | Prefix/suffix pools w/ alvl ranges + one-per-group | M2 | BUILT-M2 |
+| 43 | Magic affix-count probability table | M2 | BUILT-M2 |
+| 44 | Rare itemgen: 3+3 affixes, group exclusions, req formula | M2 | BUILT-M2 |
+| 45 | Set-item count-bonus tiers | M2 | BUILT-M2 |
+| 46 | Sockets: min(base, type band by ilvl, size≤6) | M2 | BUILT-M2 |
+| 47 | Runewords: 5 conditions incl. exact order + plain-only | M2 | BUILT-M2 |
 | 48 | Ritual-craft recipe engine (inputs→output, ilvl rules, flags) | M2 | NOT-BUILT |
-| 49 | Gambling vendor: ilvl roll, no MF, tier reveal on buy | M2 | NOT-BUILT |
-| 50 | Vendor price/repair/sell mults + caps + ethereal quarter | M2 | NOT-BUILT |
-| 51 | Gold piles: TC mul/256 × killer GoldFind | M2 | NOT-BUILT |
-| 52 | MF quality-only rule (never quantity) | M2 | NOT-BUILT |
+| 49 | Gambling vendor: ilvl roll, no MF, tier reveal on buy | M2 | BUILT-M2 |
+| 50 | Vendor price/repair/sell mults + caps + ethereal quarter | M2 | BUILT-M2 |
+| 51 | Gold piles: TC mul/256 × killer GoldFind | M2 | BUILT-M2 |
+| 52 | MF quality-only rule (never quantity) | M2 | BUILT-M2 |
 | 53 | Special-group roll 4:1 unique:champion; packs | M3 | NOT-BUILT |
 | 54 | Champ/unique/minion life-AR-XP bonus table | M3 | NOT-BUILT |
 | 55 | Champion families (5+ families as data rows) | M3 | NOT-BUILT |
@@ -76,7 +76,7 @@ STATUS: M1-FOUNDATION (first code commit 2026-10-30, MC 11745: src/BabaYaga.Sim 
 | 64 | Death: 0/5/10% XP penalty, ¾ corpse return | M3 | NOT-BUILT |
 | 65 | Hirelings: bracket tables, weight skill roll, hire price | M3 | NOT-BUILT |
 | 66 | Merc XP chain w/ 86/256 + 1/64 cap | M3 | NOT-BUILT |
-| 67 | Inventory 4×10 grid w/ w×h placement | M4 | NOT-BUILT |
+| 67 | Inventory 4×10 grid w/ w×h placement | M4 | BUILT-M2 |
 | 68 | Equipment panel 10 slots + 2 weapon sets | M4 | NOT-BUILT |
 | 69 | Potion belt 4-cell hotkeys 1–4 | M4 | NOT-BUILT |
 | 70 | 8 skill hotkey slots + weapon-set toggle | M4 | NOT-BUILT |

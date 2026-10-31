@@ -1,6 +1,7 @@
-# Baba Yaga — Architecture (v2, 2026-10-30)
+# Baba Yaga — Architecture (v3, 2026-10-30)
 
-version: 2 (M1 foundation build, first code commit, MC 11745; v1 was created by the `design` profile,
+version: 3 (M2 items & economy, MC 11746; v2 was the M1 foundation build, first code commit,
+MC 11745; v1 was created by the `design` profile,
 run 202610301950-31593a83, MC 11739; board record MC 11743 — git history is this repo file's version
 store, the superseded v1 text is archived in commit 1351b6c)
 Maintained per layout v2: the Architect keeps this doc true to the tree. Engine decision is pinned in
@@ -137,6 +138,49 @@ data/koldun-skills.json                   Koldun = first playable class (ORIGINA
                                           (Popioly/Uroki/Krag × 4 skills), prereqs, synergies
 ```
 
+### As-built (M2 items & economy, MC 11746) — these files exist and are tested
+
+```
+src/BabaYaga.Sim/                         (M2 additions — same net8.0 library, still zero Godot refs)
+  Item.cs                       (121 ln)  Item instance shape (quality/sockets/affix-record/mods) +
+                                          ItemLevels: ilvl sources drop/champ+2/unique+3/gamble/cube
+                                          and the §4.2 alvl band formula (incl. magic-lvl-add bases)
+  ItemBaseTable.cs              (125 ln)  data/item-bases.json loader; validation IS the content gate
+                                          (unique ids, cells, socket ceiling ≤6, equiv chains resolve)
+  QualityRoll.cs                (105 ln)  §4.1 c-formula engine, classic 400/160/125/30 + uber
+                                          240/96/96/3 rows, unique→set→rare→magic tries, rare ilvl≥27
+                                          gate, MF quality-only, white low/normal/superior split
+  AffixPool.cs                  (175 ln)  data/affixes.json loader + §4.2 pools: alvl window, type
+                                          filter, one-affix-per-group, frequency-weighted pick,
+                                          configurable magic affix-count table (27/42 steps), BuildMagic
+  RareGen.cs                     (63 ln)  §4.3 rare gen: 3+3 rare-allowed affixes, group exclusions,
+                                          req template highest+10+3/affix capped 98
+  SetUniqueItems.cs             (122 ln)  data/uniques.json loader + §4.4 pick: lvl≤ilvl gate, weight
+                                          60/(rarity+1), nummods ranges, set count-bonus tiers
+  Socketing.cs                   (36 ln)  §4.5: max = min(base, type band ≤25/≤40/else, cells ≤ 6)
+  Runewords.cs                   (98 ln)  runes/runewords loaders + the 5 conditions (type+equiv,
+                                          white-only, exact count, exact order, availability), re-checkable
+  Gamble.cs                      (69 ln)  §4.7: ilvl = clamp(clvl−5+0..9, 5, 99), face-down offer,
+                                          tier revealed on buy, MF pinned 0
+  Vendor.cs                      (72 ln)  §4.8 buy ×mult/1024 (1024/1088/960/2048 original rows) +cap,
+                                          sell ×512/1024 ethereal ÷4 class ÷4, act/difficulty caps
+                                          5k–25k/30k/35k, repair ×missing/max×128/1024, purse gate
+  Gold.cs                        (40 ln)  gold pile = TC gold × mul/256 × (1+killer GF), floored;
+                                          Purse (no-debt spend); signature holds no MF (§4.1 rule)
+  InventoryGrid.cs              (110 ln)  4×10 grid w/ w×h placement + 10-slot equipment panel keyed
+                                          by base type; set-piece worn-count for §4.4 tiers
+src/BabaYaga.Sim.Tests/                   +38 tests → 70 green (ItemGenTests, AffixTests,
+                                          RareGenTests, VendorEconomyTests)
+data/item-bases.json                      22 ORIGINAL bases (19 quality-rolling + 3 gems), qlvl/cost/
+                                          cells/sockets/equiv chains
+data/affixes.json                         33 ORIGINAL affixes (17 prefix / 16 suffix) w/ alvl windows,
+                                          groups, rare gate, itype filters
+data/uniques.json                         6 uniques + 2 sets (7 pieces) + count-bonus tiers, ORIGINAL IP
+data/runes.json                           8 rune-stones (scribe-mark names, ORIGINAL)
+data/runewords.json                       4 words incl. one availability-gated (condition 5 exercised)
+data/gems.json                            6 gem rows (raw → next-rank transform rows; cube consumes later)
+```
+
 The xunit project sits under `src/` beside the library; the planned `tests/` pytest-over-CLI suite
 arrives with `src/BabaYaga.Sim.Cli/` (later M1 leg) — it drives the CLI stdout markers and will not
 duplicate these unit contracts.
@@ -155,13 +199,13 @@ src/BabaYaga.Sim/StatusEffectStack.cs     — curse/buff/aura timed-mod stack en
 src/BabaYaga.Sim/DotSystem.cs             — poison rate×length, chill/freeze durations + difficulty divisors — ~150 (P2 §3.4)
 src/BabaYaga.Sim/SkillTrees.cs            — 3 trees/archetype, row reqs, prerequisite graph, synergy-on-hard-points — ~250 (P1 §2.1–2.2)
 src/BabaYaga.Sim/FrameBreakpoints.cs      — FCR compression, FHR, IAS+WSM frame tables — ~200 (P1 §2.3–2.4)
-src/BabaYaga.Sim/RarityRoll.cs            — quality roll Uncommon→Superior→Magic→Rare, c-formula + MF, classic ratio rows — ~150 (P2 §4.1)
-src/BabaYaga.Sim/ItemGen.cs               — ilvl/alvl gates, prefix/suffix pools one-per-group, magic/rare affixgen, reqs — ~250 (P2 §4.2–4.3)
-src/BabaYaga.Sim/SetUnique.cs             — set/unique pick by lvl-gate + rarity weights, set count-bonus tiers — ~200 (P2 §4.4)
-src/BabaYaga.Sim/Runewords.cs             — socket roll (band by ilvl, size cap), runeword 5 conditions, exact order — ~200 (P2 §4.5)
+~~RarityRoll.cs~~ BUILT as QualityRoll.cs (as-built M2 block above)
+~~ItemGen.cs~~ BUILT split as Item.cs + ItemBaseTable.cs + AffixPool.cs + RareGen.cs (as-built M2)
+~~SetUnique.cs~~ BUILT as SetUniqueItems.cs (as-built M2)
+~~Runewords.cs~~ BUILT as Runewords.cs + Socketing.cs (as-built M2; the socket roll split into its own file)
 src/BabaYaga.Sim/CubeRecipes.cs           — recipe engine: inputs → output, ilvl rules, flags — ~150 (P2 §4.6)
 src/BabaYaga.Sim/TreasureClass.cs         — drop pipeline: TC walk ≤6 items, forced picks, gold piles, MF-quality-only — ~250 (P2 §4.1, §4.8–4.9)
-src/BabaYaga.Sim/Vendors.cs               — buy/sell/gamble/repair price multipliers, caps, gamble ilvl roll — ~200 (P2 §4.7–4.8)
+~~Vendors.cs~~ BUILT split as Vendor.cs + Gamble.cs + Gold.cs (as-built M2; TC gold-drop INPUT still arrives with TreasureClass.cs)
 src/BabaYaga.Sim/MonsterStats.cs          — table(level) × own-percent stat shape, special-group 4:1 roll, champ/unique bonus tables — ~250 (P3 §5.1–5.2)
 src/BabaYaga.Sim/MonsterAffixes.cs        — unique affix pool 1/2/3 rolls, minion inherit flag, champion families as data — ~200 (P3 §5.3)
 src/BabaYaga.Sim/MonsterAI.cs             — 6 behaviour scripts (Melee/Archer/Caster/Teleporter/Fleer/Boss) over Sim state — ~250 (P3 §5.5)
@@ -193,8 +237,11 @@ each asserts on CLI markers/exit codes only.
 
 ## Truth status of this document
 
-The As-built section above matches the tree at this commit (M1 foundation: Sim library, xunit
-tests, xp-ladder + Koldun skill data). Everything under "Planned" remains DESIGN — `game/`,
+The As-built sections above match the tree at this commit (M1 foundation: Sim library, xunit
+tests, xp-ladder + Koldun skill data; M2 items & economy: 12 Sim files, 6 data tables, 70 tests).
+The M2 build replaced the planned RarityRoll/ItemGen/SetUnique/Runewords/Vendors names with the
+per-concern files named in the as-built block (one concern per file; the planned ~250-line
+monoliths would each have mixed three concerns). Everything under "Planned" remains DESIGN — `game/`,
 `src/BabaYaga.Sim.Cli/`, `tests/` (pytest) and `assets/` do not exist yet, and the planned
 module names there (Attributes.cs, LifeManaStam.cs, ToHitBlock.cs, DamagePipeline.cs,
 SkillTrees.cs…) were partly merged into the as-built files for the M1 scope (Stats/Character/

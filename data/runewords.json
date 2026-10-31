@@ -1,0 +1,9 @@
+{
+  "note": "Baba Yaga runewords. ORIGINAL IP names and grants (T0b P2 §4.5). itypes = base types the word may be carved into (matched through the bases' equiv chains); runes = the exact ORDERED row of stone ids; available = the ladder/patch gate (condition 5) — an unavailable word can never complete in this game.",
+  "words": [
+    { "id": "kolo",   "name": "Kolo",   "itypes": ["swords", "axes", "blunt"], "runes": ["buky", "vedi"],                     "grants": [ { "stat": "dmg_pct", "min": 40, "max": 40 }, { "stat": "walk_speed", "min": 10, "max": 10 } ], "available": true },
+    { "id": "kupala", "name": "Kupala", "itypes": ["body", "shields"],         "runes": ["zhivete", "dobro", "misiace"],      "grants": [ { "stat": "fire_res", "min": 30, "max": 30 }, { "stat": "life", "min": 50, "max": 50 } ],          "available": true },
+    { "id": "morana", "name": "Morana", "itypes": ["staves", "orbs"],          "runes": ["lugove", "zelo"],                   "grants": [ { "stat": "cold_res", "min": 25, "max": 25 }, { "stat": "mana", "min": 40, "max": 40 } ],          "available": true },
+    { "id": "zorza",  "name": "Zorza",  "itypes": ["helms"],                   "runes": ["glagoli", "buky", "buky"],          "grants": [ { "stat": "def", "min": 25, "max": 25 }, { "stat": "light", "min": 4, "max": 4 } ],                "available": false }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "note": "Baba Yaga gems. ORIGINAL IP names for this world's stones; semantics per T0b P2 §4.5-4.6: baseId links the raw form to data/item-bases.json, grants apply when socketed, and three identical stones transform upward via nextRank (the future ritual-craft engine consumes these rows).",
+  "gems": [
+    { "id": "jantar",   "baseId": "jantar", "name": "Raw Amber",      "level": 1, "grants": [ { "stat": "light",     "min": 2, "max": 2 } ],  "nextRank": { "count": 3, "into": "swarzyn" } },
+    { "id": "swarzyn",  "baseId": null,     "name": "Sunlit Amber",   "level": 8, "grants": [ { "stat": "light",     "min": 4, "max": 4 }, { "stat": "fire_res", "min": 6, "max": 6 } ], "nextRank": null },
+    { "id": "granat",   "baseId": "granat", "name": "Swamp Garnet",   "level": 3, "grants": [ { "stat": "life",      "min": 12, "max": 12 } ], "nextRank": { "count": 3, "into": "iskra" } },
+    { "id": "iskra",    "baseId": null,     "name": "Emberheart",     "level": 12,"grants": [ { "stat": "life",      "min": 25, "max": 25 }, { "stat": "dmg_fire", "min": 4, "max": 4 } ], "nextRank": null },
+    { "id": "oliwin",   "baseId": "oliwin", "name": "Fen Peridot",    "level": 5, "grants": [ { "stat": "poison_res","min": 8, "max": 8 } ],   "nextRank": { "count": 3, "into": "rozana" } },
+    { "id": "rozana",   "baseId": null,     "name": "Fen Star",       "level": 15,"grants": [ { "stat": "poison_res","min": 16, "max": 16 }, { "stat": "vit", "min": 3, "max": 3 } ],     "nextRank": null }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "note": "Baba Yaga rune-stones (rizhno stones). ORIGINAL IP: the alphabet is this world's own (glyph-names after the old scribe-marks, not any reference table); column semantics per T0b P2 §4.5. level = the base ilvl the stone carries when it drops; grants apply when the stone sits socketed in an item.",
+  "runes": [
+    { "id": "buky",     "name": "Buky",     "level": 1,  "cost": 120,  "grants": [ { "stat": "dmg_max",   "min": 2,  "max": 2 } ] },
+    { "id": "vedi",     "name": "Vedi",     "level": 3,  "cost": 200,  "grants": [ { "stat": "mana",      "min": 5,  "max": 5 } ] },
+    { "id": "glagoli",  "name": "Glagoli",  "level": 6,  "cost": 360,  "grants": [ { "stat": "def",       "min": 8,  "max": 8 } ] },
+    { "id": "dobro",    "name": "Dobro",    "level": 10, "cost": 600,  "grants": [ { "stat": "dmg_pct",   "min": 12, "max": 12 } ] },
+    { "id": "zhivete",  "name": "Zhivete",  "level": 16, "cost": 900,  "grants": [ { "stat": "life",      "min": 15, "max": 15 } ] },
+    { "id": "zelo",     "name": "Zelo",     "level": 22, "cost": 1400, "grants": [ { "stat": "all_res",   "min": 6,  "max": 6 } ] },
+    { "id": "misiace",  "name": "Misiace",  "level": 30, "cost": 2100, "grants": [ { "stat": "light",     "min": 3,  "max": 3 }, { "stat": "mana_steal", "min": 2, "max": 2 } ] },
+    { "id": "lugove",   "name": "Lugove",   "level": 40, "cost": 3400, "grants": [ { "stat": "str",       "min": 4,  "max": 4 } ] }
+  ]
+}
