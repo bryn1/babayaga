@@ -50,8 +50,13 @@ using Godot;
 /// while its stand-in front holds every counter off the hero (HIRE_LIFE), the
 /// hero-kill share at 86/256 of the capped figure (HIRE_XP shared), a
 /// deterministic death on the leszy's dice (HIRE_DEAD — dead mercs strike not
-/// and regen not), and the town revive at min(15·L²/2, 50000) restoring the
-/// SAME mercenary at full life (REVIVE + HIRE_ALIVE) — HIRE_OK) →
+/// and regen not), the town revive at min(15·L²/2, 50000) restoring the
+/// SAME mercenary at full life (REVIVE + HIRE_ALIVE), and the M4-S14 HERO-
+/// DEATH LAW (§6.7b AMENDED, MC 11898 — D2 KillPlayerPets: the living merc
+/// dies WITH the hero on the counters (MERC_DIES), the stone raises him home
+/// and leaves the corpse at mchy (HERO_RESPAWN), and the captain's EXACT
+/// cost raises the same mercenary again (REVIVE_AFTER_HERO_DEATH)) —
+/// HIRE_OK) →
 /// the M4-S12 TOWN STASH BEAT (StashQuestLeg: glowa's StashTab reward opens
 /// tab 2 LIVE (row 74) — the rite accepted in town, kopcowisko ridden, its
 /// data row's kill taken on the road, czelusc WALKED in dark (the lair's

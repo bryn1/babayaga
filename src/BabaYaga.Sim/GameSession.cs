@@ -282,6 +282,12 @@ public sealed partial class GameSession
                 attacker.Level, Character.Level))
             return;
         Character.TakeDamage(EnemyRng.NextInRange(attacker.DamageMin, attacker.DamageMax));
+        // §6.7b THE LAW (MC 11898): the ONE hero-death transition — the life
+        // floor above just flipped IsDead (v4 doctrine: IsDead derives from Life
+        // at 0) — and the hireling dies WITH him in the same instant (D2
+        // KillPlayerPets; amendment §2). Consumes no roll and moves no gold, so
+        // the no-merc stream identity and the gold captures stand untouched.
+        if (IsDead) KillHirelingOnHeroDeath();
     }
 
     private bool TryCarry(Item item)
