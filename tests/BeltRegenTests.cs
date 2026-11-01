@@ -17,6 +17,10 @@ namespace BabaYaga.Sim.Tests;
 /// was leech's divisor — RETIRED, CONTRADICTED). rng streams untouched. The expected
 /// frames-to-full is computed here from the SPEC FORMULA WRITTEN OUT, never read
 /// back from the implementation. Koldun level-1 anchors: MaxMana 30 (BeltPotionTests).
+/// DIVERGENCE-POOL COVERAGE (gate MC 11880 P2, fix card/11882): every sub-M=457 pool
+/// is provably BLIND to a divisor off-by-one — floor(256M/2999) == floor(256M/3000)
+/// for all M ≤ 456 (gate's exhaustive scan) — so the quantum = max₂₅₆ ÷ 3000 claim is
+/// pinned behaviourally only at pools ≥ 457; the divergence section rests those pools.
 /// </summary>
 public class BeltRegenTests
 {
@@ -233,5 +237,96 @@ public class BeltRegenTests
 
         s.RestTick(1500);                    // 1500 frames on the spec quantum of the NEW max
         Assert.Equal(SpecManaAfterFrames(max, 1500), s.Character.Mana);
+    }
+
+    // ---- DIVERGENCE-POOL COVERAGE (gate MC 11880 P2, fix card/11882): the gate's
+    // /2999 plant kept ALL 13 tests above green because floor(256M/2999) ==
+    // floor(256M/3000) for every M ≤ 456 — the first divergence is M=457. These
+    // pools pin the divisor 3000 = 25 × ManaRegen behaviourally; every expectation
+    // is derived from the SPEC formula written out above (SpecQuantum256 idiom),
+    // never read back from the implementation. ----
+
+    /// <summary>Tunes the pool to an exact MaxMana — FlatMana enters MaxMana with
+    /// slope 1 at 0% / no item Energy (the Stats §1.3 formula; the tiny-pool test
+    /// uses the same knob) — and empties it. The assert makes the tuning
+    /// non-vacuous: the pool IS the target before any frame is rested.</summary>
+    private static GameSession EmptyPoolAt(long maxMana)
+    {
+        var s = Fresh();
+        s.Character.FlatMana += maxMana - s.Character.MaxMana;
+        Assert.Equal(maxMana, s.Character.MaxMana);
+        s.Character.Mana = 0;
+        return s;
+    }
+
+    [Fact]
+    public void Rest_DivergencePool457_QuantumIsTheSpecFloor38_OffByOneDivisorWouldGive39()
+    {
+        // The derivation, from the spec formula (§1.8 M1, ManaRegen 120 ⇒ divisor
+        // 25×120 = 3000): 256·457 = 116992;
+        //   38·3000 = 114000 ≤ 116992 < 39·3000 = 117000  ⇒ ⌊116992/3000⌋ = 38  (spec);
+        //   39·2999 = 116961 ≤ 116992 < 40·2999 = 119960  ⇒ ⌊116992/2999⌋ = 39  (off-by-one).
+        // M=457 is the FIRST pool where the two divisors floor differently.
+        var s = EmptyPoolAt(457);
+        Assert.Equal(38, SpecQuantum256(457)); // derived above, from the spec formula
+
+        s.RestTick(3000); // /2999 would sit at 3000·39 = 117000 ≥ 116992 — full already…
+        Assert.True(s.Character.Mana < 457, "a divisor off-by-one was full at 3000 frames — pool is not spec-floored");
+        Assert.Equal(SpecManaAfterFrames(457, 3000), s.Character.Mana); // spec: ⌊3000·38/256⌋ = 445
+
+        s.RestTick(SpecFramesToFull(457) - 3000); // spec full at ⌈116992/38⌉ = 3079 frames;
+        Assert.Equal(457, s.Character.Mana);       // the boundary frame lands it (the plant filled it at 3000)
+    }
+
+    [Fact]
+    public void Rest_DivergencePool996_QuantumIsTheSpecFloor84_OffByOneDivisorWouldGive85()
+    {
+        // A second divergence pool well above the boundary — the parting of the
+        // floors is periodic, not a one-point quirk. Same derivation shape:
+        //   256·996 = 254976;
+        //   84·3000 = 252000 ≤ 254976 < 85·3000 = 255000  ⇒ ⌊254976/3000⌋ = 84  (spec);
+        //   85·2999 = 254915 ≤ 254976 < 86·2999 = 257914  ⇒ ⌊254976/2999⌋ = 85  (off-by-one).
+        var s = EmptyPoolAt(996);
+        Assert.Equal(84, SpecQuantum256(996));
+
+        s.RestTick(1000);
+        Assert.Equal(SpecManaAfterFrames(996, 1000), s.Character.Mana); // spec ⌊1000·84/256⌋ = 328; the plant pays 332
+
+        s.RestTick(2000); // at 3000 frames the plant's 3000·85 = 255000 ≥ 254976 would be full…
+        Assert.True(s.Character.Mana < 996, "a divisor off-by-one was full at 3000 frames — pool is not spec-floored");
+
+        s.RestTick(SpecFramesToFull(996) - 3000); // spec full at ⌈254976/84⌉ = 3036 (the plant at 3000);
+        Assert.Equal(996, s.Character.Mana);       // the boundary frame lands it
+    }
+
+    [Fact]
+    public void Rest_BoundaryPair456vs457_FloorsAgreeTo456_PartAt457_BehaviourFollowsTheSpecSide()
+    {
+        // WHERE the two floors diverge, exhaustive below the boundary (the gate's
+        // P2 scan, now pinned IN the suite): the two spec-side divisors floor
+        // identically for EVERY pool 1..456, and 457 is the first that parts.
+        for (long m = 1; m <= 456; m++)
+            Assert.Equal(m * 256 / 3000, m * 256 / 2999); // identical raw floors all the way up…
+        Assert.Equal(38, SpecQuantum256(456));            // …so 456 and 457 share the spec quantum 38 —
+        Assert.Equal(38, SpecQuantum256(457));            // the frames-to-full still differ (116736 vs 116992 ₂₅₆)
+        Assert.True(457 * 256 / 2999 > 457 * 256 / 3000, "457 is not where the floors part");
+
+        // 456 — the LAST indistinguishable pool: spec full at ⌈116736/38⌉ = 3072 EXACT
+        // (38·3072 = 116736, zero remainder); both divisors behave identically here.
+        var a = EmptyPoolAt(456);
+        a.RestTick(3071);
+        Assert.True(a.Character.Mana < 456);
+        a.RestTick(1);
+        Assert.Equal(456, a.Character.Mana);
+
+        // 457 — the FIRST distinguishable pool: the spec still fills at ⌈116992/38⌉ =
+        // 3079, while a /2999 quantum of 39 filled the pool at 3000 — so one frame
+        // short of the spec boundary must STILL be dry, and this is the RED-catcher.
+        var b = EmptyPoolAt(457);
+        b.RestTick(3078);
+        Assert.True(b.Character.Mana < 457, "the off-by-one divisor filled 457 before the spec frame 3079");
+        Assert.Equal(SpecManaAfterFrames(457, 3078), b.Character.Mana); // spec: ⌊3078·38/256⌋ = 456
+        b.RestTick(1);
+        Assert.Equal(457, b.Character.Mana);
     }
 }
