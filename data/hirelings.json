@@ -1,16 +1,28 @@
 {
- "_comment": "SKELETON (M4 skeleton wave, card/11794): 3 hireling kinds (LEDGER rows 65-66, NOT-BUILT). Shape follows T0b §6.7 (mercenary = a monster unit reading a hireling table: bracket stats, per-level columns, weighted skill roll, hire price gold*(100+15*levels_above_bracket)/100 — the MATH is the engine's debt, these rows carry the roster). VALUES ARE PLACEHOLDERS (original names, no D2 roster copied). No loader reads this file (NO sim-loader edit in this wave).",
+ "_comment": "M4-S11 (LEDGER rows 65-66): hireling table per the AMENDED spec 6.7 adoption contract (MC 11883; out/T0b-sec6-7-amendment.md §5). D2-DERIVED VALUES: bracket stats + per-level columns + Exp/Lvl are the LoD-era hireling.txt Version-100 NORMAL rows (rows 14-16 Rogue / 44-46 Desert / 74-76 Barbarian of out/.tmp/t67/hireling_114d.txt), mapped bow->Rogue Scout, spear->Desert Mercenary, throwing-axe->Barbarian (a DESIGN mapping — the growth SHAPE is D2-VERIFIED, the roster stays ours). damagePerLevel is in eighths (the engine floors on the PRODUCT: nLevelUps*Dmg-Lvl/8, amendment §1 S3/§2); lifePerLevel and arPerLevel are whole points. ORIGINAL DESIGN: the three ids/names/acts/weapons, and hireGold — the amendment §5 keeps the clone's 100/250/500 placeholders as product data pending the gold-economy card (D2 Gold-column witnesses 100/350/9000 cited per row). bracket is the hire-template row; higherBrackets carries the two adopted V100 rows above it for the future offer wave. witez (act 2) and rzutca (act 5) are gated by the unbuilt acts — only strzelczyni is live in act 1.",
  "hirelings": [
-  { "id": "strzelczyni", "name": "Strzelczyni (bow-kin, placeholder)",
+  { "id": "strzelczyni", "name": "Strzelczyni (bow-kin)",
     "act": 1, "weapon": "bow", "attackKind": "ranged",
-    "hireGold": 100, "bracket": "PLACEHOLDER", "skillWeights": [] },
+    "hireGold": 100, "d2GoldWitness": 100, "expPerLevel": 100,
+    "bracket": { "level": 3, "life": 45, "lifePerLevel": 9, "damageMin": 1, "damageMax": 3, "damagePerLevel": 2, "attackRating": 10, "arPerLevel": 12 },
+    "higherBrackets": [
+      { "level": 36, "life": 342, "lifePerLevel": 18, "damageMin": 9, "damageMax": 11, "damagePerLevel": 4, "attackRating": 406, "arPerLevel": 24 },
+      { "level": 67, "life": 900, "lifePerLevel": 30, "damageMin": 25, "damageMax": 27, "damagePerLevel": 6, "attackRating": 1150, "arPerLevel": 36 } ] },
 
-  { "id": "witez", "name": "Witez (spear-sworn, placeholder)",
+  { "id": "witez", "name": "Witez (spear-sworn)",
     "act": 2, "weapon": "spear", "attackKind": "melee",
-    "hireGold": 250, "bracket": "PLACEHOLDER", "skillWeights": [] },
+    "hireGold": 250, "d2GoldWitness": 350, "expPerLevel": 110,
+    "bracket": { "level": 9, "life": 120, "lifePerLevel": 15, "damageMin": 7, "damageMax": 14, "damagePerLevel": 4, "attackRating": 20, "arPerLevel": 12 },
+    "higherBrackets": [
+      { "level": 43, "life": 630, "lifePerLevel": 25, "damageMin": 24, "damageMax": 31, "damagePerLevel": 6, "attackRating": 428, "arPerLevel": 24 },
+      { "level": 75, "life": 1430, "lifePerLevel": 40, "damageMin": 48, "damageMax": 55, "damagePerLevel": 8, "attackRating": 1196, "arPerLevel": 36 } ] },
 
-  { "id": "rzutca", "name": "Rzutca (axe-thrower, placeholder)",
+  { "id": "rzutca", "name": "Rzutca (axe-thrower)",
     "act": 5, "weapon": "throwing-axe", "attackKind": "ranged",
-    "hireGold": 500, "bracket": "PLACEHOLDER", "skillWeights": [] }
+    "hireGold": 500, "d2GoldWitness": 9000, "expPerLevel": 120,
+    "bracket": { "level": 28, "life": 288, "lifePerLevel": 18, "damageMin": 16, "damageMax": 20, "damagePerLevel": 6, "attackRating": 150, "arPerLevel": 20 },
+    "higherBrackets": [
+      { "level": 58, "life": 828, "lifePerLevel": 27, "damageMin": 39, "damageMax": 43, "damagePerLevel": 8, "attackRating": 750, "arPerLevel": 35 },
+      { "level": 80, "life": 1422, "lifePerLevel": 45, "damageMin": 61, "damageMax": 65, "damagePerLevel": 8, "attackRating": 1520, "arPerLevel": 45 } ] }
  ]
 }

@@ -57,6 +57,7 @@ public sealed partial class GameSession
         if (!Waypoints.IsDiscovered(home))
             throw new SessionRejectedException($"the stone in '{home}' is dark — nowhere to resurrect");
         CurrentArea = home;
+        if (Merc is not null) Merc.Area = home; // the merc rides the stone too (mirror, §6.7)
         Engaged = null;
         EngagedKey = null;
     }

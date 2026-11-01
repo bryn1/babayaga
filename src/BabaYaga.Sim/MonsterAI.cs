@@ -88,4 +88,18 @@ public static class MonsterAi
     public static WorldPos StepAway(WorldPos from, WorldPos threat) => new(
         from.X - Math.Sign(threat.X - from.X),
         from.Y - Math.Sign(threat.Y - from.Y));
+
+    /// <summary>§6.7 (AMENDED, MC 11883) targeting decision: a counterattacking
+    /// monster strikes the NEAREST valid target among the hero and the living
+    /// mercenary. The inputs are the sim's in-combat distances (whole units of
+    /// the same Chebyshev metric Decide's bands read — the hero's is pinned
+    /// adjacent, GameSession.HeroCombatDistance; the merc's stand-off is
+    /// Hireling.CombatDistance): no coordinates exist for a sim fight, so the
+    /// nearest rule reads who-stands-closer directly. A dead or absent merc is
+    /// not a target, and a TIE goes to the incumbent hero — so the empty merc
+    /// set always answers hero, byte-identically to the pre-§6.7 volley (the
+    /// hard RNG law). Pure like the rest of this file: same inputs, same
+    /// answer, no rolls.</summary>
+    public static bool AttacksHireling(Hireling? merc, int mercDistance, int heroDistance) =>
+        merc is not null && !merc.IsDead && mercDistance < heroDistance;
 }

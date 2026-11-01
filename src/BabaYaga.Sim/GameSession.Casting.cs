@@ -89,6 +89,7 @@ public sealed partial class GameSession
             // XpTable.KillXp through Character.GrantXp — no spell XP tax.
             xp = Ladder.KillXp(Engaged.BaseXp, Engaged.KillType, 1, Character.Level, Engaged.Level);
             Character.GrantXp(xp, Ladder);
+            ShareKillWithHireling(Engaged); // §6.7: a weave kill is a HERO kill — the merc takes 86/256 of the capped chain
         }
         _flow.OnKill(DropRng, new CombatResolver.StrikeOutcome(true, false, damage, killed, xp),
             EngagedKind, EngagedAffixKeys, area.Level, AreaSeed(area), TcKeyFor(area.Level),

@@ -24,6 +24,7 @@ public sealed partial class GameSession
     public ClassSkillData SkillData { get; }
     public ItemBaseTable Bases { get; }
     public MonsterTable Monsters { get; }
+    public HirelingTable Hirelings { get; }
     public PackData Packs { get; }
     public TreasureClassTable Classes { get; }
     public AreaGraph Areas { get; }
@@ -87,6 +88,7 @@ public sealed partial class GameSession
         var affixes = AffixPool.Load(D("affixes.json"));
         var uniques = UniqueSetTable.Load(D("uniques.json"));
         Monsters = MonsterTable.Load(D("monsters.json"));
+        Hirelings = HirelingTable.Load(D("hirelings.json"));
         Classes = TreasureClassTable.Load(D("treasureclasses.json"));
         Areas = AreaGraph.Load(D("act1-areas.json"));
         Waypoints = WaypointGraph.Load(Areas, D("waypoints.json"));
@@ -155,7 +157,13 @@ public sealed partial class GameSession
                 AttackDamageMin, AttackDamageMax, TcKeyFor(area.Level), EngagedKind, EngagedAffixKeys,
                 area.Level, AreaSeed(area), MagicFind, GoldFind);
             strikes++;
-            if (outcome.Killed) { kills++; xp += outcome.XpGranted; Engaged = null; EngagedKey = null; }
+            if (outcome.Killed)
+            {
+                kills++;
+                xp += outcome.XpGranted;
+                ShareKillWithHireling(Engaged!); // §6.7: the alive merc takes 86/256 of the capped chain (no RNG)
+                Engaged = null; EngagedKey = null;
+            }
             else CounterStrike(Engaged!); // the survivor hits back once (row 69)
         }
         return new AttackReport(strikes, kills, xp, Drops.Pending, Drops.Gold);
@@ -255,6 +263,21 @@ public sealed partial class GameSession
     private void CounterStrike(Monster attacker)
     {
         if (attacker.DamageMax < 1) return; // dice-less foundation builds never counter
+        // §6.7 (AMENDED) targeting: the counter reaches the NEAREST valid body
+        // among hero + alive mercs — the pure choice lives with the AI's other
+        // pure decisions (MonsterAi.AttacksHireling). With no merc hired the
+        // answer is always the hero and this block costs nothing (hard RNG law).
+        // The defence-term convention carries over unchanged: the target's own
+        // AttackRating is its defence term (P1 §1.4, hero and merc alike).
+        if (MonsterAi.AttacksHireling(Merc, Merc?.CombatDistance ?? HeroCombatDistance, HeroCombatDistance))
+        {
+            var m = Merc!;
+            if (!CombatResolver.RollHit(EnemyRng, attacker.AttackRating, m.AttackRating,
+                    attacker.Level, m.Level))
+                return;
+            m.TakeDamage(EnemyRng.NextInRange(attacker.DamageMin, attacker.DamageMax));
+            return;
+        }
         if (!CombatResolver.RollHit(EnemyRng, attacker.AttackRating, Character.AttackRating,
                 attacker.Level, Character.Level))
             return;
