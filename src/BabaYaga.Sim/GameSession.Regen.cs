@@ -60,12 +60,12 @@ public sealed partial class GameSession
     private long _mana256;
 
     /// %Regenerate Mana summed across carried + worn (the Warmth/Meditation term of
-    /// M3's second floor; the same summing idiom as MagicFind/GoldFind). No affix
+    /// M3's second floor; the same summing idiom as MagicFind/GoldFind — now the
+    /// ONE SumMod door, audit D-4). No affix
     /// row grants it today (data/affixes.json carries no regen mod), so the path
     /// runs ×100/100 — implemented per spec; item wiring is the %RegenMana future
     /// row, the code path is live the day an item carries the mod.
-    private int RegenManaPercent =>
-        Carried.Concat(Equipment.Equipped.Values).Sum(i => i.ModSum("regenerate_mana"));
+    private int RegenManaPercent => SumMod("regenerate_mana");
 
     /// <summary>Rest for the given number of frames: each frame restores the §1.8
     /// quantum into the 256ths mana pool, clamped at MaxMana. Gates: the row-64
@@ -89,14 +89,10 @@ public sealed partial class GameSession
         long quantum256 = Math.Max(1, max256 / (FramesPerSecond * ManaRegenSeconds))
             * (100 + RegenManaPercent) / 100;
 
-        for (int f = 0; f < frames && quantum256 > 0 && max256 > 0; f++)
-        {
-            long pool256 = Character.Mana * 256 + _mana256;
-            if (pool256 >= max256) break; // full is a fixpoint — the clamp holds (M3)
-            _mana256 += Math.Min(quantum256, max256 - pool256); // add, clamped to the missing pool
-            Character.Mana += _mana256 / 256;                   // whole points leave the accumulator…
-            _mana256 %= 256;                                    // …the sub-point rides on (exact, R2)
-        }
+        // The tick itself is the ONE shared 256ths mechanism (audit D-1); the
+        // whole points land back on Character.Mana here — the accumulator's
+        // sub-point stays in _mana256, this file's persisting field.
+        Character.Mana += Fixed256Accumulator.Tick(frames, max256, quantum256, Character.Mana, ref _mana256);
 
         TickHirelingRegen(frames); // §6.7 AMENDED: the merc's life rides the SAME rest driver
     }

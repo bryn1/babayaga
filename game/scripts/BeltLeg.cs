@@ -76,7 +76,7 @@ public static class BeltLeg
             var (key, cell) = row[i % row.Count];
             hero.WalkTo(cell);
             while (hero.StepNext()) { } // the same A* the windowed click plans
-            if (!InRange(hero.Cell, cell, 1))
+            if (!LegKit.InRange(hero.Cell, cell, 1))
             {
                 GD.PushWarning($"belt leg: hero not adjacent to {key} at {cell.X},{cell.Y} — no Attack call");
                 continue;
@@ -125,8 +125,4 @@ public static class BeltLeg
             GD.PushError($"belt leg: readings disagree — after={r.After} expect={expect}" +
                 $" xp={s.Character.Xp}/{xp0} belt={act.HudPanel.BeltFilled}");
     }
-
-    /// <summary>Cell adjacency on the ONE metric (reuses IsoCamera.InRange, as JourneyLeg).</summary>
-    private static bool InRange(Vector2I a, Vector2I b, int cells) =>
-        IsoCamera.InRange(new WorldPos(a.X, a.Y), new WorldPos(b.X, b.Y), cells);
 }

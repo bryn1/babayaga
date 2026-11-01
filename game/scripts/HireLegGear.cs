@@ -42,7 +42,7 @@ public static partial class HireLeg
 
         s.TravelTo("mchy");                         // the ALIVE merc follows (mirror)
         act.Rebuild(s.CurrentArea);
-        if (!TryDerive(s, bow, out int ax, out int ay))
+        if (!LegKit.TryDerive(s, bow, out int ax, out int ay))
         {
             GD.PushError("gear beat: the pack anchor of the bought bow could not be derived");
             return false;
@@ -120,31 +120,5 @@ public static partial class HireLeg
         GD.Print($"GEAR_SELL base=soluga price={back} gold_after={s.Gold} sold_the_bow={s.Gold == sellGoldBefore + back}");
         GD.Print("GEAR_OK");
         return true;
-    }
-
-    /// The InventoryPanel first-fit, mirrored (the StashQuestLeg idiom — cells
-    /// are a presentation-side re-derivation; the Sim owns no "which cell?").
-    private static bool TryDerive(GameSession s, Item item, out int row, out int col)
-    {
-        row = col = -1;
-        var occ = new bool[BabaYaga.Sim.InventoryGrid.Rows, BabaYaga.Sim.InventoryGrid.Columns];
-        foreach (var it in s.Carried)
-        {
-            bool placed = false;
-            for (int r = 0; r <= occ.GetLength(0) - it.Base.Height && !placed; r++)
-                for (int c = 0; c <= occ.GetLength(1) - it.Base.Width && !placed; c++)
-                {
-                    bool fits = true;
-                    for (int i = 0; i < it.Base.Height && fits; i++)
-                        for (int j = 0; j < it.Base.Width && fits; j++)
-                            fits = !occ[r + i, c + j];
-                    if (!fits) continue;
-                    for (int i = 0; i < it.Base.Height; i++)
-                        for (int j = 0; j < it.Base.Width; j++) occ[r + i, c + j] = true;
-                    if (ReferenceEquals(it, item)) { row = r; col = c; }
-                    placed = true;
-                }
-        }
-        return row >= 0;
     }
 }

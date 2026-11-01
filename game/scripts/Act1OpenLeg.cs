@@ -37,7 +37,7 @@ using Godot;
 /// </summary>
 public static class Act1OpenLeg
 {
-    private const int KillCap = 96; // JourneyLeg's strike cap is 64; two weak rows in reach
+    private const string Tag = "act-1-open leg"; // the leg's log-voice — LegKit helpers print through it (audit D-2)
 
     public static void Run(GameSession s, Act act)
     {
@@ -71,7 +71,7 @@ public static class Act1OpenLeg
         if (!Accept(s, "wrzeciono")) return false;
 
         if (!Walk(s, act, row.GoalAreaKey, requireDarkDest: true)) return false;
-        if (!KillOne(s, act)) return false;
+        if (!LegKit.KillOne(s, act, Tag, "on the goal ground")) return false;
         if (!Step(s, "wrzeciono", row)) return false;
 
         // the LifePotion pays FlatLife through the constant path — MaxLife is the
@@ -117,7 +117,7 @@ public static class Act1OpenLeg
         GD.Print($"DISCOVER_ORDER area=krecie lit_before=False lit_after={s.Waypoints.IsDiscovered("krecie")}");
 
         if (!Walk(s, act, row.GoalAreaKey, requireDarkDest: true)) return false; // walked-in dark kopcowisko
-        if (!KillOne(s, act)) return false;
+        if (!LegKit.KillOne(s, act, Tag, "on the goal ground")) return false;
         if (!Step(s, "dary", row)) return false;
 
         // the reward IS the light: the before-state is pasted False BEFORE the
@@ -138,9 +138,9 @@ public static class Act1OpenLeg
         // RIDE home and back — kopcowisko<->grodzisko share NO edge, so BOTH of
         // these moves can only be the UNCHANGED lit-stone door (town hub).
         string town = s.Areas.TownKey;
-        if (!Ride(s, act, town)) return false;
-        if (!Ride(s, act, row.GoalAreaKey)) return false;
-        return Ride(s, act, town);
+        if (!LegKit.Ride(s, act, town, Tag)) return false;
+        if (!LegKit.Ride(s, act, row.GoalAreaKey, Tag)) return false;
+        return LegKit.Ride(s, act, town, Tag);
     }
 
     // ---- the leg's door primitives — every printed value is a session read ----
@@ -157,11 +157,15 @@ public static class Act1OpenLeg
         return true;
     }
 
-    /// One WALK hop through the ONE door: the linkedTo edge is asserted from the
-    /// AREA DATA before the call, the lit set is read from the session before and
-    /// after — equal means walking lit NOTHING (the planted-red shape: a TravelTo
-    /// that lights on arrival turns this RED). requireDarkDest additionally pins
-    /// the destination dark on arrival (the pure-walk proof into a dark stone).
+    /// <summary>One WALK hop through the ONE door (this leg's own gate — NOT in
+    /// the kit: it additionally pins the destination dark on arrival and prints
+    /// the spawn rows, which StashQuestLeg's Walk does not; the fork is real,
+    /// audit D-2 named it, the merge skipped it with reason). The linkedTo edge
+    /// is asserted from the AREA DATA before the call, the lit set is read from
+    /// the session before and after — equal means walking lit NOTHING (the
+    /// planted-red shape: a TravelTo that lights on arrival turns this RED).
+    /// requireDarkDest additionally pins the destination dark on arrival (the
+    /// pure-walk proof into a dark stone).</summary>
     private static bool Walk(GameSession s, Act act, string dest, bool requireDarkDest)
     {
         string from = s.CurrentArea;
@@ -170,14 +174,14 @@ public static class Act1OpenLeg
             GD.PushError($"act-1-open leg: no linkedTo edge {from}->{dest} — refusing to call this a WALK_STEP");
             return false;
         }
-        string litBefore = LitSet(s), litAfter;
+        string litBefore = LegKit.LitSet(s), litAfter;
         try { s.TravelTo(dest); }
         catch (SessionRejectedException e)
         {
             GD.PushError($"act-1-open leg: the travel door refused the walk {from}->{dest} — {e.Message}");
             return false;
         }
-        litAfter = LitSet(s);
+        litAfter = LegKit.LitSet(s);
         bool dark = !s.Waypoints.IsDiscovered(dest);
         bool same = litBefore == litAfter;
         GD.Print($"WALK_STEP from={from} to={dest} edge=True lit_before={litBefore} lit_after={litAfter}" +
@@ -195,25 +199,6 @@ public static class Act1OpenLeg
         }
         act.Rebuild(dest);
         PrintSpawns(act);
-        return true;
-    }
-
-    /// One RIDE hop: legal ONLY through the lit-stone rules. When the two grounds
-    /// share no edge (kopcowisko<->grodzisko), the move is a ride-ONLY proof —
-    /// adjacent={False} in the line says exactly that.
-    private static bool Ride(GameSession s, Act act, string dest)
-    {
-        string from = s.CurrentArea;
-        bool adjacent = s.Areas.Get(from).LinkedTo.Contains(dest);
-        bool litBoth = s.Waypoints.IsDiscovered(from) && s.Waypoints.IsDiscovered(dest);
-        try { s.TravelTo(dest); }
-        catch (SessionRejectedException e)
-        {
-            GD.PushError($"act-1-open leg: the stones refused the ride {from}->{dest} — {e.Message}");
-            return false;
-        }
-        GD.Print($"RIDE from={from} to={dest} adjacent={adjacent} lit={litBoth} area={s.CurrentArea}");
-        act.Rebuild(dest);
         return true;
     }
 
@@ -247,40 +232,6 @@ public static class Act1OpenLeg
         return true;
     }
 
-    /// One real kill: the weakest kind the spawn row carries (the JourneyLeg
-    /// precedent — pokrzywnik/ponurak die inside the cap for this hero; anything
-    /// stronger is DEEP flavour the leg never engages). Adjacency-gated exactly
-    /// like every other leg: not adjacent = no Attack call = no marker.
-    private static bool KillOne(GameSession s, Act act)
-    {
-        var spawns = act.Monsters.RowSnapshot();
-        int idx = spawns.FindIndex(e => e.Key is "pokrzywnik" or "ponurak");
-        if (idx < 0)
-        {
-            GD.PushError($"act-1-open leg: {s.CurrentArea} spawned no killable weak kind — rows missing?");
-            return false;
-        }
-        var (key, cell) = spawns[idx];
-        var hero = act.Hero;
-        hero.WalkTo(cell);
-        while (hero.StepNext()) { }
-        if (!IsoCamera.InRange(new WorldPos(hero.Cell.X, hero.Cell.Y), new WorldPos(cell.X, cell.Y), 1))
-        {
-            GD.PushError($"act-1-open leg: hero not adjacent to the {key} at {cell.X},{cell.Y} — no Attack call");
-            return false;
-        }
-        int kills = 0;
-        for (int strike = 1; kills == 0 && strike <= KillCap && !s.IsDead; strike++)
-            kills = s.Attack(key, 1).Kills;
-        if (s.IsDead || kills < 1)
-        {
-            GD.PushError($"act-1-open leg: no kill on the goal ground — dead={s.IsDead} strikes hit the cap={KillCap}?");
-            return false;
-        }
-        GD.Print($"MONSTER_DEFEATED area={s.CurrentArea} key={key} n={kills}");
-        return true;
-    }
-
     /// The built spawn row of the CURRENT area — the proof the ADDED data rows
     /// really spawn (same pinned line JourneyLeg prints for mchy).
     private static void PrintSpawns(Act act)
@@ -289,8 +240,4 @@ public static class Act1OpenLeg
         for (int i = 0; i < row.Count; i++)
             GD.Print($"MONSTER_SPAWN i={i} key={row[i].Key} cell={row[i].Cell.X},{row[i].Cell.Y}");
     }
-
-    /// The session's lit set, read through the session surface only.
-    private static string LitSet(GameSession s) => string.Join(",", s.Areas.Areas
-        .Select(a => a.Key).Where(k => s.Waypoints.IsDiscovered(k)).OrderBy(k => k, StringComparer.Ordinal));
 }

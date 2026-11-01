@@ -57,7 +57,7 @@ public static class RegenLeg
         var hero = act.Hero;
         hero.WalkTo(cell);
         while (hero.StepNext()) { }
-        if (!InRange(hero.Cell, cell, 1))
+        if (!LegKit.InRange(hero.Cell, cell, 1))
         {
             GD.PushError($"regen leg: hero not adjacent to the pokrzywnik at {cell.X},{cell.Y} — no verbs");
             return;
@@ -145,7 +145,4 @@ public static class RegenLeg
         return n;
     }
 
-    /// <summary>Cell adjacency on the ONE metric (reuses IsoCamera.InRange, as CastLeg).</summary>
-    private static bool InRange(Vector2I a, Vector2I b, int cells) =>
-        IsoCamera.InRange(new WorldPos(a.X, a.Y), new WorldPos(b.X, b.Y), cells);
 }
