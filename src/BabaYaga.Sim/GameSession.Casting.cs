@@ -20,8 +20,10 @@ namespace BabaYaga.Sim;
 /// number — cf. the run's T0b-mechanics-spec P1 §1.4, where the to-hit roll is
 /// the weapon-attack convention; spells sit outside that convention). Monster
 /// elemental RESISTANCE is not this beat's row (rows 26–27 stay BUILDING) —
-/// the rolled ember lands whole on the target's Life. Mana REGEN is NOT-BUILT
-/// (row 79): the belt's napitek-manny is the only refill until it lands.
+/// the rolled ember lands whole on the target's Life. Mana REGEN is LIVE (row 79,
+/// M4-S10b, amended spec §1.8): RestTick restores the pool by the D2 quantum; the
+/// belt's napitek-manny stays the instant refill beside it. LIFE never regens — the
+/// potion economy is the design (D2 rule).
 /// </summary>
 public sealed partial class GameSession
 {

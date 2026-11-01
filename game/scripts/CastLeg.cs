@@ -7,8 +7,9 @@ using Godot;
 /// ONLY the quest leg's single reward-bought weave). Chain: ASSERT the iskra
 /// weave the M4-S8 gesi rite paid for (the point is spent in QuestLeg — the
 /// real quest loop is the ONLY point source since card/11856; a missing weave
-/// is a named RED, no side-channel mint) -> Buy napitek-manny + belt it (the refill
-/// the pool has until regen lands, row 79) -> the pinned WAYPOINT ORDER
+/// is a named RED, no side-channel mint) -> Buy napitek-manny + belt it (the belt
+/// quaff beat; row 79's RestTick regen joined beside it in M4-S10b — the quaff leg
+/// stands) -> the pinned WAYPOINT ORDER
 /// CONTRACT to mchy + act.Rebuild (the ONE rebuild entry) -> walk the nearest
 /// pokrzywnik, adjacency-gated (the same InRange gate as every leg — no
 /// adjacency = no Cast call = no marker) -> CAST until dead:

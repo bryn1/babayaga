@@ -26,7 +26,14 @@ using Godot;
 /// S7 leg no longer mints its own point — S8's real quest loop owns the rite),
 /// the hero weaves a pokrzywnik dead in
 /// mchy — CAST/CAST_DEFEATED — drains the pool to a MANA_REJECT hint, quaffs the belted
-/// napitek-manny and weaves green — MANA_OK) → the M4-S9b ACT-1-OPENS BEAT
+/// napitek-manny and weaves green — MANA_OK) → the M4-S10b REGEN BEAT
+/// (RegenLeg: the pool is drained with REAL weaves on an EMPTY belt, RestTick(3000)
+/// — the explicit headless rest driver (ORIGINAL DESIGN) — advances the D2 mana
+/// quantum of the AMENDED spec §1.8 (MC 11873), printed session-side as REGEN
+/// mana_before/mana_after; the next weave succeeds with NO potion between (the
+/// refill is the rest) → real counter-damage lands and a second RestTick leaves the
+/// Life pool at exactly life_before — LIFE_STATIC, the D2 rule that life never
+/// regenerates on its own → REGEN_OK) → the M4-S9b ACT-1-OPENS BEAT
 /// (Act1OpenLeg: the ONE travel door has evolved per ORCH-RULING 2026-11-01 +
 /// the D2 oracle grant — WALK a linkedTo edge from known ground, or RIDE the
 /// lit stones, unchanged — so the stone-less rites go LIVE: wrzeciono walked to
@@ -77,6 +84,7 @@ public partial class Boot : Node
             DeathLeg.Run(session, act); // M4-S6: death + stone-resurrection riding the belt leg's empty belt
             QuestLeg.Run(session, act); // M4-S8: the gesi loop pays the point that weaves iskra (rides the death leg's town tail)
             CastLeg.Run(session, act); // M4-S7: the iskra cast beat riding the quest leg's town tail (the weave is already learned)
+            RegenLeg.Run(session, act); // M4-S10b: REGEN/LIFE_STATIC on the cast leg's mchy tail — mana regens by the D2 quantum (amended §1.8, MC 11873), life NEVER does
             Act1OpenLeg.Run(session, act); // M4-S9b: wrzeciono + dary go LIVE — the stone-less world is WALKED (ORCH-RULING 2026-11-01), the lit-stone RIDE unchanged — ACT1_OPEN_OK
         }
 
