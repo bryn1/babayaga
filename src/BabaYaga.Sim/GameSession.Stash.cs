@@ -92,12 +92,7 @@ public sealed partial class GameSession
                     t.Grid.TryPlace(item, r, c);
                     t.Items.Add(item);
                     t.Spots[item] = (r, c);
-                    Grid.Remove(item);
-                    Carried.Remove(item);
-                    CarriedSpots.Remove(item);
-                    Unbelt(item); // the belt never keeps a copy the pack gave up
-                    if (ReferenceEquals(LastLooted, item))
-                        LastLooted = Carried.Count > 0 ? Carried[^1] : null;
+                    RemoveFromCarried(item); // the shared leaves-the-pack order — belt re-point + LastLooted retreat (audit D-6)
                     return new StashMoveReport(item.Base.Id, item.DisplayName, tab, r, c, invX, invY);
                 }
         throw new SessionRejectedException(

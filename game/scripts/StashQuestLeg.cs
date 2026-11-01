@@ -36,7 +36,7 @@ using Godot;
 /// </summary>
 public static class StashQuestLeg
 {
-    private const int KillCap = 96; // Act1OpenLeg's cap; the ponurak band is two weak rows
+    private const string Tag = "stash leg"; // the leg's log-voice — LegKit helpers print through it (audit D-2)
 
     public static void Run(GameSession s, Act act)
     {
@@ -70,8 +70,8 @@ public static class StashQuestLeg
 
         // kopcowisko carries the dary stone (lit by its own reward THIS run);
         // kopcowisko<->grodzisko share no edge, so the hop OUT is ride-only.
-        if (!Ride(s, act, "kopcowisko")) return false;
-        if (!KillOne(s, act)) return false;
+        if (!LegKit.Ride(s, act, "kopcowisko", Tag)) return false;
+        if (!LegKit.KillOne(s, act, Tag, "on the road")) return false;
 
         // czelusc is the linkedTo neighbour of known ground — feet, not stones:
         // the walk lights NOTHING and the lair stone arrives DARK.
@@ -130,7 +130,7 @@ public static class StashQuestLeg
 
         // the road back: feet to kopcowisko (the lair stays dark), stones home.
         if (!Walk(s, act, "kopcowisko")) return false;
-        return Ride(s, act, s.Areas.TownKey);
+        return LegKit.Ride(s, act, s.Areas.TownKey, Tag);
     }
 
     // ---- the chest: store into tab 2, take it back, every line session-read ----
@@ -157,7 +157,7 @@ public static class StashQuestLeg
         // The pack anchor, re-derived PRESENTATION-side exactly like the panel
         // (first-fit over Carried — the Sim answers no "which cell?" outside its
         // command reports, ARCH v8). The last bought copy is derived LAST.
-        bool ok = TryDerive(s, item, out int invR, out int invC);
+        bool ok = LegKit.TryDerive(s, item, out int invR, out int invC);
         GD.Print($"STASH_PACK anchor={invR},{invC} derived={ok} carried={s.Carried.Count}");
         if (!ok) return false;
 
@@ -182,7 +182,7 @@ public static class StashQuestLeg
         }
         // positions session-read: the report's landing cell, cross-checked
         // against the panel-side first-fit of the RESTORED pack.
-        bool landed = TryDerive(s, s.Carried[^1], out int backR, out int backC)
+        bool landed = LegKit.TryDerive(s, s.Carried[^1], out int backR, out int backC)
             && (backR, backC) == (tk.InvRow, tk.InvCol);
         GD.Print($"STASH_TAKE tab={tk.Tab} item={tk.Base} pos={tk.TabRow},{tk.TabCol} " +
                  $"inv_pos={tk.InvRow},{tk.InvCol} carried={s.Carried.Count} anchor_matches={landed}");
@@ -191,25 +191,11 @@ public static class StashQuestLeg
             && ReferenceEquals(s.Carried[^1], item); // the SAME instance rode back
     }
 
-    // ---- the leg's door primitives — mirrors of the act-1-open leg -------------
-
-    /// One RIDE hop: legal ONLY through the lit-stone rules; adjacent=False on
-    /// the line says the hub hop has no road underneath it.
-    private static bool Ride(GameSession s, Act act, string dest)
-    {
-        string from = s.CurrentArea;
-        bool adjacent = s.Areas.Get(from).LinkedTo.Contains(dest);
-        bool litBoth = s.Waypoints.IsDiscovered(from) && s.Waypoints.IsDiscovered(dest);
-        try { s.TravelTo(dest); }
-        catch (SessionRejectedException e)
-        {
-            GD.PushError($"stash leg: the stones refused the ride {from}->{dest} — {e.Message}");
-            return false;
-        }
-        GD.Print($"RIDE from={from} to={dest} adjacent={adjacent} lit={litBoth} area={s.CurrentArea}");
-        act.Rebuild(dest);
-        return true;
-    }
+    // ---- the leg's door primitives — Ride/KillOne/LitSet/TryDerive ride the
+    // shared LegKit now (audit D-2/D-3, byte-identical bodies, the leg's
+    // log-voice passed in as Tag); WALK stays here on purpose: the Act1OpenLeg
+    // Walk carries a dark-destination gate AND prints the spawn rows, this one
+    // neither — a near-fork, not a duplicate, skipped with reason (audit D-2).
 
     /// One WALK hop through the ONE door: the linkedTo edge asserted from AREA
     /// DATA before the call, the lit set read equal before/after (walking lights
@@ -222,14 +208,14 @@ public static class StashQuestLeg
             GD.PushError($"stash leg: no linkedTo edge {from}->{dest} — refusing to call this a WALK_STEP");
             return false;
         }
-        string litBefore = LitSet(s);
+        string litBefore = LegKit.LitSet(s);
         try { s.TravelTo(dest); }
         catch (SessionRejectedException e)
         {
             GD.PushError($"stash leg: the travel door refused the walk {from}->{dest} — {e.Message}");
             return false;
         }
-        string litAfter = LitSet(s);
+        string litAfter = LegKit.LitSet(s);
         bool same = litBefore == litAfter;
         GD.Print($"WALK_STEP from={from} to={dest} edge=True lit_before={litBefore} lit_after={litAfter}" +
             $" same={same} dest_lit={s.Waypoints.IsDiscovered(dest)}");
@@ -240,71 +226,5 @@ public static class StashQuestLeg
         }
         act.Rebuild(dest);
         return true;
-    }
-
-    /// One real kill on the ROAD (the Act1OpenLeg KillOne shape verbatim): the
-    /// weakest kind the spawn row carries, adjacency-gated — no adjacency, no
-    /// Attack call, no marker.
-    private static bool KillOne(GameSession s, Act act)
-    {
-        var spawns = act.Monsters.RowSnapshot();
-        int idx = spawns.FindIndex(e => e.Key is "pokrzywnik" or "ponurak");
-        if (idx < 0)
-        {
-            GD.PushError($"stash leg: {s.CurrentArea} spawned no killable weak kind — rows missing?");
-            return false;
-        }
-        var (key, cell) = spawns[idx];
-        var hero = act.Hero;
-        hero.WalkTo(cell);
-        while (hero.StepNext()) { }
-        if (!IsoCamera.InRange(new WorldPos(hero.Cell.X, hero.Cell.Y), new WorldPos(cell.X, cell.Y), 1))
-        {
-            GD.PushError($"stash leg: hero not adjacent to the {key} at {cell.X},{cell.Y} — no Attack call");
-            return false;
-        }
-        int kills = 0;
-        for (int strike = 1; kills == 0 && strike <= KillCap && !s.IsDead; strike++)
-            kills = s.Attack(key, 1).Kills;
-        if (s.IsDead || kills < 1)
-        {
-            GD.PushError($"stash leg: no kill on the road — dead={s.IsDead} strikes hit the cap={KillCap}?");
-            return false;
-        }
-        GD.Print($"MONSTER_DEFEATED area={s.CurrentArea} key={key} n={kills}");
-        return true;
-    }
-
-    /// The session's lit set, read through the session surface only.
-    private static string LitSet(GameSession s) => string.Join(",", s.Areas.Areas
-        .Select(a => a.Key).Where(k => s.Waypoints.IsDiscovered(k)).OrderBy(k => k, StringComparer.Ordinal));
-
-    /// The InventoryPanel first-fit, mirrored (cells are a presentation-side
-    /// re-derivation — the Sim owns no answer to "which cell?"). Returns the
-    /// anchor the panel would draw `item` (last in Carried order) on.
-    private static bool TryDerive(GameSession s, Item item, out int row, out int col)
-    {
-        row = col = -1;
-        var occ = new bool[BabaYaga.Sim.InventoryGrid.Rows, BabaYaga.Sim.InventoryGrid.Columns];
-        foreach (var it in s.Carried)
-        {
-            bool placed = false; // one placement per item — the panel RETURNS; the
-                                 // loop must stop the same way (cloning filler items
-                                 // across the grid is what this flag prevents)
-            for (int r = 0; r <= occ.GetLength(0) - it.Base.Height && !placed; r++)
-                for (int c = 0; c <= occ.GetLength(1) - it.Base.Width && !placed; c++)
-                {
-                    bool fits = true;
-                    for (int i = 0; i < it.Base.Height && fits; i++)
-                        for (int j = 0; j < it.Base.Width && fits; j++)
-                            fits = !occ[r + i, c + j];
-                    if (!fits) continue;
-                    for (int i = 0; i < it.Base.Height; i++)
-                        for (int j = 0; j < it.Base.Width; j++) occ[r + i, c + j] = true;
-                    if (ReferenceEquals(it, item)) { row = r; col = c; }
-                    placed = true;
-                }
-        }
-        return row >= 0;
     }
 }

@@ -61,7 +61,7 @@ public static class DeathLeg
         var (deepKey, target) = FarthestFrom(act.Tiles.CenterCell(), row);
         hero.WalkTo(target);
         while (hero.StepNext()) { } // the same A* the windowed click plans
-        if (!InRange(hero.Cell, target, 1))
+        if (!LegKit.InRange(hero.Cell, target, 1))
         {
             GD.PushError($"death leg: hero not adjacent to the deep cell {target.X},{target.Y} — no Attack call");
             return;
@@ -158,7 +158,4 @@ public static class DeathLeg
         return best;
     }
 
-    /// <summary>Cell adjacency on the ONE metric (reuses IsoCamera.InRange, as BeltLeg).</summary>
-    private static bool InRange(Vector2I a, Vector2I b, int cells) =>
-        IsoCamera.InRange(new WorldPos(a.X, a.Y), new WorldPos(b.X, b.Y), cells);
 }

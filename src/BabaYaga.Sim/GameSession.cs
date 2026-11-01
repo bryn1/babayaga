@@ -114,8 +114,13 @@ public sealed partial class GameSession
 
     /// Summed item mods across everything carried or worn. MF feeds quality only
     /// (never the walk, P2 §4.8); GF feeds the gold pile, never quality.
-    public int MagicFind => Carried.Concat(Equipment.Equipped.Values).Sum(i => i.ModSum("magic_find"));
-    public int GoldFind => Carried.Concat(Equipment.Equipped.Values).Sum(i => i.ModSum("gold_find"));
+    /// The ONE summing idiom (audit D-4): Carried + worn, per-item ModSum —
+    /// RegenManaPercent (GameSession.Regen) reads through the same door.
+    private int SumMod(string modKey) =>
+        Carried.Concat(Equipment.Equipped.Values).Sum(i => i.ModSum(modKey));
+
+    public int MagicFind => SumMod("magic_find");
+    public int GoldFind => SumMod("gold_find");
 
     // ---- commands (each either fully applies or throws SessionRejectedException) ----
 
@@ -220,11 +225,7 @@ public sealed partial class GameSession
         if (Carried.Count == 0) throw new SessionRejectedException("nothing carried to sell");
         var item = Carried[^1];
         long price = Vendor.SellPrice(item, EconomyBand);
-        Grid.Remove(item);
-        Carried.RemoveAt(Carried.Count - 1);
-        CarriedSpots.Remove(item);
-        Unbelt(item); // a sold potion must never leave a filled belt slot behind
-        if (ReferenceEquals(LastLooted, item)) LastLooted = Carried.Count > 0 ? Carried[^1] : null;
+        RemoveFromCarried(item); // the shared leaves-the-pack order (audit D-6)
         Purse.Receive(price);
         return price;
     }
@@ -303,6 +304,24 @@ public sealed partial class GameSession
                     return true;
                 }
         return false;
+    }
+
+    /// The item-leaves-the-pack idiom (audit D-6, the Stash.Store header's own
+    /// "fixups mirror SellLast/UsePotion" line): the Grid/Carried/CarriedSpots
+    /// triple, then the belt never keeps a reference the pack no longer holds,
+    /// then LastLooted retreats to the pack's new last (or null) — ONE order,
+    /// the byte-identical order all three original doors ran it in. Doors with a
+    /// DIFFERENT reading keep their own lines on purpose: EquipLastDrop does not
+    /// unbelt nor retreat LastLooted (an equipped item stays the last looted),
+    /// and GiveHirelingGear retreats it to null (nothing the merc takes rides
+    /// back into the pack).
+    private void RemoveFromCarried(Item item)
+    {
+        Grid.Remove(item);
+        Carried.Remove(item);
+        CarriedSpots.Remove(item);
+        Unbelt(item); // a sold potion must never leave a filled belt slot behind
+        if (ReferenceEquals(LastLooted, item)) LastLooted = Carried.Count > 0 ? Carried[^1] : null;
     }
 
     /// A plain area seed for the death event: stable across processes.

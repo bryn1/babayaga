@@ -78,7 +78,7 @@ public static class JourneyLeg
             }
 
             // strike: the real Attack verb, gated on standing adjacent to the spawn cell
-            if (!InRange(hero.Cell, target, 1))
+            if (!LegKit.InRange(hero.Cell, target, 1))
             {
                 GD.PushWarning($"hero not adjacent to {key} at {target.X},{target.Y} — no Attack call, no marker");
                 continue;
@@ -155,7 +155,7 @@ public static class JourneyLeg
             hero.WalkTo(cell);
             while (hero.StepNext())
                 GD.Print($"HERO_STEP n={++step} cell={hero.Cell.X},{hero.Cell.Y} area={s.CurrentArea}");
-            if (!InRange(hero.Cell, cell, 1))
+            if (!LegKit.InRange(hero.Cell, cell, 1))
             {
                 GD.PushWarning($"level-up beat: hero not adjacent to {key} at {cell.X},{cell.Y} — no Attack call");
                 continue;
@@ -237,10 +237,6 @@ public static class JourneyLeg
 
     private static int Dist(Vector2I a, Vector2I b) =>
         new WorldPos(a.X, a.Y).DistanceTo(new WorldPos(b.X, b.Y));
-
-    /// <summary>Cell adjacency on the ONE metric (reuses IsoCamera.InRange).</summary>
-    private static bool InRange(Vector2I a, Vector2I b, int cells) =>
-        IsoCamera.InRange(new WorldPos(a.X, a.Y), new WorldPos(b.X, b.Y), cells);
 
     /// <summary>The engaged monster's live Life read through the §2 surface: the
     /// session's own Dump() JSON (camelCase engagedLife) — no Sim internal touched.</summary>

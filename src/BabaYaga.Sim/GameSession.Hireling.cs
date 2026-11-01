@@ -200,14 +200,10 @@ public sealed partial class GameSession
         // VERIFIED behaviour; the constant is the named GAP of §4 Q3). Nothing
         // inside the loop moves MaxLife, so the quantum is computed once.
         long quantum256 = max256 * MercDamageRegen / 4096;
-        for (int f = 0; f < frames && quantum256 > 0 && max256 > 0; f++)
-        {
-            long pool256 = m.Life * 256 + _mercLife256;
-            if (pool256 >= max256) break; // full is a fixpoint — the clamp holds
-            _mercLife256 += Math.Min(quantum256, max256 - pool256); // added, clamped to the missing pool
-            m.Life += _mercLife256 / 256; // whole points leave the accumulator…
-            _mercLife256 %= 256;          // …the sub-point rides on (exact, R2's shape)
-        }
+        // The tick is the ONE shared 256ths mechanism (audit D-1, the Regen.cs
+        // twin); whole life lands back on the merc, the sub-point stays in
+        // _mercLife256 — this file's persisting field.
+        m.Life += Fixed256Accumulator.Tick(frames, max256, quantum256, m.Life, ref _mercLife256);
     }
 
     /// Serializer restore hook (SaveSerializer is the only caller — the

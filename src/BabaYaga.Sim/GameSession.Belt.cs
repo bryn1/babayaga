@@ -81,10 +81,7 @@ public sealed partial class GameSession
         if (life) Character.Life = after; else Character.Mana = after;
 
         Belt[cell] = null;
-        Grid.Remove(item);
-        Carried.Remove(item);
-        CarriedSpots.Remove(item);
-        if (ReferenceEquals(LastLooted, item)) LastLooted = Carried.Count > 0 ? Carried[^1] : null;
+        RemoveFromCarried(item); // the shared leaves-the-pack order (audit D-6); Unbelt is a no-op on the just-freed slot
         return new PotionUseReport(slot, kind, before, after, max);
     }
 
