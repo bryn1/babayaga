@@ -11,7 +11,9 @@ using Godot;
 /// Attack / loot route through the §2 bridge surface; rejections become HUD hints.
 /// The door intent carries the WAYPOINT ORDER CONTRACT verbatim (v10 §game/):
 /// light the DESTINATION stone BEFORE the travel needing it — discover-AFTER-
-/// travel is a guaranteed throw and is NOT implemented anywhere.
+/// travel is a guaranteed throw and is NOT implemented anywhere. Since
+/// ORCH-RULING 2026-11-01 the ONE door also WALKS a linkedTo neighbour with no
+/// stone at all (there is nothing to light, and the walk needs none).
 /// </summary>
 public partial class HeroController : Node2D
 {
@@ -132,7 +134,10 @@ public partial class HeroController : Node2D
     // ---- the WAYPOINT ORDER CONTRACT (v10 §game/, the ONE wording) ----
 
     /// <summary>Standing on an area-edge door: light the DESTINATION stone BEFORE
-    /// the travel that needs it, then travel; a rejection is a HUD hint.</summary>
+    /// the travel that needs it (the WAYPOINT ORDER CONTRACT — a destination that
+    /// CARRIES a stone), then travel through the ONE door; a destination with no
+    /// stone (ORCH-RULING 2026-11-01) is REACHED ON FOOT — there is nothing to
+    /// light and the walk door needs none. A rejection is a HUD hint.</summary>
     public void TravelIntent(Vector2I doorCell)
     {
         var s = GameContext.Session;
@@ -141,10 +146,12 @@ public partial class HeroController : Node2D
         if (dest is null) return;
         try
         {
-            if (!s.Waypoints.IsDiscovered(dest)) s.DiscoverWaypoint(dest);
+            if (s.Waypoints.HasNode(dest) && !s.Waypoints.IsDiscovered(dest)) s.DiscoverWaypoint(dest);
             s.TravelTo(dest);
             OnAreaChanged?.Invoke(); // Act rebuilds tiles + monsters + placement under the new area
-            _hud.Hint($"the stone carries you to {dest}");
+            _hud.Hint(s.Waypoints.IsDiscovered(dest)
+                ? $"the stone carries you to {dest}"
+                : $"you walk to {dest}"); // the walked half of the door (stone-less ground)
         }
         catch (SessionRejectedException e) { _hud.Hint(e.Message); }
     }

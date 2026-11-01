@@ -149,7 +149,19 @@ public class WorldTests
         Assert.False(wps.CanTravel("mchy", "kopcowisko"));
         wps.Discover("krecie");
         Assert.True(wps.CanTravel("mchy", "kopcowisko")); // now the path mchy→krecie→… is lit
-        Assert.False(wps.CanTravel("mchy", "pokrzywlasy")); // no waypoint there at all
+        // ORCH-RULING 2026-11-01 + D2 oracle grant (owner verbatim: "all the tests
+        // and verifications against diablo 2 lod and continue working towards dod",
+        // 2026-10-30) — the ONE travel door now walks as well as rides: the world
+        // is WALKED, stones are optional fast-travel. grodzisko<->pokrzywlasy is a
+        // linkedTo edge and the town end is LIT, so the stone-less ground is
+        // REACHABLE NOW (the walk lights nothing — pokrzywlasy can never light:
+        // its Discover still throws, asserted in DiscoveryIsPermanent below).
+        Assert.True(wps.CanTravel("grodzisko", "pokrzywlasy")); // WALK: neighbour of the lit town
+        // …and the pair this line used to name stays refused for the UPDATED
+        // reason — read the linkedTo first: mchy links grodzisko/krecie/widlan,
+        // it has NO edge to pokrzywlasy, and no stone reaches it dark:
+        Assert.False(wps.CanTravel("mchy", "pokrzywlasy")); // no road edge, no lit stone
+        Assert.False(wps.CanTravel("czelusc", "widlan")); // stone-less, not a czelusc neighbour
     }
 
     [Fact]
