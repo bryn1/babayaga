@@ -86,7 +86,17 @@ public sealed record StashTabSave(int Tab, IReadOnlyList<ItemSave> Items);
 
 /// v5: one hireling at save time (SaveSerializer.RestoreHireling rebuilds it
 /// through the hireling table — a save naming a vanished id fails the load).
-public sealed record HirelingSave(string Id, int Level, long Xp, long Life, string Area, int CombatDistance);
+/// v7 (MC 11898/S15): the Gear list rides LAST — the worn 4-slot panel items,
+/// slot-NAMED, riding the SAME ItemSave serialization as pack and panel (cells
+/// −1: a merc slot is not a grid cell). The merc block sits at the END of the
+/// document, so the v7 addition moves no older field's dump position (the v5/
+/// v6 "add last" law).
+public sealed record HirelingSave(
+    string Id, int Level, long Xp, long Life, string Area, int CombatDistance,
+    IReadOnlyList<MercGearSave> Gear);
+
+/// v7: one worn mercenary item, slot named by the MercGearSlot enum name.
+public sealed record MercGearSave(string Slot, ItemSave Item);
 
 public sealed record SkillPointsSave(string Id, int Points);
 public sealed record ModSave(string Stat, int Value);

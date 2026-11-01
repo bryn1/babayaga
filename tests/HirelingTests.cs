@@ -552,7 +552,7 @@ public class HirelingTests
             var downgraded = File.ReadAllText(path)
                 .Replace($"\"version\": {SaveSerializer.SaveVersion}", "\"version\": 4");
             File.WriteAllText(path, downgraded);
-            Assert.Equal(6, SaveSerializer.SaveVersion); // this build speaks v6 (the stash block; the 88b70b2 re-pin idiom)
+            Assert.Equal(7, SaveSerializer.SaveVersion); // this build speaks v7 (the merc gear block; the 88b70b2 re-pin idiom)
             var e = Assert.Throws<InvalidDataException>(() => GameSession.Load(path, TestData.DataDir()));
             Assert.Contains("save version 4 unsupported", e.Message);
         }

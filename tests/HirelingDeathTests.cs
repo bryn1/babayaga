@@ -16,8 +16,9 @@ namespace BabaYaga.Sim.Tests;
 /// stays where it fell (§6.7b: "there is no corpse-carry"); Dismiss of a
 /// dead-merc entry stays the no-refund FORFEIT it already was (state reading:
 /// Dismiss paid NOTHING back before this beat too — no change landed for it).
-/// NO save-format bump: the v6 merc block already persists Life, so a dead-dead
-/// pair round-trips and the stone still leaves her dead after the load.
+/// NO save-format bump of its own: the merc block already persists Life (v6;
+/// v7, card/11903, added the gear block beside it — this row rides the re-pin),
+/// so a dead-dead pair round-trips and the stone still leaves her dead after the load.
 /// RNG law: with NO merc the hero-death volley costs NOTHING — the capture
 /// constants below were taken THIS SESSION from the UNMODIFIED base build
 /// (wt-s14 @ a50d34e, the same idiom as HirelingTests' base captures).
@@ -224,7 +225,7 @@ public class HirelingDeathTests
         Assert.Contains("no hireling", e.Message);             // gone — the captain has no one to raise
     }
 
-    // ---- NO save-format change: v6 already carries the merc life (state reading) ----
+    // ---- the LAW needed no save change: Life rode the merc block (state reading) --
 
     [Fact]
     public void SaveRoundTrip_AfterHeroDeath_CarriesDeadDead_NoBump_StoneLeavesHerDead()
@@ -237,7 +238,7 @@ public class HirelingDeathTests
         {
             s.Save(path);
             var t = GameSession.Load(path, TestData.DataDir());
-            Assert.Equal(6, SaveSerializer.SaveVersion);       // NO bump: v6 was already the merc block's version
+            Assert.Equal(7, SaveSerializer.SaveVersion);       // v7 (card/11903) bumped for the GEAR block — the LAW row itself needed no bump: the merc block already persisted Life (the b3d74f8 re-pin idiom)
             Assert.True(t.IsDead);                             // DEAD rode the v4 Life pool as always
             Assert.NotNull(t.Merc);
             Assert.Equal(0, t.Merc!.Life);                     // RED pre-fix: the base saved her ALIVE through

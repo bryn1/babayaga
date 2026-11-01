@@ -1,9 +1,10 @@
 {
- "_comment": "M4-S11 (LEDGER rows 65-66): hireling table per the AMENDED spec 6.7 adoption contract (MC 11883; out/T0b-sec6-7-amendment.md §5). D2-DERIVED VALUES: bracket stats + per-level columns + Exp/Lvl are the LoD-era hireling.txt Version-100 NORMAL rows (rows 14-16 Rogue / 44-46 Desert / 74-76 Barbarian of out/.tmp/t67/hireling_114d.txt), mapped bow->Rogue Scout, spear->Desert Mercenary, throwing-axe->Barbarian (a DESIGN mapping — the growth SHAPE is D2-VERIFIED, the roster stays ours). damagePerLevel is in eighths (the engine floors on the PRODUCT: nLevelUps*Dmg-Lvl/8, amendment §1 S3/§2); lifePerLevel and arPerLevel are whole points. ORIGINAL DESIGN: the three ids/names/acts/weapons, and hireGold — the amendment §5 keeps the clone's 100/250/500 placeholders as product data pending the gold-economy card (D2 Gold-column witnesses 100/350/9000 cited per row). bracket is the hire-template row; higherBrackets carries the two adopted V100 rows above it for the future offer wave. witez (act 2) and rzutca (act 5) are gated by the unbuilt acts — only strzelczyni is live in act 1.",
+ "_comment": "M4-S11 (LEDGER rows 65-66): hireling table per the AMENDED spec 6.7 adoption contract (MC 11883; out/T0b-sec6-7-amendment.md §5). M4-S15 adds the per-row GEAR block per the §6.7b AMENDMENT (MC 11898; out/T0b-sec6-7b-amendment.md §1 S1-S4/§3): a mercenary wears the 4-slot panel ONLY — weapon, body, helm, shield; no rings, no amulets, no jewelry (the inventory.txt Hireling panel boxes read -1 for every jewelry slot and the 1.10 give-door whitelists no jewel type — VERIFIED three ways). slots = the slots THIS kind accepts; the shield stands in the engine's 4-slot model but NO row of this roster accepts it (D2's shield-bearer was the Act-3 hire — this roster has none). weaponTypes = the weapon-slot whitelist by base itype (the D2 S2 per-kind switch: Rogue bows; Desert spears+polearms — the official-era 'Javelins' line is CONTRADICTED by the engine whitelist and RETIRED). ORIGINAL DESIGN, fenced: rzutca's axe acceptance — D2 ships NO throwing hireling; the nearest D2 shape is the Act-5 one-handed axe marshal, owner may re-rule. D2-DERIVED VALUES: bracket stats + per-level columns + Exp/Lvl are the LoD-era hireling.txt Version-100 NORMAL rows (rows 14-16 Rogue / 44-46 Desert / 74-76 Barbarian of out/.tmp/t67/hireling_114d.txt), mapped bow->Rogue Scout, spear->Desert Mercenary, throwing-axe->Barbarian (a DESIGN mapping — the growth SHAPE is D2-VERIFIED, the roster stays ours). damagePerLevel is in eighths (the engine floors on the PRODUCT: nLevelUps*Dmg-Lvl/8, amendment §1 S3/§2); lifePerLevel and arPerLevel are whole points. ORIGINAL DESIGN: the three ids/names/acts/weapons, and hireGold — the amendment §5 keeps the clone's 100/250/500 placeholders as product data pending the gold-economy card (D2 Gold-column witnesses 100/350/9000 cited per row). bracket is the hire-template row; higherBrackets carries the two adopted V100 rows above it for the future offer wave. witez (act 2) and rzutca (act 5) are gated by the unbuilt acts — only strzelczyni is live in act 1.",
  "hirelings": [
   { "id": "strzelczyni", "name": "Strzelczyni (bow-kin)",
     "act": 1, "weapon": "bow", "attackKind": "ranged",
     "hireGold": 100, "d2GoldWitness": 100, "expPerLevel": 100,
+    "gear": { "slots": ["weapon", "body", "helm"], "weaponTypes": ["bows"] },
     "bracket": { "level": 3, "life": 45, "lifePerLevel": 9, "damageMin": 1, "damageMax": 3, "damagePerLevel": 2, "attackRating": 10, "arPerLevel": 12 },
     "higherBrackets": [
       { "level": 36, "life": 342, "lifePerLevel": 18, "damageMin": 9, "damageMax": 11, "damagePerLevel": 4, "attackRating": 406, "arPerLevel": 24 },
@@ -12,6 +13,7 @@
   { "id": "witez", "name": "Witez (spear-sworn)",
     "act": 2, "weapon": "spear", "attackKind": "melee",
     "hireGold": 250, "d2GoldWitness": 350, "expPerLevel": 110,
+    "gear": { "slots": ["weapon", "body", "helm"], "weaponTypes": ["spears", "polearms"] },
     "bracket": { "level": 9, "life": 120, "lifePerLevel": 15, "damageMin": 7, "damageMax": 14, "damagePerLevel": 4, "attackRating": 20, "arPerLevel": 12 },
     "higherBrackets": [
       { "level": 43, "life": 630, "lifePerLevel": 25, "damageMin": 24, "damageMax": 31, "damagePerLevel": 6, "attackRating": 428, "arPerLevel": 24 },
@@ -20,6 +22,7 @@
   { "id": "rzutca", "name": "Rzutca (axe-thrower)",
     "act": 5, "weapon": "throwing-axe", "attackKind": "ranged",
     "hireGold": 500, "d2GoldWitness": 9000, "expPerLevel": 120,
+    "gear": { "slots": ["weapon", "body", "helm"], "weaponTypes": ["axes"] },
     "bracket": { "level": 28, "life": 288, "lifePerLevel": 18, "damageMin": 16, "damageMax": 20, "damagePerLevel": 6, "attackRating": 150, "arPerLevel": 20 },
     "higherBrackets": [
       { "level": 58, "life": 828, "lifePerLevel": 27, "damageMin": 39, "damageMax": 43, "damagePerLevel": 8, "attackRating": 750, "arPerLevel": 35 },

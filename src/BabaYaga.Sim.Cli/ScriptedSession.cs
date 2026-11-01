@@ -11,7 +11,8 @@ namespace BabaYaga.Sim.Cli;
 ///   special &lt;monster&gt; | loot [n] | equip lastdrop | buy &lt;item&gt; | sell last | gamble |
 ///   waypoint &lt;node&gt; | discover &lt;node&gt; | quest &lt;id&gt; accept|step|complete | save &lt;path&gt; | load &lt;path&gt; | dump
 ///   | rest &lt;frames&gt; | hire &lt;id&gt; | dismiss | revive &lt;id&gt; | stash_store &lt;tab&gt; &lt;x&gt; &lt;y&gt;
-///   | stash_take &lt;tab&gt; &lt;x&gt; &lt;y&gt; (engine doors, MC 11896) — see EngineDoorVerbs.cs
+///   | stash_take &lt;tab&gt; &lt;x&gt; &lt;y&gt; (engine doors, MC 11896)
+///   | give &lt;slot&gt; &lt;x&gt; &lt;y&gt; | strip &lt;slot&gt; (merc gear doors, MC 11903) — see EngineDoorVerbs.cs
 ///   | read-only debug verbs (no session) — see DebugVerbs.cs
 /// A rejected change or unknown command throws — the runner owns the ERROR line.
 /// </summary>
@@ -84,6 +85,8 @@ public sealed partial class ScriptedSession
             "revive" => Revive(payload, parts),
             "stash_store" => StashStore(payload, parts),
             "stash_take" => StashTake(payload, parts),
+            "give" => Give(payload, parts),
+            "strip" => Strip(payload, parts),
             _ => throw new SessionRejectedException($"unknown command '{parts[0]}'"),
         };
 

@@ -20,8 +20,13 @@ public static class SaveSerializer
     /// block — the one mercenary slot as saved, null when none rides.
     /// Version 6 (row 74, M4-S12): the town stash — per-tab item rows on their
     /// anchor cells, riding the SAME ItemSave serialization as the carried pack;
-    /// the unlock count already rode StashTabs. A v5 save is refused by name.</summary>
-    public const int SaveVersion = 6;
+    /// the unlock count already rode StashTabs. A v5 save is refused by name.
+    /// Version 7 (row 66 gear half, M4-S15, card/11903): the hireling block
+    /// gained its WORN GEAR — the 4-slot panel items (§6.7b, MC 11898), slot-
+    /// named, riding the SAME ItemSave serialization as pack and panel; the
+    /// addition sits inside the LAST block, so no older field moves. A v6 save
+    /// is refused by name.</summary>
+    public const int SaveVersion = 7;
 
     private static readonly JsonSerializerOptions FileOpts = new()
     { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
@@ -91,8 +96,12 @@ public static class SaveSerializer
                 .Select(kv => new EquipSave(kv.Key.ToString(), ItemDto(kv.Value, (-1, -1))))],
             PendingDrops = [.. s.Drops.PendingItems.Select(i => ItemDto(i, (-1, -1)))],
             PendingGold = s.Drops.Gold,
+            // v7: the worn merc panel rides slot-ordered (byte-stable, the
+            // Equipment idiom); an empty panel rides as an empty list.
             Merc = s.Merc is null ? null : new HirelingSave(
-                s.Merc.Id, s.Merc.Level, s.Merc.Xp, s.Merc.Life, s.Merc.Area, s.Merc.CombatDistance),
+                s.Merc.Id, s.Merc.Level, s.Merc.Xp, s.Merc.Life, s.Merc.Area, s.Merc.CombatDistance,
+                [.. s.Merc.Gear.OrderBy(kv => (int)kv.Key)
+                    .Select(kv => new MercGearSave(kv.Key.ToString(), ItemDto(kv.Value, (-1, -1))))]),
             // v6 LAST (the v5 law: older fields keep their dump positions): opened-
             // but-EMPTY tabs are NOT saved — StashTabs already carries the unlock
             // truth; tabs sort by number, items in placement order (byte-stable).
@@ -193,7 +202,15 @@ public static class SaveSerializer
             s.Drops.Enqueue(new TreasureClassDrop(
                 [.. d.PendingDrops.Select(p => BuildItem(s, p))], d.PendingGold));
             s.SetEngaged(d.EngagedKey, d.EngagedLife);
-            if (d.Merc is not null) s.RestoreHireling(d.Merc); // v5: rebuild via the hireling table
+            if (d.Merc is not null)
+            {
+                s.RestoreHireling(d.Merc); // v5: rebuild via the hireling table
+                // v7: the worn panel lands through the authoring door (the
+                // Equipment idiom — the merc slot is not a grid cell, there is
+                // nothing to refit): slot-named, save order preserved.
+                foreach (var g in d.Merc.Gear)
+                    s.Merc!.Gear[Enum.Parse<MercGearSlot>(g.Slot)] = BuildItem(s, g.Item);
+            }
             // v6: the stash re-materializes tab by tab (number order = save order).
             // An item is restored through the tab's own InventoryGrid — the same
             // fits-or-refuses law the carried rebuild runs, no second engine.
