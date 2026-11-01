@@ -42,10 +42,18 @@ using Godot;
 ///   instant); the stone raises HIM home full and does NOT carry the corpse
 ///   (`HERO_RESPAWN`, merc_life=0 at the ground where she fell); at the
 ///   captain the EXACT cost raises the SAME mercenary
-///   (`REVIVE_AFTER_HERO_DEATH`). HIRE_OK prints only when every
+///   (`REVIVE_AFTER_HERO_DEATH`). The S15 GEAR TAIL (spec §6.7b, MC 11903) rides
+///   last: a bow bought through the buy door rides to mchy and lands on her
+///   first slot (`GEAR_EQ`, free — `GEAR_DEFER` names the stat-effect deferral);
+///   a kill with the bow on pays the same capped chain (`HIRE_XP own=… note=gear_on`);
+///   the law takes them both again and the bow RIDES THE CORPSE (`MERC_DIES`,
+///   `GEAR_DIE`); the captain's revive returns the SAME instance on the SAME
+///   mercenary (`GEAR_KEEP`); one ride out and the strip door hands the bow back
+///   into the hero's pack (`GEAR_STRIP`, `carries_the_bow=True`) — `GEAR_OK` and
+///   the tail rides home for the stash beat. HIRE_OK prints only when every
 ///   reading held; any failure is a PushError with no marker (the leg idiom).
 /// </summary>
-public static class HireLeg
+public static partial class HireLeg
 {
     private const int StrikeCap = 500;   // the own-kill hunt; KillOne-style caps ride generous
     private const int DeadCap = 60;      // the leszy counters land hard — death is fast
@@ -61,7 +69,8 @@ public static class HireLeg
         }
 
         bool ok = Hire(s) && Follow(s, act) && OwnKill(s) && HeroUntouched(s)
-            && SharedKill(s) && KillTheMerc(s) && Revive(s, act) && HeroDeathLaw(s, act);
+            && SharedKill(s) && KillTheMerc(s) && Revive(s, act) && HeroDeathLaw(s, act)
+            && GearBeat(s, act);
 
         if (ok) GD.Print("HIRE_OK");
         else GD.PushError("hireling leg: the captain's chain has no HIRE_OK — the lines above are the evidence");

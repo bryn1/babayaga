@@ -26,12 +26,24 @@ public sealed class Hireling
     public int ExpPerLevel => Row.ExpPerLevel;
 
     /// Level/XP/life/area/stand-off ride the v5 save block AS SAVED (the
-    /// RestoreHireling door); the pools are never re-derived on load.
+    /// RestoreHireling door); the pools are never re-derived on load. (v7,
+    /// MC 11898/S15: the worn Gear block rides beside them, same rule.)
     public int Level { get; set; } = 1;
     public long Xp { get; set; }
     public long Life { get; set; }
     public string Area { get; set; } = "";
     public int CombatDistance { get; set; }
+
+    /// <summary>The §6.7b 4-slot panel as WORN (MC 11898): gear rides THIS object —
+    /// death, travel and the captain's revive move it by identity, NO gear-keep flag
+    /// exists (amendment D1: "gear is retained by object identity … unconditional").
+    /// The game-rule doors are GiveHirelingGear/StripHirelingGear on the session
+    /// (plus Dismiss's forfeit — the entry itself dies); the public dictionary is
+    /// the authoring/restore door only (the Character.Life doctrine), used by the
+    /// serializer to land the v7 block AS SAVED. A hidden default weapon is never
+    /// modelled (S7 — the rookie's base weapon is a damage-table property, never
+    /// an item, so there is nothing here that could be stripped or forfeited).</summary>
+    public Dictionary<MercGearSlot, Item> Gear { get; } = new();
 
     public Hireling(HirelingRow row)
     {

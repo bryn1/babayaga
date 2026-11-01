@@ -23,6 +23,15 @@ public sealed record HirelingBracket(
     int AttackRating,
     int ArPerLevel);
 
+/// <summary>The §6.7b GEAR ACCEPTANCE of one kind (MC 11898 amendment §3, VERIFIED
+/// S1–S4): the merc panel is FOUR slots — weapon, body, helm, shield — and a row
+/// lists the slots it accepts (NO row of this roster accepts the shield — D2's
+/// shield-bearer was the Act-3 hire) plus the weapon-slot whitelist by base
+/// itype. The engine stays dumb to the KIND: it reads these lists verbatim.</summary>
+public sealed record HirelingGear(
+    IReadOnlyList<string> Slots,
+    IReadOnlyList<string> WeaponTypes);
+
 /// <summary>One roster row: identity + the act gate + the price/XP columns + the
 /// hire-template bracket with the two adopted higher brackets carried beside it
 /// (the offer wave that lets a town sell a L36 rogue is a future row).</summary>
@@ -35,7 +44,8 @@ public sealed record HirelingRow(
     long HireGold,
     int ExpPerLevel,
     HirelingBracket Bracket,
-    IReadOnlyList<HirelingBracket> HigherBrackets);
+    IReadOnlyList<HirelingBracket> HigherBrackets,
+    HirelingGear Gear);
 
 /// <summary>
 /// The hireling table loaded from data/hirelings.json (the MonsterTable/
@@ -65,6 +75,10 @@ public sealed class HirelingTable
         {
             var brackets = e.GetProperty("higherBrackets").EnumerateArray()
                 .Select(BracketRow).ToArray();
+            var gearEl = e.GetProperty("gear");
+            var gear = new HirelingGear(
+                StringList(gearEl, "slots"),
+                StringList(gearEl, "weaponTypes"));
             var row = new HirelingRow(
                 e.GetProperty("id").GetString()!,
                 e.GetProperty("name").GetString()!,
@@ -74,13 +88,19 @@ public sealed class HirelingTable
                 e.GetProperty("hireGold").GetInt64(),
                 e.GetProperty("expPerLevel").GetInt32(),
                 BracketRow(e.GetProperty("bracket")),
-                brackets);
+                brackets,
+                gear);
             if (row.HireGold < 1) throw new InvalidDataException($"hireling '{row.Id}' hireGold below 1");
             if (row.ExpPerLevel < 1) throw new InvalidDataException($"hireling '{row.Id}' Exp/Lvl below 1");
             if (row.Bracket.DamageMin > row.Bracket.DamageMax)
                 throw new InvalidDataException($"hireling '{row.Id}' bracket damageMin above damageMax");
             if (brackets.Any(b => b.Level <= row.Bracket.Level))
                 throw new InvalidDataException($"hireling '{row.Id}' carries a bracket at or below its hire level");
+            if (row.Gear.Slots.Any(s => !MercGearSlots.Names.Contains(s)) || row.Gear.Slots.Count == 0)
+                throw new InvalidDataException(
+                    $"hireling '{row.Id}' gear.slots must be a non-empty subset of weapon/body/helm/shield");
+            if (row.Gear.Slots.Contains("weapon") && row.Gear.WeaponTypes.Count == 0)
+                throw new InvalidDataException($"hireling '{row.Id}' accepts the weapon slot with an empty whitelist");
             rows.Add(row);
         }
         if (rows.Count == 0) throw new InvalidDataException("the hireling table lists no rows");
@@ -98,6 +118,10 @@ public sealed class HirelingTable
         b.GetProperty("damagePerLevel").GetInt32(),
         b.GetProperty("attackRating").GetInt32(),
         b.GetProperty("arPerLevel").GetInt32());
+
+    private static IReadOnlyList<string> StringList(JsonElement owner, string prop) =>
+        owner.GetProperty(prop).EnumerateArray()
+            .Select(x => x.GetString()!).ToArray();
 
     /// <summary>The hire price rule carried forward UNCHANGED through the
     /// amendment (§6.7, spec-3): Gold × (100 + 15 × levels_above_bracket) ÷ 100,

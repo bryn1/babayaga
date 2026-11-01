@@ -87,6 +87,11 @@ public sealed partial class GameSession
             throw new SessionRejectedException(
                 $"hirelings are dismissed in town — the captain is not in '{CurrentArea}'");
         var m = Merc ?? throw new SessionRejectedException("no hireling rides with you");
+        // THE FORFEIT (§6.7b D3, MC 11898): worn gear is LOST forever on dismiss —
+        // the entry (and with it the Gear dict riding it) is dropped HERE and the
+        // items are GONE: the sim has NO ground-drop concept, so a forfeit is
+        // annihilation, never a drop (state reading; Arreat: take it off "before
+        // you dismiss him or you'll lose it" — pinned by HirelingGearTests).
         Merc = null;
         return m.Id;
     }
