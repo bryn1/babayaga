@@ -226,15 +226,16 @@ public class BeltDeathTests
     }
 
     [Fact]
-    public void SaveFormat_StaysVersion5_HirelingBlockOnly_DeadDerivedFromThePersistedLife()
+    public void SaveFormat_StaysVersion6_StashBlockOnly_DeadDerivedFromThePersistedLife()
     {
         // The version decision (card/11836) held through v4; v5 (card/11886,
-        // §6.7 rows 65–66) exists ONLY for the hireling block — DEAD stays
+        // §6.7 rows 65–66) added the hireling block; v6 (card/11893, row 74)
+        // exists ONLY for the stash block — DEAD stays
         // derived from the persisted Life exactly as before, every older field
-        // keeps its dump position (the merc block is appended last), and a
-        // foreign version, 4 included, is refused (the version-refusal idiom),
+        // keeps its dump position (the new blocks are appended last), and a
+        // foreign version, 4 and 5 included, is refused (the version-refusal idiom),
         // never silently half-restored.
-        Assert.Equal(5, SaveSerializer.SaveVersion);
+        Assert.Equal(6, SaveSerializer.SaveVersion);
         var s = Fresh();
         Assert.Contains("\"life\":50", s.Dump().Replace(" ", "")); // alive: the pool is the truth
         s.Character.TakeDamage(s.Character.Life);
