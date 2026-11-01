@@ -65,7 +65,18 @@ public sealed class SessionSave
     public IReadOnlyList<EquipSave> Equipment { get; init; } = [];
     public IReadOnlyList<ItemSave> PendingDrops { get; init; } = [];
     public long PendingGold { get; init; }
+    /// <summary>The hired mercenary as saved (v5, §6.7 rows 65–66) — null when
+    /// none rides. The v5 additions sit LAST so every older field keeps its
+    /// dump position; the block rides AS SAVED (level, cumulative XP, current
+    /// life, the travel-mirror area, the in-combat stand-off) — the mercenary
+    /// accumulator fraction is not persisted, same disclosed gap as the mana
+    /// accumulator's (GameSession.Hireling header).</summary>
+    public HirelingSave? Merc { get; init; }
 }
+
+/// v5: one hireling at save time (SaveSerializer.RestoreHireling rebuilds it
+/// through the hireling table — a save naming a vanished id fails the load).
+public sealed record HirelingSave(string Id, int Level, long Xp, long Life, string Area, int CombatDistance);
 
 public sealed record SkillPointsSave(string Id, int Points);
 public sealed record ModSave(string Stat, int Value);

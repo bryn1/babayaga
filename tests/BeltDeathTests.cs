@@ -226,11 +226,15 @@ public class BeltDeathTests
     }
 
     [Fact]
-    public void SaveFormat_StaysVersion4_NoNewField_DeadDerivedFromThePersistedLife()
+    public void SaveFormat_StaysVersion5_HirelingBlockOnly_DeadDerivedFromThePersistedLife()
     {
-        // The version decision (card/11836): NO bump. The v4 DTO already persists
-        // Life (row 69); DEAD is read FROM it, so old v4 readers stay byte-compatible.
-        Assert.Equal(4, SaveSerializer.SaveVersion);
+        // The version decision (card/11836) held through v4; v5 (card/11886,
+        // §6.7 rows 65–66) exists ONLY for the hireling block — DEAD stays
+        // derived from the persisted Life exactly as before, every older field
+        // keeps its dump position (the merc block is appended last), and a
+        // foreign version, 4 included, is refused (the version-refusal idiom),
+        // never silently half-restored.
+        Assert.Equal(5, SaveSerializer.SaveVersion);
         var s = Fresh();
         Assert.Contains("\"life\":50", s.Dump().Replace(" ", "")); // alive: the pool is the truth
         s.Character.TakeDamage(s.Character.Life);

@@ -70,8 +70,11 @@ public sealed partial class GameSession
     /// <summary>Rest for the given number of frames: each frame restores the §1.8
     /// quantum into the 256ths mana pool, clamped at MaxMana. Gates: the row-64
     /// DEAD gate FIRST (a corpse regens nothing, any pool), negative frames reject.
-    /// Life never moves here (D2 rule, header); the three rng streams are never
-    /// touched; frames ≤ 0 is an ordered no-op.</summary>
+    /// HERO life never moves here (D2 rule, header); the three rng streams are
+    /// never touched; frames ≤ 0 is an ordered no-op. At the tail the AMENDED §6.7
+    /// mercenary life regen ticks on the SAME driver and the SAME accumulator
+    /// idiom (GameSession.Hireling) — a dead merc skips, no merc costs nothing,
+    /// and none of it rolls dice.</summary>
     public void RestTick(int frames)
     {
         RaiseIfDead(); // dead never regens — the gate speaks before everything (row 64)
@@ -94,5 +97,7 @@ public sealed partial class GameSession
             Character.Mana += _mana256 / 256;                   // whole points leave the accumulator…
             _mana256 %= 256;                                    // …the sub-point rides on (exact, R2)
         }
+
+        TickHirelingRegen(frames); // §6.7 AMENDED: the merc's life rides the SAME rest driver
     }
 }

@@ -24,6 +24,7 @@ public sealed partial class GameSession
         if (!Waypoints.CanTravel(CurrentArea, areaKey))
             throw new SessionRejectedException($"no walked road and no lit-stone path from '{CurrentArea}' to '{areaKey}'");
         CurrentArea = areaKey;
+        if (Merc is not null) Merc.Area = areaKey; // §6.7: travel = the merc follows (mirror field)
         Engaged = null;
         EngagedKey = null;
     }

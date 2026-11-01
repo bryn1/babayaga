@@ -16,8 +16,9 @@ public static class SaveSerializer
     /// silently half-restored. Version 4 (row 69, M4-S5): the current life/mana
     /// pools, the third (enemy-counter) stream word, and the belt as carried
     /// indices — a loaded belt re-points at the restored copies, never at the
-    /// pre-save instances.</summary>
-    public const int SaveVersion = 4;
+    /// pre-save instances. Version 5 (§6.7 rows 65–66, M4-S11): the hireling
+    /// block — the one mercenary slot as saved, null when none rides.</summary>
+    public const int SaveVersion = 5;
 
     private static readonly JsonSerializerOptions FileOpts = new()
     { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
@@ -87,6 +88,8 @@ public static class SaveSerializer
                 .Select(kv => new EquipSave(kv.Key.ToString(), ItemDto(kv.Value, (-1, -1))))],
             PendingDrops = [.. s.Drops.PendingItems.Select(i => ItemDto(i, (-1, -1)))],
             PendingGold = s.Drops.Gold,
+            Merc = s.Merc is null ? null : new HirelingSave(
+                s.Merc.Id, s.Merc.Level, s.Merc.Xp, s.Merc.Life, s.Merc.Area, s.Merc.CombatDistance),
         };
     }
 
@@ -179,6 +182,7 @@ public static class SaveSerializer
             s.Drops.Enqueue(new TreasureClassDrop(
                 [.. d.PendingDrops.Select(p => BuildItem(s, p))], d.PendingGold));
             s.SetEngaged(d.EngagedKey, d.EngagedLife);
+            if (d.Merc is not null) s.RestoreHireling(d.Merc); // v5: rebuild via the hireling table
         }
         catch (Exception e) when (e is SkillSpendRejectedException or ArgumentException or KeyNotFoundException)
         {
