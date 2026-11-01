@@ -57,14 +57,6 @@ public sealed class RunewordTable
         return word;
     }
 
-    /// <summary>Socket one stone (rune id or gem id) into a free socket cell.</summary>
-    public static bool InsertStone(Rng rng, Item item, string stoneId)
-    {
-        if (item.SocketedRunes.Count >= item.Sockets) return false;
-        item.SocketedRunes.Add(stoneId);
-        return true;
-    }
-
     public static RunewordTable Load(string runesPath, string wordsPath)
     {
         using var runesDoc = JsonDocument.Parse(File.ReadAllText(runesPath));

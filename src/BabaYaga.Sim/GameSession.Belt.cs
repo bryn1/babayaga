@@ -69,7 +69,7 @@ public sealed partial class GameSession
         RaiseIfDead(); // no healing from a corpse: the belt waits for the stone (Respawn)
         var cell = SlotIndex(slot);
         var item = Belt[cell] ?? throw new SessionRejectedException($"belt slot {slot} is empty");
-        string kind = PotionKindOf(item, require: true);
+        string kind = PotionKindOf(item, require: true)!; // require: true throws instead of returning null
 
         bool life = kind == "life";
         long max = life ? Character.MaxLife : Character.MaxMana;

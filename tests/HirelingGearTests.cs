@@ -219,7 +219,7 @@ public class HirelingGearTests
         var e = Assert.Throws<SessionRejectedException>(() => s.GiveHirelingGear("weapon", 0, 0));
         Assert.Contains("free cell", e.Message);        // refused BY NAME — nothing half-applied
         Assert.Same(worn, s.Merc!.Gear[MercGearSlot.Weapon]); // the worn bow stayed on her
-        Assert.True(s.Carried.Contains(fresh));         // the fresh bow stayed in the pack
+        Assert.Contains(fresh, s.Carried);              // the fresh bow stayed in the pack
         Assert.Equal(10, s.Carried.Count);              // 9 clubs + 1 bow, nothing moved
     }
 

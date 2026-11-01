@@ -84,14 +84,6 @@ public partial class MonsterField : Node2D
         return null;
     }
 
-    /// <summary>The cell a spawned key stands on (loot-drop marker anchor), or null.</summary>
-    public Vector2I? CellOf(string key)
-    {
-        foreach (var e in _spawned)
-            if (e.Key == key) return e.Cell;
-        return null;
-    }
-
     /// <summary>The walkable cells of one placement band around the arrival cell
     /// (Chebyshev, the one metric — same inline form as AreaRenderer.CenterCell);
     /// an empty band falls back to the full walkable list, never an empty spawn.</summary>

@@ -133,22 +133,4 @@ public sealed class AreaGraph
         Difficulty.Hell => area.MonLvlHell,
         _ => area.Level,
     };
-
-    /// Graph reachability between two areas (any path), the travel precondition.
-    public bool Connected(string fromKey, string toKey)
-    {
-        if (!_rows.ContainsKey(fromKey) || !_rows.ContainsKey(toKey)) return false;
-        var seen = new HashSet<string> { fromKey };
-        var queue = new Queue<string>();
-        queue.Enqueue(fromKey);
-        while (queue.Count > 0)
-        {
-            foreach (var next in _rows[queue.Dequeue()].LinkedTo)
-            {
-                if (next == toKey) return true;
-                if (seen.Add(next)) queue.Enqueue(next);
-            }
-        }
-        return false;
-    }
 }
