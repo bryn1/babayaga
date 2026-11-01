@@ -82,7 +82,7 @@ public class BeltStashTests
         Assert.Equal(2, st.Tab);
         Assert.Equal((0, 0), (st.TabRow, st.TabCol)); // first-fit INSIDE the tab
         Assert.Equal((0, 0), (st.InvRow, st.InvCol)); // echoed pack anchor
-        Assert.Equal(0, s.Carried.Count);             // the pack gave the item up
+        Assert.Empty(s.Carried);                      // the pack gave the item up
 
         // a multi-cell item addresses its ANCHOR cell on both sides (state reading)
         var club = BuyOne(s, "palica");               // 1×3, empty pack: anchor 0,0
@@ -260,7 +260,7 @@ public class BeltStashTests
         var g1 = s.Store(0, 0, 1);   // tab 1 at its first-fit anchor
         BuyOne(s, LifePotion);
         var g2 = s.Store(0, 0, 2);   // tab 2 likewise
-        Assert.Equal(0, s.Carried.Count);
+        Assert.Empty(s.Carried);
 
         BuyOne(s, Gem); // one copy stays carried — the pack grid rides too
         var before = s.Dump();

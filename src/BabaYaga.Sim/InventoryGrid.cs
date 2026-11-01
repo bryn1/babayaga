@@ -74,8 +74,6 @@ public sealed class InventoryGrid
     public int PlacedCount => _placed.Count;
     public int FreeCells => Rows * Columns - _occupied.Count;
 
-    public bool IsPlaced(Item item) => _placed.ContainsKey(item);
-
     /// <summary>True when the item's footprint fits at (row, col) — bounds checked,
     /// row-first, all cells free.</summary>
     public bool CanPlace(Item item, int row, int col)
