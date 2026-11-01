@@ -34,13 +34,22 @@ using Godot;
 ///   (`HIRE_REGEN_DEAD` after a 3000-frame RestTick). The body rides home and
 ///   the captain takes `REVIVE cost=` min(15·L²/2, 50000) gold — the formula
 ///   evaluated beside the session-read gold pair — and the SAME mercenary
-///   stands up at full life: `HIRE_ALIVE`. HIRE_OK prints only when every
+///   stands up at full life: `HIRE_ALIVE`. The S14 LAW (spec §6.7b AMENDED,
+///   MC 11898 — D2: "if your character dies, your Hireling dies as well", the
+///   KillPlayerPets path) closes the story: with the LIVING mercenary the hero
+///   rides to mchy standing NEAREST and dies on the ponurak's counters —
+///   `MERC_DIES` prints her life before/after (the fire goes out in the SAME
+///   instant); the stone raises HIM home full and does NOT carry the corpse
+///   (`HERO_RESPAWN`, merc_life=0 at the ground where she fell); at the
+///   captain the EXACT cost raises the SAME mercenary
+///   (`REVIVE_AFTER_HERO_DEATH`). HIRE_OK prints only when every
 ///   reading held; any failure is a PushError with no marker (the leg idiom).
 /// </summary>
 public static class HireLeg
 {
     private const int StrikeCap = 500;   // the own-kill hunt; KillOne-style caps ride generous
     private const int DeadCap = 60;      // the leszy counters land hard — death is fast
+    private const int HeroDeathCap = 2048; // the DeathLeg's grind ceiling — counters land death far earlier
 
     public static void Run(GameSession s, Act act)
     {
@@ -52,7 +61,7 @@ public static class HireLeg
         }
 
         bool ok = Hire(s) && Follow(s, act) && OwnKill(s) && HeroUntouched(s)
-            && SharedKill(s) && KillTheMerc(s) && Revive(s, act);
+            && SharedKill(s) && KillTheMerc(s) && Revive(s, act) && HeroDeathLaw(s, act);
 
         if (ok) GD.Print("HIRE_OK");
         else GD.PushError("hireling leg: the captain's chain has no HIRE_OK — the lines above are the evidence");
@@ -195,6 +204,67 @@ public static class HireLeg
         GD.Print($"HIRE_ALIVE life={r.Life} maxlife={m.MaxLife} level={m.Level} xp_kept={m.Xp == xp}");
         return spec == r.Cost && s.Gold == goldBefore - spec && r.Life == m.MaxLife
             && !m.IsDead && m.Level == level && m.Xp == xp;
+    }
+
+    // ---- HERO DEATH KILLS THE HIRELING — the S14 law, LIVE ------------------
+
+    /// The §6.7b law through the REAL session (MC 11898 — D2 KillPlayerPets):
+    /// the freshly-revived mercenary rides to mchy while the hero stands
+    /// NEAREST (CombatDistance 4 — the §6.7 targeting door sends every counter
+    /// to him, and the loop below asserts she stays alive strike after strike);
+    /// the ponurak's counters grind his pool to 0 like the DeathLeg's beat.
+    /// The SAME transition that flips IsDead takes her life — MERC_DIES prints
+    /// her life before (read beside the killing strike) and after. Respawn
+    /// raises the hero home at full life and leaves the corpse at mchy
+    /// (HERO_RESPAWN reads both halves back from the session). The captain
+    /// then charges the EXACT min(15·L²/2, 50000) to raise the SAME mercenary
+    /// (REVIVE_AFTER_HERO_DEATH), and she re-engages in front again — the
+    /// tail rides (StashQuestLeg) behind a living shield, not a corpse.
+    private static bool HeroDeathLaw(GameSession s, Act act)
+    {
+        var m = s.Merc!;
+        m.CombatDistance = 4;                      // the hero is the nearest valid body
+        s.TravelTo("mchy");                        // the ALIVE merc follows (the mirror)
+        act.Rebuild(s.CurrentArea);
+
+        int strikes = 0;
+        long before = m.Life;                      // her life the moment the killing counter lands
+        for (; strikes < HeroDeathCap && !s.IsDead; strikes++)
+        {
+            if (m.IsDead)
+            {
+                GD.PushError($"hero-death beat: the merc fell at strike {strikes}, BEFORE the hero — targeting leak");
+                return false;
+            }
+            before = m.Life;
+            s.Attack("ponurak", 1);
+        }
+        if (!s.IsDead || !m.IsDead || m.Life != 0 || before <= 0)
+        {
+            GD.PushError($"hero-death beat: hero_dead={s.IsDead} merc_life={m.Life} (was {before}) after {strikes} strikes");
+            return false;
+        }
+        GD.Print($"MERC_DIES merc_life_before={before} after={m.Life} strikes={strikes} " +
+                 "note=she dies with you — the fire goes out (§6.7b, MC 11898)");
+
+        s.Respawn();                               // the stone raises the HERO
+        GD.Print($"HERO_RESPAWN hero_area={s.CurrentArea} hero_life={s.Character.Life}/{s.Character.MaxLife} " +
+                 $"merc_life={m.Life} merc_area={m.Area}");
+        if (s.IsDead || s.Character.Life != s.Character.MaxLife || s.CurrentArea != s.Areas.TownKey
+            || m.Life != 0 || m.Area != "mchy")
+        {
+            GD.PushError("hero-death beat: the stone moved the hero OR carried the corpse — HERO_RESPAWN above is the evidence");
+            return false;
+        }
+
+        long goldBefore = s.Gold;                  // home ALREADY — no ride needed, the stone brought him
+        int level = m.Level;
+        var r = s.Revive("strzelczyni");           // the captain raises her AT the ground's door
+        long spec = Math.Min(15L * level * level / 2, 50000);
+        GD.Print($"REVIVE_AFTER_HERO_DEATH id={r.Id} cost={r.Cost} gold_before={goldBefore} gold_after={s.Gold} " +
+                 $"formula=min(15x{level}^2/2,50000)={spec} matches={spec == r.Cost}");
+        m.CombatDistance = 0;                      // the merc engages in front again (the tail rides on her)
+        return spec == r.Cost && s.Gold == goldBefore - spec && r.Life == m.MaxLife && !m.IsDead;
     }
 
     // ---- helpers -------------------------------------------------------------

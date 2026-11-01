@@ -27,6 +27,23 @@ public sealed partial class GameSession
         if (IsDead) throw new SessionRejectedException("you are dead");
     }
 
+    /// <summary>THE hero-death law (§6.7b AMENDMENT, MC 11898; D2 rule VERIFIED
+    /// official AND engine: "if your character dies, your Hireling dies as
+    /// well" — the death-mode KillPlayerPets path): fired at the ONE death
+    /// transition, from CounterStrike the instant TakeDamage's life-floor flips
+    /// IsDead (v4 doctrine — IsDead derives from Life at 0). A LIVING merc's
+    /// life goes to 0 through her own TakeDamage floor — ONE deterministic
+    /// fact: no rolls, no gold, no event; regen skips and every DEAD report
+    /// line speaks from it. An already-dead merc is untouched (NO double-state)
+    /// and a missing entry costs nothing (the hard RNG law). The pet ENTRY is
+    /// KEPT, as KillPlayerPets keeps the HIREABLE record: the captain's Revive
+    /// door stays payable on the SAME mercenary (cost formula unchanged).
+    /// she dies with you — the fire goes out.</summary>
+    private void KillHirelingOnHeroDeath()
+    {
+        if (Merc is { IsDead: false }) Merc.TakeDamage(Merc.Life);
+    }
+
     /// <summary>Stone-resurrection (pinned): clears DEAD, restores Life to
     /// MaxLife, and relocates the hero to the last discovered town. While alive
     /// the door is a REJECTION, never a free heal — and a second raise after a
@@ -57,7 +74,12 @@ public sealed partial class GameSession
         if (!Waypoints.IsDiscovered(home))
             throw new SessionRejectedException($"the stone in '{home}' is dark — nowhere to resurrect");
         CurrentArea = home;
-        if (Merc is not null) Merc.Area = home; // the merc rides the stone too (mirror, §6.7)
+        // The ALIVE merc rides the stone too (mirror, §6.7). Under the S14 law a
+        // hero death has already taken her life in the same instant, so this
+        // mirror now moves a LIVING merc only — the corpse stays where it fell
+        // ("there is no corpse-carry", §6.7b / H3, MC 11898); the captain raises
+        // her AT that ground's door for the usual cost.
+        if (Merc is { IsDead: false }) Merc.Area = home;
         Engaged = null;
         EngagedKey = null;
     }
