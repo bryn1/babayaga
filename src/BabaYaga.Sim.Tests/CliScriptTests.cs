@@ -179,8 +179,12 @@ public class CliScriptTests
     public void RejectedStateChange_PrintsErrorLine_AndExitsNonzero()
     {
         var path = Path.Combine(Path.GetTempPath(), $"cli-{Guid.NewGuid():N}.txt");
-        // mchy is dark: waypoint travel to an unlit stone must be refused, not silently skipped.
-        File.WriteAllText(path, "new koldun\nwaypoint mchy\n");
+        // widlan is stone-less AND no walked road from grodzisko (not a linkedTo
+        // neighbour) — refused by BOTH doors of the evolved travel door
+        // (ORCH-RULING 2026-11-01: the old example, `waypoint mchy`, names an
+        // ADJACENT ground the walk door now legally reaches; the refused-state
+        // contract this test proves — ERROR line + nonzero exit — is unchanged).
+        File.WriteAllText(path, "new koldun\nwaypoint widlan\n");
         try
         {
             var (exit, lines) = Run(path);

@@ -26,7 +26,17 @@ using Godot;
 /// S7 leg no longer mints its own point — S8's real quest loop owns the rite),
 /// the hero weaves a pokrzywnik dead in
 /// mchy — CAST/CAST_DEFEATED — drains the pool to a MANA_REJECT hint, quaffs the belted
-/// napitek-manny and weaves green — MANA_OK) → ORCH_M4_OK → Quit(0).
+/// napitek-manny and weaves green — MANA_OK) → the M4-S9b ACT-1-OPENS BEAT
+/// (Act1OpenLeg: the ONE travel door has evolved per ORCH-RULING 2026-11-01 +
+/// the D2 oracle grant — WALK a linkedTo edge from known ground, or RIDE the
+/// lit stones, unchanged — so the stone-less rites go LIVE: wrzeciono walked to
+/// pokrzywlasy (WALK_STEP, lit-set equal before/after, kill on the goal ground,
+/// QUEST2_REWARD maxlife delta = PotionOfLifeFlat through the constant path),
+/// dary walked hop-by-hop grodzisko→mchy→krecie→kopcowisko (krecie arrived
+/// dark, order-contract Discover, kopcowisko walked-in DARK), the WaypointUnlock
+/// reward lights the stone (NEW_STONE before=False lit=True), and the
+/// edgeless kopcowisko↔grodzisko moves prove the RIDE half — ACT1_OPEN_OK) →
+/// ORCH_M4_OK → Quit(0).
 /// Windowed → MainMenu.tscn. Zero rules live here (Game → Sim → nothing).
 /// </summary>
 public partial class Boot : Node
@@ -67,6 +77,7 @@ public partial class Boot : Node
             DeathLeg.Run(session, act); // M4-S6: death + stone-resurrection riding the belt leg's empty belt
             QuestLeg.Run(session, act); // M4-S8: the gesi loop pays the point that weaves iskra (rides the death leg's town tail)
             CastLeg.Run(session, act); // M4-S7: the iskra cast beat riding the quest leg's town tail (the weave is already learned)
+            Act1OpenLeg.Run(session, act); // M4-S9b: wrzeciono + dary go LIVE — the stone-less world is WALKED (ORCH-RULING 2026-11-01), the lit-stone RIDE unchanged — ACT1_OPEN_OK
         }
 
         GD.Print("ORCH_M4_OK");

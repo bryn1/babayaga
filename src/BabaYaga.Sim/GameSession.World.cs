@@ -2,9 +2,12 @@ namespace BabaYaga.Sim;
 
 /// <summary>
 /// The world half of the session (sibling of the core file's character/economy
-/// commands): standing stones, lit-stone travel, and the quest rites with their
-/// reward payouts (P3 §6.3–6.4). Same contract as the core file — every command
-/// either fully applies or is rejected with no state change.
+/// commands): standing stones, the ONE walk-or-ride travel door (ORCH-RULING
+/// 2026-11-01 — WALK a linkedTo neighbour of known ground, or RIDE the lit
+/// stones; the door below stays the single legality check via Waypoints.CanTravel)
+/// and the quest rites with their reward payouts (P3 §6.3–6.4). Same contract as
+/// the core file — every command either fully applies or is rejected with no
+/// state change.
 /// </summary>
 public sealed partial class GameSession
 {
@@ -19,7 +22,7 @@ public sealed partial class GameSession
         RaiseIfDead(); // a DEAD hero does not walk: the stones raise him home (Respawn)
         if (!Areas.Areas.Any(a => a.Key == areaKey)) throw new SessionRejectedException($"unknown area '{areaKey}'");
         if (!Waypoints.CanTravel(CurrentArea, areaKey))
-            throw new SessionRejectedException($"no lit-stone path from '{CurrentArea}' to '{areaKey}'");
+            throw new SessionRejectedException($"no walked road and no lit-stone path from '{CurrentArea}' to '{areaKey}'");
         CurrentArea = areaKey;
         Engaged = null;
         EngagedKey = null;

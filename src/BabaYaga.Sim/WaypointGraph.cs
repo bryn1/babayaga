@@ -6,11 +6,16 @@ namespace BabaYaga.Sim;
 public sealed record WaypointRow(int Id, string AreaKey, string Name);
 
 /// <summary>
-/// The waypoint network (P3 §6.3): one node per key area, activation permanent per
-/// character, and travel legal ONLY between discovered nodes. Town is the hub —
-/// town↔any discovered node is always one hop; area↔area needs a path of
-/// discovered nodes through the area graph. No de-activation method exists:
-/// discovery is permanent by construction.
+/// The waypoint network (P3 §6.3) and the ONE travel door (ORCH-RULING 2026-11-01
+/// + D2 oracle grant — in D2 the world is WALKED; waypoints are optional
+/// fast-travel that light only where stones stand). Travel is legal by EITHER
+/// rule: WALK — a direct linkedTo neighbour of a KNOWN ground (a discovered
+/// stone stands at one end of the road; walking lights nothing) — OR RIDE — the
+/// P3 §6.3 lit-stone rules UNCHANGED: town is the hub, town↔any discovered node
+/// is one hop, area↔area needs a path of discovered nodes through the area
+/// graph. No de-activation method exists: discovery is permanent by construction.
+/// The ruled walls stand: Load refuses stones in waypoint-less areas, Discover
+/// throws for node-less areas.
 /// </summary>
 public sealed class WaypointGraph
 {
@@ -66,7 +71,9 @@ public sealed class WaypointGraph
         return _discovered.Add(areaKey);
     }
 
-    /// Destinations reachable from one discovered node (the waypoint-book list).
+    /// Destinations reachable from one discovered node (the waypoint-book list) —
+    /// since ORCH-RULING 2026-11-01 this also lists stones a walked road reaches
+    /// (the list answers "where can I GO from here" through the ONE door).
     public IReadOnlyList<string> Destinations(string fromAreaKey)
     {
         if (!_discovered.Contains(fromAreaKey)) return Array.Empty<string>();
@@ -76,11 +83,30 @@ public sealed class WaypointGraph
             .ToArray();
     }
 
-    /// Travel is legal only between two DISCOVERED nodes, town-hub or via a path
-    /// of discovered nodes through the area graph (P3 §6.3).
+    /// The ONE travel door (ORCH-RULING 2026-11-01): WALK — a direct linkedTo
+    /// neighbour of a KNOWN ground — OR RIDE — the lit-stone rules UNCHANGED.
+    /// The lit-endpoint concession (parent ruling, this card): walk needs one
+    /// discovered end of the edge, so dark-to-dark wander stays refused —
+    /// D2 full-walk fidelity is deferred as its own future LEDGER row.
     public bool CanTravel(string fromAreaKey, string toAreaKey)
     {
         if (fromAreaKey == toAreaKey) return false;
+        if (CanWalk(fromAreaKey, toAreaKey)) return true;
+        return CanRide(fromAreaKey, toAreaKey);
+    }
+
+    /// WALK half of the door (the D2 oracle: the world is WALKED): adjacency on
+    /// the area graph with a discovered stone at one end of the road. Walking
+    /// lights NOTHING, burns nothing, rolls nothing — no rng on this path.
+    private bool CanWalk(string fromAreaKey, string toAreaKey) =>
+        (_discovered.Contains(fromAreaKey) || _discovered.Contains(toAreaKey))
+        && _areas.TryGet(fromAreaKey, out var from) && from.LinkedTo.Contains(toAreaKey);
+
+    /// RIDE half — the existing lit-stone rules UNCHANGED (P3 §6.3): travel only
+    /// between two DISCOVERED nodes, town-hub or via a path of discovered nodes
+    /// through the area graph.
+    private bool CanRide(string fromAreaKey, string toAreaKey)
+    {
         if (!_discovered.Contains(fromAreaKey) || !_discovered.Contains(toAreaKey))
             return false;
         if (fromAreaKey == _areas.TownKey || toAreaKey == _areas.TownKey)
