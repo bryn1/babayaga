@@ -52,6 +52,13 @@ using Godot;
 /// deterministic death on the leszy's dice (HIRE_DEAD — dead mercs strike not
 /// and regen not), and the town revive at min(15·L²/2, 50000) restoring the
 /// SAME mercenary at full life (REVIVE + HIRE_ALIVE) — HIRE_OK) →
+/// the M4-S12 TOWN STASH BEAT (StashQuestLeg: glowa's StashTab reward opens
+/// tab 2 LIVE (row 74) — the rite accepted in town, kopcowisko ridden, its
+/// data row's kill taken on the road, czelusc WALKED in dark (the lair's
+/// missing area-monsters row printed honestly), the step on the goal ground,
+/// NEW_TAB before/after around the payment + the pay-once QUEST4_REFUSED —
+/// then the town chest: store into tab 2 and take back, every position read
+/// from the session's own reports — STASH_OK) →
 /// ORCH_M4_OK → Quit(0).
 /// Windowed → MainMenu.tscn. Zero rules live here (Game → Sim → nothing).
 /// </summary>
@@ -96,6 +103,7 @@ public partial class Boot : Node
             RegenLeg.Run(session, act); // M4-S10b: REGEN/LIFE_STATIC on the cast leg's mchy tail — mana regens by the D2 quantum (amended §1.8, MC 11873), life NEVER does
             Act1OpenLeg.Run(session, act); // M4-S9b: wrzeciono + dary go LIVE — the stone-less world is WALKED (ORCH-RULING 2026-11-01), the lit-stone RIDE unchanged — ACT1_OPEN_OK
             HireLeg.Run(session, act); // M4-S11: the captain's doors per the AMENDED §6.7 (MC 11883) — hire price formula at the rookie, 86/256 chain, revive cost, merc regen rule, nearest-target — HIRE_OK
+            StashQuestLeg.Run(session, act); // M4-S12: glowa's StashTab opens tab 2 LIVE (row 74) — the walked rite, the pays-once reward, the town chest store/take read from the session reports — STASH_OK
         }
 
         GD.Print("ORCH_M4_OK");

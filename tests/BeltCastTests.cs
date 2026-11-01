@@ -339,7 +339,7 @@ public class BeltCastTests
     // ---- the mana pool already rides the v4 save: no format bump for casting ----
 
     [Fact]
-    public void Cast_LoweredMana_SurvivesSaveRoundTrip_SaveCarriesVersion5()
+    public void Cast_LoweredMana_SurvivesSaveRoundTrip_SaveCarriesVersion6()
     {
         var s = Fresh(3);
         LearnOne(s, "iskra");
@@ -354,7 +354,7 @@ public class BeltCastTests
             var loaded = GameSession.Load(path, TestData.DataDir());
             Assert.Equal(before, loaded.Dump()); // byte-identical round trip (foundation contract)
             Assert.Equal(r.ManaAfter, loaded.Character.Mana); // the spent pool carries…
-            Assert.Equal(5, SaveSerializer.SaveVersion); // …unchanged by casting — v5's only new field is the hireling block (§6.7, card/11886)
+            Assert.Equal(6, SaveSerializer.SaveVersion); // …unchanged by casting — v6's only new field is the stash block (row 74, card/11893; the 88b70b2 re-pin idiom)
         }
         finally { File.Delete(path); }
     }

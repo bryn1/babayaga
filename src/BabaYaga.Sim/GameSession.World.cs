@@ -65,7 +65,9 @@ public sealed partial class GameSession
             // The rite's skill point lands in the real pool (P1 §1.1, DA round-1 P1-2):
             // GrantSkillPoints is the single grant door; TrySpendSkillPoint the debit.
             case QuestRewardKind.SkillPoint: Character.GrantSkillPoints(row.RewardAmount); break;
-            case QuestRewardKind.StashTab: StashTabs += row.RewardAmount; break; // stash itself is row 74
+            // Row 74 LIVE (M4-S12): the tab opens through the stash door — the
+            // FSM's REFUSED-throw gate fronts this branch, so the reward pays once.
+            case QuestRewardKind.StashTab: UnlockNextStashTabs(row.RewardAmount); break;
             default: OtherRewards += row.RewardAmount; break;
         }
     }

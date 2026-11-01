@@ -72,7 +72,17 @@ public sealed class SessionSave
     /// accumulator fraction is not persisted, same disclosed gap as the mana
     /// accumulator's (GameSession.Hireling header).</summary>
     public HirelingSave? Merc { get; init; }
+    /// <summary>The town stash as saved (v6, row 74 / M4-S12) — tab by tab, tabs
+    /// sorted by number, items riding the SAME ItemSave rows with their anchor
+    /// cells. Opened-but-EMPTY tabs are deliberately absent: StashTabs above
+    /// already carries the unlock truth (the empty-never-pays rule), and the
+    /// v6 addition sits LAST so every older field keeps its dump position.</summary>
+    public IReadOnlyList<StashTabSave> Stash { get; init; } = [];
 }
+
+/// v6: one stash tab at save time (SaveSerializer re-places every item through
+/// the tab's own InventoryGrid — the fits-or-refuses law the carried rebuild runs).
+public sealed record StashTabSave(int Tab, IReadOnlyList<ItemSave> Items);
 
 /// v5: one hireling at save time (SaveSerializer.RestoreHireling rebuilds it
 /// through the hireling table — a save naming a vanished id fails the load).

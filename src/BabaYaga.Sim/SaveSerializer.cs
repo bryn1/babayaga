@@ -17,8 +17,11 @@ public static class SaveSerializer
     /// pools, the third (enemy-counter) stream word, and the belt as carried
     /// indices — a loaded belt re-points at the restored copies, never at the
     /// pre-save instances. Version 5 (§6.7 rows 65–66, M4-S11): the hireling
-    /// block — the one mercenary slot as saved, null when none rides.</summary>
-    public const int SaveVersion = 5;
+    /// block — the one mercenary slot as saved, null when none rides.
+    /// Version 6 (row 74, M4-S12): the town stash — per-tab item rows on their
+    /// anchor cells, riding the SAME ItemSave serialization as the carried pack;
+    /// the unlock count already rode StashTabs. A v5 save is refused by name.</summary>
+    public const int SaveVersion = 6;
 
     private static readonly JsonSerializerOptions FileOpts = new()
     { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
@@ -90,6 +93,14 @@ public static class SaveSerializer
             PendingGold = s.Drops.Gold,
             Merc = s.Merc is null ? null : new HirelingSave(
                 s.Merc.Id, s.Merc.Level, s.Merc.Xp, s.Merc.Life, s.Merc.Area, s.Merc.CombatDistance),
+            // v6 LAST (the v5 law: older fields keep their dump positions): opened-
+            // but-EMPTY tabs are NOT saved — StashTabs already carries the unlock
+            // truth; tabs sort by number, items in placement order (byte-stable).
+            Stash = [.. s.StashForSave
+                .Where(kv => kv.Value.Items.Count > 0)
+                .OrderBy(kv => kv.Key)
+                .Select(kv => new StashTabSave(kv.Key, [.. kv.Value.Items
+                    .Select(i => ItemDto(i, kv.Value.Spots.GetValueOrDefault(i, (-1, -1))))]))],
         };
     }
 
@@ -183,6 +194,25 @@ public static class SaveSerializer
                 [.. d.PendingDrops.Select(p => BuildItem(s, p))], d.PendingGold));
             s.SetEngaged(d.EngagedKey, d.EngagedLife);
             if (d.Merc is not null) s.RestoreHireling(d.Merc); // v5: rebuild via the hireling table
+            // v6: the stash re-materializes tab by tab (number order = save order).
+            // An item is restored through the tab's own InventoryGrid — the same
+            // fits-or-refuses law the carried rebuild runs, no second engine.
+            foreach (var tabSave in d.Stash)
+            {
+                if (!s.IsStashTabUnlocked(tabSave.Tab))
+                    throw new InvalidDataException(
+                        $"stash tab {tabSave.Tab} holds items but only {s.StashTabs + 1} stand unlocked");
+                var tab = s.StashTabForSave(tabSave.Tab);
+                foreach (var save in tabSave.Items)
+                {
+                    var item = BuildItem(s, save);
+                    if (!tab.Grid.TryPlace(item, save.Row, save.Col))
+                        throw new InvalidDataException(
+                            $"stash item '{save.Base}' in tab {tabSave.Tab} no longer fits its cells");
+                    tab.Items.Add(item);
+                    tab.Spots[item] = (save.Row, save.Col);
+                }
+            }
         }
         catch (Exception e) when (e is SkillSpendRejectedException or ArgumentException or KeyNotFoundException)
         {
