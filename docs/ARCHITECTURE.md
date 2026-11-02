@@ -1,6 +1,11 @@
-# Baba Yaga — Architecture (v11, 2026-10-31)
+# Baba Yaga — Architecture (v12, 2026-11-02)
 
-version: 11 (rev-pointer sweep, card/11817 — DA-verdict-m4-c4 P2-A: the six §game/ body
+version: 12 (M4 GA doc-sync, card/11915 — the release-doctrine de-stale at the v0.4.0 tag: the
+§game/ heading's stale "nothing built yet" clause re-pointed (the presentation layer is BUILT —
+headless story legs LIVE, README + docs/RELEASE-v0.4.0.md); the xp-ladder "interpolated" claim
+replaced by the 99 verbatim rows (the LEDGER D2-ORACLE-ALIGNMENT FINDING closes here); the
+build-command block names the shipped `game/Game.csproj` (was `babayaga.csproj`, contract drift);
+docs/MECHANICS.md joins as the in-repo law summary; v11 archived in git history. Earlier: v11 (rev-pointer sweep, card/11817 — DA-verdict-m4-c4 P2-A: the six §game/ body
 rev-pointers that claim CURRENT sync re-labelled rev3→rev4 (v10 lines 392/395/504/514/529/572 —
 the tree block is byte-identical to `out/M4-placement.md` rev4 §1, DA-c4 C5; the DoD that governs
 is `out/M4-slice-DoD.md` rev4, its :15 names itself; fences stay even); historical-scoped rev3
@@ -80,7 +85,7 @@ babayaga/                     this git tree (root = repo root, layout v2)
   .tmp/                       scratch, gitignored — marker file only
   src/BabaYaga.Sim/           PURE C# class library — all game rules. Zero Godot references.
   src/BabaYaga.Sim.Cli/       dotnet console driver: scripted headless sim sessions = the pytest target
-  game/                       Godot 4.7 mono project (project.godot, babayaga.csproj) — presentation
+  game/                       Godot 4.7 mono project (project.godot, Game.csproj) — presentation
                               ONLY; consumes the Sim public API, holds no game rules
   tests/                      CLI journey scripts (tests/journey.txt) + the planned pytest suite
   data/                       ORIGINAL JSON tables: skills, items, monsters, acts (+ affixes,
@@ -130,11 +135,11 @@ Single-player desktop only. No server, no listening port, no IPC, no localhost d
 # once per added/changed asset or script:
 "$GODOT" --headless --path <project> --import
 # build C#:
-dotnet build <project>/babayaga.csproj        # Sdk="Godot.NET.Sdk/4.7.2", TargetFramework=net8.0
+dotnet build <project>/Game.csproj         # Sdk="Godot.NET.Sdk/4.7.2", TargetFramework=net8.0
 # engine sim leg (the pytest acceptance gate): exit code + named GD.Print markers
 "$GODOT" --headless --path <project> -- <mode-arg>
 # hygiene when script-class lookup mysteriously fails:
-rm -rf <project>/.godot/mono/temp && dotnet build <project>/babayaga.csproj
+rm -rf <project>/.godot/mono/temp && dotnet build <project>/Game.csproj
 ```
 
 `$GODOT` = `/home/claudecode/Games/.tools/godot/Godot_v4.7.2-stable_mono_linux_x86_64/Godot_v4.7.2-stable_mono_linux.x86_64`
@@ -172,7 +177,8 @@ src/BabaYaga.Sim/                         net8.0 class library — references no
 src/BabaYaga.Sim.Tests/                   net8.0 xunit project — 142 tests green at v10 (RngTests,
                                           MechanicsTests, SkillTreeTests, CombatTests, BoundaryTests,
                                           + the M3 Monster/PackAffix/AI/World suites)
-data/xp-ladder.json                       anchors exact per P1 §1.7; intermediate rows interpolated
+data/xp-ladder.json                       all 99 cumulative rows verbatim of the granted D2
+                                          reference table + ExpRatio curve 71→99 (LEDGER row 17)
 data/koldun-skills.json                   Koldun = first playable class (ORIGINAL IP): 3 trees
                                           (Popioly/Uroki/Krag × 4 skills), prereqs, synergies
 ```
@@ -390,7 +396,7 @@ src/BabaYaga.Sim.Cli/Program.cs           — BUILT as M1 close-out above (Progr
 `test_combat.py`, `test_itemgen.py`, `test_monsters.py`, `test_progression.py`, `test_save.py` —
 each asserts on CLI markers/exit codes only.
 
-## game/ — presentation layer (PLANNED at v10 — placement card/11778, this sync card/11809; nothing built yet)
+## game/ — presentation layer (PLANNED at v10 — placement card/11778, this sync card/11809; BUILT SINCE — the M4-S1..S16 legs and the headless story run are LIVE at v0.4.0 (MC 11915); the file-level plan below stays the art-placement reference)
 
 The executable file-level plan and the 26-render ART SPEC the art pass consumes verbatim are
 `out/M4-placement.md` in run `202610301950-31593a83` (run dir at the Games workspace root); slice
