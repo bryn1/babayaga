@@ -36,10 +36,10 @@ public sealed class Character
     public int IncreaseMaxManaPercent { get; set; }
 
     /// <summary>The hero's worn panel, assigned ONCE by the owning GameSession
-    /// (the panel object itself, never a copy). Mana item terms are DERIVED at
-    /// the read through it — the Hireling.MaxLife GearStat precedent (M4-S16,
-    /// §6.7c): never a save field, save format v7 UNCHANGED. Null for a
-    /// standalone Character (CLI debug verbs, unit fixtures) — it derives
+    /// (the panel object itself, never a copy). Mana AND life item terms are
+    /// DERIVED at the read through it — the Hireling.MaxLife GearStat precedent
+    /// (M4-S16, §6.7c): never a save field, save format v7 UNCHANGED. Null for
+    /// a standalone Character (CLI debug verbs, unit fixtures) — it derives
     /// gear-free, exactly as before this row.</summary>
     public EquipmentPanel? WornGear { get; set; }
 
@@ -97,8 +97,26 @@ public sealed class Character
     public int TotalVit => Profile.StartVit + VitAlloc + VitFromItems;
     public int TotalEner => Profile.StartEner + EnerAlloc + EnerFromItems;
 
+    /// <summary>The max-life derivation with the row-4 ITEM TERMS (P1 §1.3, the
+    /// quoted life line — "max_life = (base_life + flat "+Life") × (1 +
+    /// IncreaseMaxLife% / 100) + life_per_vit × vit_from_items + "+Life (based
+    /// on character level)"; VERIFIED, d2r.org/mechanics/life-and-vitality:
+    /// "maximum life = (base life + flat "+X to Life") × (1 + "Increase Maximum
+    /// Life %" ÷ 100) + life per Vitality × Vitality from items"). Flat "+Life"
+    /// from worn gear rides Stats.BaseLife's flat term — INSIDE the parens, so
+    /// the % multiplies it; "+Vit" from worn gear IS the formula's "Vitality
+    /// from items" and joins AFTER the multiplier as LifePerVit × Vit. Both
+    /// sums are DERIVED at the read from WornGear (never a save field; the
+    /// "+Life (based on character level)" term has no data row and no Stats
+    /// parameter — data-future, named not invented); they ADD to the public
+    /// authoring fields (save-restore and quest flats keep their own doors).
+    /// The CURRENT Life pool is damage state — this read never re-tops it
+    /// (D2: +max to life does not heal; pinned by LifeItemTermTests).</summary>
     public long MaxLife => Stats.MaxLife(
-        Profile, Level, VitAlloc, VitFromItems, FlatLife, IncreaseMaxLifePercent);
+        Profile, Level, VitAlloc,
+        VitFromItems + WornStat("vit"),
+        FlatLife + WornStat("life"),
+        IncreaseMaxLifePercent);
 
     /// Σ of one mod stat over WORN gear only — the Hireling.GearStat summing
     /// idiom (the same worn-only law the merc panel obeys: carried feeds
