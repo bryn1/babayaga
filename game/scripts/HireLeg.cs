@@ -96,6 +96,20 @@ public static partial class HireLeg
         // clamp (a rookie that hits almost never). That IS the adoption reading,
         // stated at HirelingTests.BracketMerc; the fight beats author the rookie
         // to its bracket row through the same public state door.
+        // DEBT ROW, CLOSED WITH A NAMED READING (M5-S6 card/11940 — the write
+        // the S4 negative-scan found; both options' evidence, one chosen): the
+        // route-through-door option was PROBED, not argued — Gain(XpAt(3) − Xp,
+        // s.Level) HERE keeps the rookie at L1 (Gain caps at min(hero level,98)
+        // and the hero is L1 this early; the ladder verb cannot reach the
+        // pinned §6.7 L1-clamp state) and the story stdout DIVERGES: HIRE_LIFE
+        // merc 36/30 → 41/35, stdout md5 367773b4… ≠ 52af3988… — the byte
+        // anchor. The write is LOAD-BEARING: NOT FORCED. It is not a bypass
+        // either — Hireling.Level/Xp are the engine's PUBLIC authoring doors
+        // (the RestoreHireling/Character.Life doctrine, src docstring verbatim:
+        // "the public … door … used by the serializer to land the block AS
+        // SAVED"); no higher door exists in src to route through, and src is
+        // read-only to this seat. LEDGER row 75 carries the row; every door the
+        // S6 panel itself opens rides CommandLog.Call (TownPanelTests pins it).
         s.Merc!.Level = row.Bracket.Level;
         s.Merc.Xp = HirelingXp.XpAt(s.Merc.ExpPerLevel, s.Merc.Level);
         GD.Print($"HIRE_RAISE level={s.Merc.Level} life={s.Merc.MaxLife} ar={s.Merc.AttackRating} " +

@@ -53,6 +53,10 @@
     <Compile Include="..\..\game\scripts\ClickMap.cs" Link="game\ClickMap.cs" />
     <Compile Include="..\..\game\scripts\SpriteRoster.cs" Link="game\SpriteRoster.cs" />
     <Compile Include="..\..\game\scripts\DeathMenuLogic.cs" Link="game\DeathMenuLogic.cs" />
+    <!-- M5-S6 town panel (MC 11940): same idiom — the mapping/gate core the
+         TownPanel rides is PURE (no Godot types), the widget glue stays outside. -->
+    <Compile Include="..\..\tests\TownPanelTests.cs" Link="tests\TownPanelTests.cs" />
+    <Compile Include="..\..\game\scripts\TownPanelLogic.cs" Link="game\TownPanelLogic.cs" />
   </ItemGroup>
 
   <ItemGroup>
