@@ -56,10 +56,58 @@ public sealed class Hireling
 
     /// The bracket-table stats at the merc's CURRENT level — computed, never
     /// cached (the Character.MaxLife idiom; per-level columns pay as L grows).
-    public long MaxLife => HirelingTable.StatsAt(Row, Level).Life;
+    /// <summary>The §6.7c bracket life PLUS the +life sum of worn gear (MC 11914,
+    /// spec-3 §6.7c (d): D2MOO rides +life through the same aggregate stat read
+    /// as the hero's, and the level-up recompute "rewrites the base list only",
+    /// so the gear bonus survives it — DERIVED at the read, NOTHING new is a
+    /// save field (v7 unchanged: the bonus rides the persisted Gear items' own
+    /// mods). The revive and the level-up heal both read through here.</summary>
+    public long MaxLife => HirelingTable.StatsAt(Row, Level).Life + GearStat("life");
     public int DamageMin => HirelingTable.StatsAt(Row, Level).DamageMin;
     public int DamageMax => HirelingTable.StatsAt(Row, Level).DamageMax;
     public long AttackRating => HirelingTable.StatsAt(Row, Level).AttackRating;
+
+    /// <summary>The §6.7c strike envelope DERIVED from the worn panel (MC 11914;
+    /// the amendment's SIMPLE rows only — the COMPLEX rows stay DEFER, LEDGER
+    /// 66): a worn weapon whose base carries a damage range REPLACES the bracket
+    /// dice (one range per weapon base — the fenced ORIGINAL DESIGN; an unarmed
+    /// merc, or a weapon base still carrying no range — every shipped data row
+    /// today — keeps the bracket dice); flat dmg_min/dmg_max on worn gear widen
+    /// the rolled range BEFORE the percent (the amendment order); the weapon's
+    /// own dmg_pct rides the hero primitive's weapon-ED input and the OTHER
+    /// worn slots' dmg_pct sum into its ΣED input (the −90 clamp is inside
+    /// CombatResolver.PhysicalDamage — THE SAME primitive the hero strikes
+    /// with, never a second formula). Computed at the read like MaxLife.</summary>
+    public (int Min, int Max, int WeaponEnhancedPercent, int EnhancedDamageSumPercent) StrikeStats()
+    {
+        var (_, bracketMin, bracketMax, _) = HirelingTable.StatsAt(Row, Level);
+        Gear.TryGetValue(MercGearSlot.Weapon, out var weapon);
+        int min = bracketMin, max = bracketMax;
+        if (weapon is not null && weapon.Base.DamageMax >= 1)
+        {
+            min = weapon.Base.DamageMin; // THE SWAP — the weapon range owns the roll
+            max = weapon.Base.DamageMax;
+        }
+        int flatMin = 0, flatMax = 0, edSum = 0;
+        foreach (var worn in Gear.Values)
+        {
+            flatMin += worn.ModSum("dmg_min");
+            flatMax += worn.ModSum("dmg_max");
+            if (!ReferenceEquals(worn, weapon)) edSum += worn.ModSum("dmg_pct");
+        }
+        min = Math.Max(0, min + flatMin);  // the HirelingTable minima, mirrored
+        max = Math.Max(min, max + flatMax);
+        return (min, max, weapon?.ModSum("dmg_pct") ?? 0, edSum);
+    }
+
+    /// Σ of one mod stat over every worn item (the ModSum summing idiom, audit
+    /// D-4's shape) — the gear-life read and the strike math's one door.
+    private long GearStat(string stat)
+    {
+        long sum = 0;
+        foreach (var worn in Gear.Values) sum += worn.ModSum(stat);
+        return sum;
+    }
 
     /// DEAD as the pool reads (the Character.IsDead pinned idiom, row 64).
     public bool IsDead => Life <= 0;

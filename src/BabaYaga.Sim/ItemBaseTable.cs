@@ -29,7 +29,14 @@ public sealed record ItemBaseRow(
     bool ClassSpecific,
     /// <summary>true = belt-side consumable (row 69 potions): never enters the
     /// Stock roll pipeline (gamble, drops) and needs no durability.</summary>
-    bool Consumable)
+    bool Consumable,
+    /// <summary>§6.7c (MC 11914): the weapon base's ONE damage range — the
+    /// clone's fenced collapse of D2's 1-hand/2-hand/throw families (spec-3
+    /// §6.7c ORIGINAL DESIGN). 0/0 = the base carries no range yet (every
+    /// shipped row today — the data-future LEDGER gap): a worn weapon with no
+    /// range changes nothing on a merc's dice, the bracket stands.</summary>
+    int DamageMin = 0,
+    int DamageMax = 0)
 {
     /// <summary>Type name for an itype-or-equiv token match against a runeword's list (P2 §4.5).
     /// Plural/singular spellings are the same type token.</summary>
@@ -87,7 +94,9 @@ public sealed class ItemBaseTable
                 !e.TryGetProperty("qualityRolls", out var qr) || qr.GetBoolean(),
                 e.TryGetProperty("magicLevelAdd", out var mla) && mla.GetBoolean(),
                 e.TryGetProperty("classSpecific", out var cs) && cs.GetBoolean(),
-                e.TryGetProperty("consumable", out var con) && con.GetBoolean()));
+                e.TryGetProperty("consumable", out var con) && con.GetBoolean(),
+                e.TryGetProperty("damageMin", out var dmin) ? dmin.GetInt32() : 0,
+                e.TryGetProperty("damageMax", out var dmax) ? dmax.GetInt32() : 0));
         }
         Validate(rows);
         var table = new ItemBaseTable { Bases = rows };
@@ -109,6 +118,9 @@ public sealed class ItemBaseTable
                 throw new InvalidDataException($"item base '{b.Id}': inventory cells must be at least 1x1");
             if (b.MaxSockets is < 0 or > 6)
                 throw new InvalidDataException($"item base '{b.Id}': socket ceiling outside 0..6 (P2 §4.5)");
+            if (b.DamageMin < 0 || b.DamageMax < b.DamageMin)
+                throw new InvalidDataException(
+                    $"item base '{b.Id}': damage range must satisfy 0 <= min <= max (§6.7c)");
             if (b.QualityRolls && !b.Consumable && b.Durability < 1 && !IsJewelry(b.Itype))
                 throw new InvalidDataException($"item base '{b.Id}': wearable needs durability");
             foreach (var t in b.Equiv)

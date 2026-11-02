@@ -45,8 +45,12 @@ public sealed partial class GameSession
 
     public sealed record HireReport(string Id, string Name, int Level, long Price, long GoldAfter, long Life);
     public sealed record ReviveReport(string Id, long Cost, long GoldAfter, long Life);
+    /// DamageSum: the physical damage the strikes actually paid (§6.7c, MC 11914)
+    /// — pure report plumbing (M4-S16): the leg and the stat tests read the dice
+    /// through it; the field never touches an RNG stream nor the save.
     public sealed record MercStrikeReport(
-        string Attacker, int Strikes, int Kills, bool MercDead, long XpGranted, long MercLife, long MercLifeMax);
+        string Attacker, int Strikes, int Kills, bool MercDead, long XpGranted, long MercLife, long MercLifeMax,
+        long DamageSum = 0);
 
     /// Hires the named row (the town's captain). Gates in order: DEAD (row 64,
     /// the gate speaks first in every verb) → town → unknown id → the row's act
@@ -142,7 +146,7 @@ public sealed partial class GameSession
         Engaged ??= Spawn(row, area);
 
         int strikes = 0, kills = 0;
-        long xp = 0;
+        long xp = 0, damageSum = 0;
         for (int i = 0; i < times && !IsDead && !m.IsDead; i++)
         {
             strikes++;
@@ -151,7 +155,16 @@ public sealed partial class GameSession
             if (hit)
             {
                 bool doubled = CombatResolver.RollDoubled(CombatRng, 0, 0, 0);
-                damage = CombatResolver.PhysicalDamage(CombatRng, m.DamageMin, m.DamageMax, doubled: doubled);
+                // §6.7c (MC 11914): the STRIKE envelope is read per strike — the
+                // worn weapon's range (when its base carries one) replaces the
+                // bracket dice, flat widens the range, ΣED clamps at −90 — and
+                // it all pays through the SAME hero primitive, inputs beside
+                // damage never touching the roll count (no-gear = 0/0/0, the
+                // hard RNG law). Re-read after a possible mid-volley level-up.
+                var (sMin, sMax, sWeaponEd, sEdSum) = m.StrikeStats();
+                damage = CombatResolver.PhysicalDamage(CombatRng, sMin, sMax, sWeaponEd,
+                    enhancedDamageSumPercent: sEdSum, doubled: doubled);
+                damageSum += damage;
                 Engaged.Life -= damage;
             }
             if (!hit || Engaged.Life > 0)
@@ -169,7 +182,7 @@ public sealed partial class GameSession
             EngagedKey = null;
             break; // the volley was against this one monster (the Attack idiom)
         }
-        return new MercStrikeReport(m.Id, strikes, kills, m.IsDead, xp, m.Life, m.MaxLife);
+        return new MercStrikeReport(m.Id, strikes, kills, m.IsDead, xp, m.Life, m.MaxLife, damageSum);
     }
 
     /// The hero-kill share (strike AND weave): the alive merc is paid
