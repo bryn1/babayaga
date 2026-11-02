@@ -72,8 +72,11 @@ in-repo law summary — where it and a spec disagree, the code + tests win and t
 - +LIFE: worn `life` raises MaxLife DERIVED from the persisted gear (save v7 unchanged —
   no stat is a save field), surviving death, revive and level-up recompute.
 - DEFERRED BY DESIGN, named: attack-rating / to-hit curves from gear, shield block %,
-  +skills, IAS, procs, Str/Dex-bearing gear. Real damage/ED data rows are future
-  (`item-bases.json` carries no damage columns yet — synthetic bases prove the mechanism).
+  +skills, IAS, procs, Str/Dex-bearing gear. The WEAPON damage data is REAL since the
+  D1 data beat (MC 11928: every weapon-kind base carries ONE damage range, the
+  price-ordered ORIGINAL curve in the json note); real ED%/flat/+life DATA rows are
+  future — no such stat rows reach merc gear through the shipped data yet (synthetic
+  bases+mods prove those mechanisms).
 
 ## Life by potions · belt
 

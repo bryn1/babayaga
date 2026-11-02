@@ -91,7 +91,7 @@ public class CombatTests
             rng, hero, beast, damageMin: 40, damageMax: 40, players: 1, ladder: ladder);
         Assert.True(outcome.Hit && outcome.Killed);
         Assert.Equal(600, outcome.XpGranted); // 200×3 champion, level 1 ratio 1024
-        Assert.Equal(2, hero.Level);          // 600 ≥ 500 (lvl 2) and < 693 (interpolated lvl 3)
+        Assert.Equal(2, hero.Level);          // 600 ≥ 500 (lvl 2) and < 1500 (lvl 3)
         Assert.Equal(5, hero.StatPoints);
         Assert.Equal(1, hero.SkillPoints);
     }
