@@ -10,9 +10,15 @@ docs/ARCHITECTURE.md §R2). Zero Blizzard assets, zero D2-derived product names:
 appears in this repo only as a cited reference key in provenance comments, docs and the LEDGER.
 No license applies to third-party content because none is present.
 
-## State — Milestone 4 (this release, v0.4.0)
+## State — M4 released (v0.4.0); M5 presentation gate PASSED (untagged)
 
-What is LIVE today (each item cites its LEDGER.md row; laws in docs/MECHANICS.md):
+The tagged release is v0.4.0 (Milestone 4). MILESTONE 5 ("make it visible") passed its
+twin-green windowed gate 2026-11-02 (`TEST-verdict-m5-b.md`, VERDICT PASS, JUDGED
+f01bcde2, 445 tests, parity 10/10) — the game is windowed-playable NOW (see PLAY).
+v0.5.0 rides a later owner-PASS commit (no tag in this pass). The owner's own device run
+(PLAYTEST.md) is the one open row.
+
+What is LIVE (each item cites its LEDGER.md row; laws in docs/MECHANICS.md):
 
 - **Town loop** — vendors (buy/sell/gamble), potion belt (4 cells, hotkeys), town stash,
   mercenary captain (hire/dismiss/revive), death returns the hero to town (rows 49–51, 69, 74, 64).
@@ -71,10 +77,25 @@ HOME=/tmp "$GODOT_BIN" --headless --path game --quit-after 240   # story log; ex
 pin: Godot 4.7.2-stable official .NET/mono build, sha256 `129f82db…bff247`; C# / net8.0,
 dotnet SDK 8.0.133 is sufficient.)
 
+## PLAY — the game is windowed-playable NOW
+
+```bash
+GODOT_BIN=/home/claudecode/Games/.tools/godot/Godot_v4.7.2-stable_mono_linux_x86_64/Godot_v4.7.2-stable_mono_linux.x86_64
+"$GODOT_BIN" --path game          # after the two builds + one --import (Build & run above)
+```
+
+Controls (each wired in `game/project.godot` [input] and consumed in `game/scripts/`):
+LMB walk / click lit stone to ride (HeroController), RMB attack (HeroController), TAB
+inventory (Act), T town panel in grodzisko (Act), 1–4 belt potions + R first spark
+(Hud), F5 save (Act), ESC = death menu with RESPAWN when dead (Act; alive = hint only,
+M5 ships no pause). Owner-facing checklist with what to expect per row: **PLAYTEST.md**.
+M5 gate evidence: run `.audits/202610301950-31593a83/out/TEST-verdict-m5-b.md`.
+
 ## Test
 
 ```bash
-dotnet test BabaYaga.sln        # 356 xunit rule-contract tests, engine-process-free
+dotnet test BabaYaga.sln        # 445 xunit rule-contract tests, engine-process-free
+                                # (M5 gate 2026-11-02: 445 passed, 0 failed)
 ```
 
 Beyond the in-repo suite, maintainers run an OUT-OF-REPO D2 table-parity harness (10 checks:
@@ -84,10 +105,10 @@ audit run dir, deliberately not in the product repo; at this tag it passes 10/10
 
 ## Known limits (honest list)
 
-- **Playable graphics session NOT yet built** — the game exists as the pure-C# sim (CLI) and
-  the headless Godot story; windowed UI screens (equipment panel + weapon sets 68, hotkey bar
-  70, character sheet 71, automap 72, town portal scroll 73, shop/craft/menu widgets 75,
-  art/screenshot leg 76) are open LEDGER rows.
+- **Windowed play is LIVE** (M5, gate-passed 2026-11-02 — see PLAY + PLAYTEST.md); the
+  remaining windowed UI is open LEDGER rows: equipment panel + weapon sets 68, hotkeys
+  70, character sheet 71, automap 72, town portal scroll 73, shop/craft/game-menu widget
+  halves of 75; the owner-device playtest (76) is the open pass.
 - **Real item damage/ED/life data rows are future**: `data/item-bases.json` carries no damage
   columns yet; the gear-stat mechanism is proven on synthetic bases (row 66 DATA-FUTURE).
 - **Merc complex curves DEFERRED by design**: gear-driven attack rating, shield block %,

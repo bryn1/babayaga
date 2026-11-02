@@ -1,6 +1,15 @@
-# Baba Yaga — Architecture (v12, 2026-11-02)
+# Baba Yaga — Architecture (v13, 2026-11-02)
 
-version: 12 (M4 GA doc-sync, card/11915 — the release-doctrine de-stale at the v0.4.0 tag: the
+version: 13 (M5-S8a doc-sync sweep, card/11947 — four stale items fixed after the M5 gate
+PASS (out/TEST-verdict-m5-b.md, VERDICT PASS, JUDGED f01bcde2): (a) the `diff -r assets
+game/assets` art-sync rule RETIRED, replaced by the `tools/artgate.sh` content-hash gate
+semantics (art-reuse-audit-m5.md §3 — game/assets/ is git-ignored, import.sh copies but does
+NOT prune); (b) the State-bridge paragraph now describes the REAL M5-S3 bridge — SessionClock.cs /
+CommandLog.cs / SessionClockNode.cs — and the command surface is code-truth (plan-c2 FIX-DA5 9);
+(c) the "no tick loop yet" clause de-staled and a §Clocks section names ALL clocks honestly;
+(d) a §Replay contract section: New-Game sessions only via logged doors, the continue-load
+comment head, M5_SPRITE_COUNT as the presentation-drift detector. v12 archived in git history.
+Earlier: v12 (M4 GA doc-sync, card/11915 — the release-doctrine de-stale at the v0.4.0 tag: the
 §game/ heading's stale "nothing built yet" clause re-pointed (the presentation layer is BUILT —
 headless story legs LIVE, README + docs/RELEASE-v0.4.0.md); the xp-ladder "interpolated" claim
 replaced by the 99 verbatim rows (the LEDGER D2-ORACLE-ALIGNMENT FINDING closes here); the
@@ -384,7 +393,7 @@ src/BabaYaga.Sim/WaypointGraph.cs         — BUILT as M3 above (P3 §6.1, §6.3
 src/BabaYaga.Sim/MapGen.cs                — preset + procedural area layout rules, density roll, quest-object slots — ~250 (P3 §6.5)
 src/BabaYaga.Sim/DataTables.cs            — BUILT distributed: each table ships its own loader+validator (MonsterTable/TreasureClass/QuestLog/… — one file per table shape)
 src/BabaYaga.Sim/SaveSerializer.cs        — BUILT as M1 close-out above (SaveSerializer + SaveDto)
-src/BabaYaga.Sim/SimSession.cs            — superseded by GameSession.cs + GameSession.World.cs (M1 close-out; scripted commands, no tick loop yet)
+src/BabaYaga.Sim/SimSession.cs            — superseded by GameSession.cs + GameSession.World.cs (M1 close-out; scripted commands — "no tick loop yet" was the CLI-era truth, de-staled at v13: the WINDOWED game since M5-S3 drives the sim's RestTick frame door through the SessionClock, §Clocks)
 src/BabaYaga.Sim.Cli/Program.cs           — BUILT as M1 close-out above (Program + CommandRunner + ScriptedSession)
 ~~game/Main.cs + Main.tscn~~ — SUPERSEDED by the v10 §game/ placement below: the entry is
     game/Main.tscn scripted by scripts/Boot.cs (the Main.cs name retired before it was ever built)
@@ -482,23 +491,42 @@ game/
                           GameSession.New = ProjectSettings.GlobalizePath("res://data");
                           never hand-edited — drift gate `diff -r data game/data` (DoD §6; JSON
                           takes no .import sidecars — DA probe COUNT=0)
-  assets/                 ONE-WAY copy of repo assets/ (tiles·hero·monsters·ui·title). rev2 rule
-                          (DA P1-3): Godot `--import` writes ONE `.import` sidecar beside EACH
-                          source INSIDE game/assets — sidecars are engine-generated, git-tracked,
-                          never hand-edited — so the drift gate compares SOURCES ONLY:
-                          `diff -r assets game/assets -x '*.import'` EMPTY (DoD §6). A plain
-                          `diff -r` here is permanently RED once art lands and must not be used.
+  assets/                 ONE-WAY copy of repo assets/raw/ produced by assets/import.sh;
+                          game/assets/ is GIT-IGNORED (.gitignore line `game/assets/`;
+                          `git ls-files game/assets` = 0 — art-reuse-audit-m5.md §3; the
+                          old "sidecars are git-tracked" clause was FALSE). The committed
+                          art truth is assets/raw/ ONLY. DRIFT GATE (v13 — RETIRES the
+                          `diff -r assets game/assets -x '*.import'` rule, which can never
+                          print empty: flat raw/ vs import.sh's sub-directory sort):
+                          `tools/artgate.sh` exit 0 — content-hash equality of game/assets/
+                          against a FRESH sandboxed `assets/import.sh` run over assets/raw/,
+                          excluding `*.import` sidecars and README.md. import.sh COPIES BUT
+                          DOES NOT PRUNE (audit §2 FINDING): a hand-placed extra file survives
+                          any re-import — the gate catches it as STALE; fix STALE by manual
+                          removal, never by re-import. Fresh clone: gate RED until
+                          assets/import.sh has run — intended reproducibility property.
 ```
 
-State bridge (invariant — violating it is a bug): `game/` calls the GameSession public surface the
-CLI ALREADY proves — New/Save/Load/Dump; Level/Gold/CurrentArea/EngagedKey; Character.Level/Xp/
-MaxLife/MaxMana; Ladder.TotalXpForLevel/MaxLevel; Purse.Amount; Drops.Pending/Gold/LastDrop;
-Carried (DisplayName/Quality/Base.Width/Height — the per-cell map is internal, the panel
-re-derives); Equipment.Equipped; Areas/Waypoints/Quests; commands Attack/Loot/EquipLastDrop/Buy/
-SellLast/Gamble/Special/TravelTo/DiscoverWaypoint/QuestAccept/QuestStep/QuestComplete. ZERO Sim
-edits for M4. Hero screen/grid position lives in HeroController.cs alone; the HUD is pull-only —
-no Sim event bus is invented to mirror. The orb rows show MAX values until the current-life pool
-(ledger rows 4–5, BUILDING) ships — a documented gap, not a hidden bug.
+State bridge (invariant — violating it is a bug; v13 rewrite to code-truth, plan-c2 FIX-DA5 9):
+`game/` calls the GameSession public surface the CLI ALREADY proves. The pull surface is
+unchanged (Level/Gold/CurrentArea/EngagedKey; Character.Level/Xp/MaxLife/MaxMana;
+Ladder/Purse/Drops; Carried — the per-cell map is internal, the panel re-derives;
+Equipment.Equipped; Areas/Waypoints/Quests). The COMMAND surface as ACTUALLY CALLED from
+`game/` code: Attack/Loot (HeroController), UsePotion/Cast (Hud hotkeys — v12's list still
+missed these), Buy/AddToBelt/Hire/Revive/Dismiss (TownPanel), Respawn (Act via DeathMenu),
+TravelTo/DiscoverWaypoint (HeroController, §WAYPOINT ORDER CONTRACT), RestTick (the clock,
+§Clocks); EquipLastDrop/SellLast/Gamble/Special/QuestAccept/QuestStep/QuestComplete stay
+CLI-proven, unused windowed. ZERO Sim edits through M4 AND M5. THE BRIDGE IS THREE FILES:
+scripts/CommandLog.cs — the ONE wrapper every game→sim call rides, recorded as one CLI-grammar
+line (rejections as `# <verb-args> → REJECT:reason` comments the CLI already skips); env-gated
+and DEFAULT-OFF (`BABA_LOG` names the file — unset: plain pass-through, zero writes, story
+bytes untouched); GameContext.New synthesizes the head line `new <class>`.
+scripts/SessionClock.cs — the pure sim clock (xunit-covered); scripts/SessionClockNode.cs —
+the thin `_Process` glue, created by Act ONLY when windowed (Hero screen/grid position lives
+in HeroController.cs alone; the HUD is pull-only — no Sim event bus is invented to mirror).
+The orb rows show CURRENT/MAX life+mana (the v12 "MAX values until the current-life pool
+ships" clause is de-staled — the M5 HUD reads Life 50/50 and the gate moved it 48→50, verdict
+P7 row).
 
 WAYPOINT ORDER CONTRACT (v10 — the ONE wording, identical in M4-placement.md §1/§2; live-probed
 this run at `out/.tmp/m4b/probe1..4` on the real CLI @ f3d98d9): the HeroController door intent is
@@ -523,6 +551,39 @@ signature `static Load(string path, string dataDir)`, .World.cs:115; savePath is
 dataDir = `GlobalizePath("res://data")`; a 1-arg call does not exist)] → Act.tscn renders
 `session.CurrentArea` (slice: grodzisko ↔ mchy) → Tab toggles Inventory.tscn.
 
+CLOCKS (v13 — M5-S3 truth; every clock named honestly): the tree holds exactly THREE.
+(1) PRESENTATION: HeroController's walk clock — `_stepTimer` in `_Process` steps the A* walk
+path at `StepInterval = 0.2 s` per cell (HeroController.cs:24,152-157); it never touches the
+Sim. (2) PRESENTATION: Hud's repaint clock — `Hud._Process` re-reads session state every
+frame; it never touches the Sim. (3) SIM: `scripts/SessionClock.cs` — the ONE clock for sim
+state, accumulating real seconds and handing WHOLE frames to the Sim's only frame door,
+`GameSession.RestTick`, at the Sim's own 25 fps constant (`FramesPerSecond =
+GameSession.FramesPerSecond` REUSED — no fourth constant, no forked clock); catch-up clamp
+`MaxCatchupFrames = 50` (one flush pays ≤2 s; the tab-out excess is DROPPED, never banked —
+the background must not fast-forward the potion-gated economy); outer DEAD guard (while dead
+nothing accumulates and nothing flushes — RestTick's RaiseIfDead-first would otherwise storm
+25 exceptions a second; death FREEZES the clock and respawn resumes at the frozen instant,
+so dead time is never owed as regen). The only live driver is `SessionClockNode._Process`,
+created by Act ONLY when `DisplayServer.GetName() != "headless"` (Act.cs:64-70) — the headless
+story legs run inside ONE `_Ready`, so no `_Process` frame ever pumps them: the headless story
+anchors are byte-safe BY CONSTRUCTION (md5 52af3988… unchanged; re-measured at the M5 re-gate
+AND again by this doc-sync pass). `SessionClock.Pump` is the ONE feed the windowed glue and
+the headless bridge leg call verbatim — the tested path is the shipped path.
+
+REPLAY CONTRACT (v13 — the M5-S3 law, the round-2 verdict closing the continue gap): a
+windowed session is replayable through the CLI at the printed seed ONLY for NEW-GAME sessions:
+every state change rides a logged door (CommandLog), session creation synthesizes the log head
+`new <class>` (GameContext.cs:27-28) and the MainMenu prints the seed AND records it as a
+comment line (MainMenu.cs:39-45). A CONTINUE-LOAD session is NOT replay-compared: its log
+opens with the comment head `# continue-from-save <path>` (GameContext.cs:40-45) — attaching
+to a mid-stream session no replay can re-bootstrap; lines still record for the trail. The
+presentation-drift class replay can NEVER see (the Sim spawns a FRESH monster per kill —
+sprite existence is presentation-only) is caught by the `M5_SPRITE_COUNT` marker
+(MonsterField.cs:100-101): every spawn/kill phase prints `M5_SPRITE_COUNT <n> == spawn-row
+<m>` or the `!=` PRESENTATION-DRIFT form — windowed-only (zero marker lines on headless
+stdout, the headless-silence law; re-confirmed 0 this pass); gate GREEN 41 lines / 0 drift
+at the M5 re-gate.
+
 TILE SCALE CONTRACT (v10, placement rev4 §3): tile ART is 256×128 px; the iso CELL is 128×64 px; the
 TileMapLayer draws each art tile at scale 0.5 — exactly 2× on both axes (256/128 = 128/64 = 2.0);
 cells stay 128×64, art stays 256×128, neither side re-interpreted. SPRITE DRAW SCALE: the 0.5 scale
@@ -538,9 +599,13 @@ anywhere; both seeds are display-only, never persisted state.
 PLANNED assets/ pipeline: 3090 imagegen originals (spec verbatim in out/M4-placement.md §3) →
 repo assets/raw/ (git) → one-way copy → game/assets/ → `"$GODOT" --headless --path game --import`
 → Sprite2D/AnimatedSprite2D/TileMapLayer consume. The R2 wall binds art too: every render ORIGINAL.
-Sidecar rule (placement rev2/rev4 §1, DoD leg 6): `--import` writes git-tracked `.import` sidecars
-beside each source inside game/assets, so the drift gate is SOURCE-ONLY
-(`diff -r assets game/assets -x '*.import'` EMPTY).
+Sidecar rule RETIRED at v13 (was: "`--import` writes git-tracked `.import` sidecars beside each
+source inside game/assets, so the drift gate is SOURCE-ONLY (`diff -r assets game/assets -x
+'*.import'` EMPTY)"): FALSE on the shipped tree — `.gitignore` carries `game/assets/` (nothing
+there is tracked, sidecars included) and the flat-vs-sorted `diff -r` can never print empty
+(DA F1). THE GATE IS `tools/artgate.sh` exit 0 — content-hash equality of `game/assets/`
+against a fresh sandboxed `assets/import.sh` run over `assets/raw/` (excluding `*.import`
+sidecars and `README.md`); see the assets/ tree row above and art-reuse-audit-m5.md §3.
 
 
 ## Trade-offs rejected (named, with reason)
