@@ -26,14 +26,34 @@ public partial class AreaRenderer : Node2D
     private readonly List<Vector2I> _walkable = [];
     private readonly HashSet<Vector2I> _blocked = [];
     private TileMapLayer? _layer;
+    private Vector2I? _stoneCell;          // M5-S4 FIX-DA5 4: the standing stone of the built area
+    private bool _stoneLit;
+    private Sprite2D? _stoneSprite;
 
     /// <summary>The cells a hero may stand on (door edges included).</summary>
     public IReadOnlyList<Vector2I> Walkable => _walkable;
+
+    /// <summary>The standing-stone cell of the LAST built area (deterministic:
+    /// the first walkable cell at Chebyshev 2 from the arrival centre — the
+    /// stone stands beside where the hero arrives, never under him). Null
+    /// until a stone is shown.</summary>
+    public Vector2I? StoneCell => _stoneCell;
+
+    /// <summary>Whether the drawn stone is LIT — the ride gate's visual half
+    /// (WaypointGraph.IsDiscovered pulled into the paint; never a second rule).</summary>
+    public bool StoneIsLit => _stoneLit;
+
+    /// <summary>True when the LIT marker stands exactly on this cell — the
+    /// ride hit-test (plan S4 map row 2: "drawn lit-stone marker under cursor").</summary>
+    public bool IsLitStone(Vector2I c) => _stoneCell == c && _stoneLit;
 
     public void Build(string areaKey, bool isTown)
     {
         _walkable.Clear();
         _blocked.Clear();
+        _stoneCell = null;
+        _stoneSprite?.QueueFree();
+        _stoneSprite = null;
 
         // Display-only layout: a seeded scatter of blocked cells inside an always-
         // walkable border (the door edges live on the border).
@@ -52,6 +72,39 @@ public partial class AreaRenderer : Node2D
         AddChild(_layer);
         foreach (var cell in _walkable) _layer.SetCell(cell, 0);
         foreach (var cell in _blocked) _layer.SetCell(cell, 1);
+
+        // The stone stands at a DETERMINISTIC cell of every area (no RNG ever
+        // touches layout truth): the first walkable cell at Chebyshev exactly 2
+        // from the arrival centre — beside the hero's arrival spot, never on it.
+        var centre = CenterCell();
+        _stoneCell = null;
+        foreach (var c in _walkable)
+            if (Math.Max(Math.Abs(c.X - centre.X), Math.Abs(c.Y - centre.Y)) == 2)
+            { _stoneCell = c; break; }
+    }
+
+    /// <summary>M5-S4 (plan S4 map row 2, FIX-DA5 4 / DA N6): the standing-stone
+    /// MARKER over the reused ui-waypoint art (S2 audit: zero new renders — the
+    /// "stone glow" FX was CUT by plan, so the lit state is THIS code's tint).
+    /// show=false leaves the cell unmarked (an area without a waypoint node);
+    /// lit reads the ONE truth — Waypoints.IsDiscovered — pulled in by Act.</summary>
+    public void ShowStone(bool show, bool lit)
+    {
+        _stoneLit = show && lit;
+        _stoneSprite?.QueueFree();
+        _stoneSprite = null;
+        if (!show || _stoneCell is not { } cell) return;
+        _stoneSprite = new Sprite2D
+        {
+            Texture = ScaledToCell(ArtOrNull("res://assets/ui/ui-waypoint.png"),
+                _stoneLit ? new Color("C9A227") : new Color("5A564E")), // gold-trim token lit, grey dark
+            Centered = true,
+            Offset = new Vector2(0, -32f),
+            YSortEnabled = true,
+            Modulate = _stoneLit ? new Color(1f, 1f, 1f, 1f) : new Color(0.55f, 0.55f, 0.55f, 0.8f),
+            Position = IsoCamera.GridToScreen(cell),
+        };
+        AddChild(_stoneSprite);
     }
 
     public bool IsWalkable(Vector2I c) =>

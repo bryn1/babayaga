@@ -31,15 +31,13 @@ public partial class MonsterField : Node2D
     // while the game runs (one-way copy of repo data/, never hand-edited).
     private static Dictionary<string, List<SpawnRow>>? _table;
 
-    private readonly List<Entry> _spawned = [];
+    private readonly SpriteRoster<Sprite2D> _roster = new();
     private Node2D? _row;
-
-    private sealed record Entry(string Key, Vector2I Cell, Sprite2D Sprite);
 
     public void Build(string areaKey, bool isTown, IReadOnlyList<Vector2I> walkable, Vector2I arrivalCell)
     {
         _row?.QueueFree();
-        _spawned.Clear();
+        _roster.Clear();
         _row = new Node2D { Name = "Monsters" };
         AddChild(_row);
         if (isTown || walkable.Count == 0) return;
@@ -60,24 +58,68 @@ public partial class MonsterField : Node2D
                     Position = IsoCamera.GridToScreen(cell),
                 };
                 _row.AddChild(sprite);
-                _spawned.Add(new Entry(row.Kind, cell, sprite));
+                _roster.Add(row.Kind, cell.X, cell.Y, sprite);
             }
         }
     }
+
+    /// <summary>M5-S4 kill-despawn (plan FIX-DA5 5, the S4-owned row): the killed
+    /// row's sprite is FREED (QueueFree) and, because the Sim's own rule is a
+    /// FRESH monster per kill (Combat.cs header — the row never thins; a headless
+    /// leg strikes one row ≈550 times), the field answers with a FRESH instance
+    /// of the same row on the same cell. A permanently shrinking field would
+    /// contradict the Sim's truth (mchy is still full of monsters after a kill)
+    /// and would starve every click-attack target. The despawn is proven per
+    /// INSTANCE, not per count: Kills counts kills, LastKilledFreed says the
+    /// killed sprite object is DEAD, and the roster order swaps at the cell.
+    /// One kill takes exactly one sprite (the SpriteRoster rule, xunit-pinned).</summary>
+    public void Despawn(string key)
+    {
+        Sprite2D? killed = null;
+        (int X, int Y) cell = default;
+        foreach (var e in _roster.Entries)
+            if (e.Key == key) { killed = e.Sprite; cell = e.Cell; break; }
+        if (killed is null || _roster.DespawnOne(key) is null) return;
+        var tex = killed.Texture; // read BEFORE the free — a freed object answers nothing
+        killed.QueueFree();
+        _lastKilled = killed;
+        Kills++;
+        var fresh = new Sprite2D
+        {
+            Texture = tex,
+            Centered = true,
+            Offset = new Vector2(0, -80f),
+            Position = IsoCamera.GridToScreen(new Vector2I(cell.X, cell.Y)),
+        };
+        _row?.AddChild(fresh);
+        _roster.Add(key, cell.X, cell.Y, fresh);
+    }
+
+    /// <summary>Kills this field has taken (the per-instance despawn counter).</summary>
+    public int Kills { get; private set; }
+
+    private Sprite2D? _lastKilled;
+
+    /// <summary>True once the QueueFree has landed — the killed sprite object is
+    /// gone (frame after the kill): the despawn, proven per instance.</summary>
+    public bool LastKilledFreed => _lastKilled is { } s && !GodotObject.IsInstanceValid(s);
+
+    /// <summary>Standing sprites for the S7 count marker (spawn-row read).</summary>
+    public int SpriteCount => _roster.Count;
 
     /// <summary>The built spawn row (key + cell per entry) — the headless leg's read
     /// for the Fnv-seed determinism proof. Presentation-side truth, never Sim state.</summary>
     public List<(string Key, Vector2I Cell)> RowSnapshot()
     {
-        var row = new List<(string Key, Vector2I Cell)>(_spawned.Count);
-        foreach (var e in _spawned) row.Add((e.Key, e.Cell));
+        var row = new List<(string Key, Vector2I Cell)>(_roster.Count);
+        foreach (var e in _roster.Entries) row.Add((e.Key, new Vector2I(e.Cell.X, e.Cell.Y)));
         return row;
     }
 
     /// <summary>The monster key under a world point, or null (click hit-test).</summary>
     public string? MonsterAt(Vector2 world)
     {
-        foreach (var e in _spawned)
+        foreach (var e in _roster.Entries)
             if (e.Sprite.Position.DistanceTo(world) <= HitRadius
                 && Math.Abs(e.Sprite.Position.Y - world.Y) <= 120f)
                 return e.Key;

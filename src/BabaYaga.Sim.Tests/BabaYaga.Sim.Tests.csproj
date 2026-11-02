@@ -46,6 +46,13 @@
          they compile in beside the tests; the Godot glue stays outside. -->
     <Compile Include="..\..\game\scripts\SessionClock.cs" Link="game\SessionClock.cs" />
     <Compile Include="..\..\game\scripts\CommandLog.cs" Link="game\CommandLog.cs" />
+    <!-- M5-S4 render+input (MC 11937): same idiom — the decision cores the S4
+         input map rides are PURE (no Godot types), so they compile in beside
+         the tests; the scene glue stays outside. -->
+    <Compile Include="..\..\tests\GameInputTests.cs" Link="tests\GameInputTests.cs" />
+    <Compile Include="..\..\game\scripts\ClickMap.cs" Link="game\ClickMap.cs" />
+    <Compile Include="..\..\game\scripts\SpriteRoster.cs" Link="game\SpriteRoster.cs" />
+    <Compile Include="..\..\game\scripts\DeathMenuLogic.cs" Link="game\DeathMenuLogic.cs" />
   </ItemGroup>
 
   <ItemGroup>
