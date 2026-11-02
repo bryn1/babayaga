@@ -135,12 +135,14 @@ public partial class Hud : CanvasLayer
         for (int i = 0; i < BabaYaga.Sim.GameSession.BeltSlots; i++)
         {
             if (!@event.IsActionPressed($"belt_{i + 1}")) continue;
-            try { s.UsePotion(i + 1); }
+            int slot = i + 1; // M5-S3 (MC 11934): the use line rides the CommandLog wrapper; OFF = plain call
+            try { CommandLog.Call($"use {slot}", () => s.UsePotion(slot)); }
             catch (BabaYaga.Sim.SessionRejectedException e) { Hint(e.Message); }
         }
         if (@event.IsActionPressed("cast_1"))
         {
-            try { s.Cast(FirstWeave, s.EngagedKey ?? ""); }
+            string weave = FirstWeave, target = s.EngagedKey ?? "";
+            try { CommandLog.Call($"cast {weave} {target}", () => s.Cast(weave, target)); }
             catch (BabaYaga.Sim.SessionRejectedException e) { Hint(e.Message); }
         }
     }

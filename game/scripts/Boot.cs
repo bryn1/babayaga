@@ -111,6 +111,14 @@ public partial class Boot : Node
             StashQuestLeg.Run(session, act); // M4-S12: glowa's StashTab opens tab 2 LIVE (row 74) — the walked rite, the pays-once reward, the town chest store/take read from the session reports — STASH_OK
         }
 
+        // M5-S3 REPLAY-PROOF leg (MC 11934, DoD 2 game leg): runs ONLY when the
+        // BABA_LOG env names a path — env unset (every anchor run) this branch
+        // is dead code and the story bytes are untouched. It opens a fresh
+        // session, drives it through the real CommandLog + SessionClock, and
+        // prints the CLI-shape dump the evidence script replays byte-for-byte.
+        if (System.Environment.GetEnvironmentVariable(CommandLog.EnvVar) is { Length: > 0 })
+            BridgeLeg.Run();
+
         GD.Print("ORCH_M4_OK");
         GetTree().Quit(0);
     }
