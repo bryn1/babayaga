@@ -1,6 +1,17 @@
-# Baba Yaga — Architecture (v13, 2026-11-02)
+# Baba Yaga — Architecture (v14, 2026-11-02)
 
-version: 13 (M5-S8a doc-sync sweep, card/11947 — four stale items fixed after the M5 gate
+version: 14 (worn-gear derivation doors, card/11951 — the doc names the TWO new sim derivation
+doors AS THE CODE NOW READS (Character.cs / GameSession.cs / Stats.cs read this run; line
+numbers cited in the new §Worn-gear derivation doors): the hero's MaxLife AND MaxMana both
+DERIVE their worn-item terms AT THE READ from the shared WornGear panel — derived, never a
+save field; save format v7 UNCHANGED (SaveSerializer.cs:29 `SaveVersion = 7`). The spec lines
+the doors implement are quoted verbatim from T0b-mechanics-spec.md §1.3 (L71–73 life block +
+the mana-shape law L78–81); the CURRENT-LIFE-UNCHANGED law is stated (equipping raises MAX
+only — pinned by LifeItemTermTests / ManaItemTermTests); the data state is named as measured
+over data/affixes.json (affix stats life/vit/mana LIVE; "+energy" CODE-LIVE but DATA-SILENT —
+zero energy rows in the pool). Tree rows de-staled against the tree: Character.cs 133→212 ln
++ the doors named; GameSession.cs 248→216 ln + the :91 wire; SaveSerializer.cs "(Version 3)"
+→ save format v7. v13 archived in git history. Earlier: v13 (M5-S8a doc-sync sweep, card/11947 — four stale items fixed after the M5 gate
 PASS (out/TEST-verdict-m5-b.md, VERDICT PASS, JUDGED f01bcde2): (a) the `diff -r assets
 game/assets` art-sync rule RETIRED, replaced by the `tools/artgate.sh` content-hash gate
 semantics (art-reuse-audit-m5.md §3 — game/assets/ is git-ignored, import.sh copies but does
@@ -168,10 +179,13 @@ src/BabaYaga.Sim/                         net8.0 class library — references no
                                           the raw stream word into the save DTO (DA P1-1)
   Stats.cs                      (95 ln)  ClassProfile rows + life/mana/AR derivations + per-group
                                           Str/Dex damage bonuses; Koldun design row
-  Character.cs                  (133 ln)  attribute allocation, XP intake → level-up grants (5+1),
+  Character.cs                  (212 ln)  attribute allocation, XP intake → level-up grants (5+1),
                                           GrantSkillPoints = the single reward-point grant door
                                           (DA P1-2; TrySpendSkillPoint stays the only debit;
-                                          RestoreSkillPoints = the serializer-only pool restore)
+                                          RestoreSkillPoints = the serializer-only pool restore);
+                                          MaxLife/MaxMana DERIVE their worn-item terms AT THE
+                                          READ through the WornGear panel (:44/:115-119/:137-141)
+                                          — §Worn-gear derivation doors (v14)
   XpTable.cs                    (128 ln)  ladder loader+validator, ExpRatio, level-gap tables,
                                           full kill-XP chain (floor every step)
   SkillData.cs                  (133 ln)  JSON skill-table loader; validation IS the content gate
@@ -311,18 +325,27 @@ src/BabaYaga.Sim/
                                         TreasureClass walk → DropQueue. Survivor emits nothing.
   DropQueue.cs                (51 ln)  pending loot: TakeUpTo(count, accept) never swallows the
                                         rest behind a refused item; gold collected separately.
-  GameSession.cs             (248 ln)  the plain-C# session the CLI/pytest drive (Godot later):
+  GameSession.cs             (216 ln)  the plain-C# session the CLI/pytest drive (Godot later):
                                         tables (incl. packs.json) loaded from an injected data dir,
                                         two seeded RNG streams (combat vs drop), commands new/
                                         levelto/spend/attack/loot/equip/buy/sell/gamble — each
-                                        fully applies or is rejected, nothing half-applied.
+                                        fully applies or is rejected, nothing half-applied;
+                                        :44 creates the Equipment panel and :91 assigns it as
+                                        Character.WornGear — the hero's derivation source, the
+                                        panel OBJECT shared never copied (§Worn-gear derivation
+                                        doors, v14).
   GameSession.World.cs        (131 ln)  world half (same class, partial): stone discovery,
                                         lit-stone travel, quest accept/step/complete with the
                                         P3 §6.4 reward payouts (SkillPoint → GrantSkillPoints,
                                         DA P1-2), Special = the seeded 4:1 group roll engaging a
                                         bonus-scaled leader (DA P2-a); unknown monster named
                                         rejection like Attack (DA2 P4-2).
-  SaveSerializer.cs          (215 ln)  THE save/dump serializer (Version 3): captures BOTH RNG
+  SaveSerializer.cs          (215 ln)  THE save/dump serializer (save format v7 — SaveSerializer.cs:29
+                                        `SaveVersion = 7`, v7 since the M4-S15 gear block and
+                                        UNCHANGED through the rows 4–5 close: the hero's derived
+                                        MaxLife/MaxMana introduce NO new save field; the v2/v3
+                                        behaviours named below are historical layers riding the
+                                        same file): captures BOTH RNG
                                         state words so a loaded session CONTINUES its streams —
                                         never replays consumed rolls (DA P1-1); restores the
                                         unspent skill-point pool FROM THE SAVE (DA2 P1-N1);
@@ -533,7 +556,8 @@ this run at `out/.tmp/m4b/probe1..4` on the real CLI @ f3d98d9): the HeroControl
 `if (!session.Waypoints.IsDiscovered(dest)) session.DiscoverWaypoint(dest); session.TravelTo(dest);`
 — the DESTINATION stone lights BEFORE the travel needing it; catch `SessionRejectedException` → HUD
 hint, never a crash. WHY (source + live readings): `WaypointGraph.CanTravel` requires BOTH endpoints'
-stones lit (WaypointGraph.cs:84) and `GameSession.New` lights ONLY the town stone (GameSession.cs:87);
+stones lit (WaypointGraph.cs:84) and `GameSession.New` lights ONLY the town stone (GameSession.cs:106 —
+the :87 pointer was stale, re-measured at v14);
 `DiscoverWaypoint` THROWS on an already-lit stone (.World.cs:11-15). Probe outcomes: discover-then-
 travel = RESULT OK (the journey.txt ln 13→14 order); travel-first = REJECT `no lit-stone path from
 'grodzisko' to 'mchy'`; re-discover = REJECT `stone in 'mchy' is already lit`; and because every
@@ -606,6 +630,59 @@ there is tracked, sidecars included) and the flat-vs-sorted `diff -r` can never 
 (DA F1). THE GATE IS `tools/artgate.sh` exit 0 — content-hash equality of `game/assets/`
 against a fresh sandboxed `assets/import.sh` run over `assets/raw/` (excluding `*.import`
 sidecars and `README.md`); see the assets/ tree row above and art-reuse-audit-m5.md §3.
+
+
+## Worn-gear derivation doors — hero MaxLife / MaxMana (v14 — code-truth; doors closed by MC 11949 mana / MC 11950 life, named here by the hygiene pass MC 11951)
+
+THE TWO DOORS, AS THE CODE READS (Character.cs / GameSession.cs / Stats.cs read at this commit):
+
+- `Character.cs:44` — `public EquipmentPanel? WornGear { get; set; }`: the hero's worn panel,
+  assigned ONCE by the owning GameSession. `GameSession.cs:44` creates the ONE `Equipment`
+  panel and `GameSession.cs:91` assigns `Character.WornGear = Equipment;` — the panel OBJECT is
+  shared, never copied: equips and the save-restore re-equip ride the same instance the
+  derivation reads. A standalone Character (CLI debug verbs, unit fixtures) keeps WornGear null
+  and derives gear-free, exactly as before these rows (Character.cs:42-43).
+- `Character.cs:115-119` — `MaxLife => Stats.MaxLife(Profile, Level, VitAlloc, VitFromItems +
+  WornStat("vit"), FlatLife + WornStat("life"), IncreaseMaxLifePercent)`.
+- `Character.cs:137-141` — `MaxMana => Stats.MaxMana(Profile, Level, EnerAlloc, EnerFromItems +
+  WornStat("energy"), FlatMana + WornStat("mana"), IncreaseMaxManaPercent)`.
+- `Character.cs:124-125` — `WornStat` sums ONE mod stat over WORN gear only (the
+  Hireling.GearStat summing idiom, M4-S16 §6.7c — carried feeds nothing).
+- `Stats.cs:65-69` / `Stats.cs:75-78` — the term placement the spec dictates: flat "+Life" and
+  "+Mana" ride BaseLife/BaseMana INSIDE the pre-multiplier parens (the Increase-Max-% multiplier
+  multiplies them); "+Vit"/"+Energy" from items join AFTER the multiplier as LifePerVit × Vit /
+  ManaPerEner × Ener.
+
+THE SPEC LINES THEY IMPLEMENT — `T0b-mechanics-spec.md` §1.3 (run dir
+`.audits/202610301950-31593a83/out/`, the Games workspace root — the repo's standing citation
+convention), quoted verbatim as the file reads, L71–73:
+
+```
+base_life   = start_life + life_per_level × (level − 1) + life_per_vit × vit_points + 20 × potions_of_life
+max_life    = (base_life + flat "+Life") × (1 + IncreaseMaxLife% / 100)
+              + life_per_vit × vit_from_items + "+Life (based on character level)"
+```
+
+and the mana-shape law at L78–81, verbatim: "Mana: same shape with the Energy columns (start
+mana = Energy; item Energy and per-level +Mana are added AFTER the Increase-Max-Mana %
+multiplier)."
+
+THE LAWS THE DOORS OBEY:
+
+- CURRENT POOLS UNCHANGED — equipping raises MAX only. The MaxLife/MaxMana reads never re-top
+  the current pools: Life/Mana are damage state living on their own setters, and the doc
+  comment states the law at the read (Character.cs:113-114: "The CURRENT Life pool is damage
+  state — this read never re-tops it (D2: +max to life does not heal; pinned by
+  LifeItemTermTests)"). Pinned by tests/LifeItemTermTests.cs + tests/ManaItemTermTests.cs.
+- NEVER A SAVE FIELD — both worn sums are DERIVED at the read from WornGear; save format v7 is
+  UNCHANGED (SaveSerializer.cs:29 `SaveVersion = 7`; SaveDto.cs:32: "MaxLife/MaxMana stay
+  computed, never stored").
+- DATA STATE, measured over data/affixes.json this run (2026-11-02): the item-term rows ARE
+  live — life: miodowy 10–20 + bursztynowy 21–40; vit: lesny 3–6; mana: kupawny 20–40 + jasny
+  5–12 + sielany 41–70. "+energy" is CODE-LIVE BUT DATA-SILENT: the MaxMana door reads the
+  stat, yet ZERO affix rows ship energy today. The spec's "+Life (based on character level)"
+  term likewise has no data row and no Stats parameter — data-future, named not invented
+  (Character.cs:110-111).
 
 
 ## Trade-offs rejected (named, with reason)
