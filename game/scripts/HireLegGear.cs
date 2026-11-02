@@ -22,12 +22,17 @@ public static partial class HireLeg
     /// the trade is FREE (§6.7b T1). The DEFER row RETIRED with §6.7c: the
     /// GEAR_STATS_OK line names the four LIVE rows (swap/ED/flat/life) and the
     /// still-DEFERRED COMPLEX rows, and the STATS block echoes the sim's own
-    /// derived StrikeStats/MaxLife reads — a synthetic ranged weapon shows the
-    /// bracket dice REPLACED (GEAR_DICE base=… now=…), the amendment's integer
-    /// order prints exact (ED 7→10, flat-before-% 13→19, the −90 clamp 20→2),
-    /// and a worn +life raises MaxLife (GEAR_LIFE). The synthetic bases/mods
-    /// ride the AUTHORING door (real item-bases.json carries no damage columns
-    /// yet — the data-future row, LEDGER 66) and roll NO RNG. A mercenary kill
+    /// derived StrikeStats/MaxLife reads — the REAL bought bow shows the
+    /// bracket dice REPLACED (GEAR_DICE base=… now=…: the soluga row carries
+    /// its damage range since the D1 data beat — row 66 data-future-WEAPONS
+    /// CLOSED, no authoring door, no RNG), the amendment's integer order
+    /// prints exact on PINNED synthetic ranges (ED 7→10, flat-before-% 13→19,
+    /// the −90 clamp 20→2), and a worn +life raises MaxLife (GEAR_LIFE). The
+    /// ED/flat/life witnesses STAY synthetic — no ED%/flat/+life DATA rows
+    /// reach merc gear through the shipped data yet (the named data-future
+    /// that row 66 keeps open); their mods ride the AUTHORING door (the real
+    /// Gear dict + public Mods list, the Character.Life doctrine) and roll
+    /// NO RNG. A mercenary kill
     /// AFTER the block still pays the same HIRE_XP own= chain (the XP chain
     /// does not move). Then the law AGAIN, this time WITH the bow on:
     /// MERC_DIES, and the gear rides the corpse (the amendment's through-death
@@ -68,26 +73,27 @@ public static partial class HireLeg
         }
 
         // ---- STATS LIVE — the §6.7c SIMPLE rows, the DEFER retired -----------
-        // (M4-S16, MC 11914; spec-3 §6.7c AMENDED, D2MOO 1a30fbe4.) The real
-        // data still carries NO damage columns (measured: item-bases.json has
-        // none — the data-future row of LEDGER 66), so the swap witnesses ride
-        // the AUTHORING door (the public Gear dict + public Mods list, the
-        // Character.Life doctrine) on SYNTHETIC bases and mods — the same
-        // derived path the hero primitive's inputs feed, and every echo below
-        // reads the sim's OWN derived state, never a restated formula. No
-        // strike, no RNG: the beats behind this one keep their exact bytes.
+        // (M4-S16, MC 11914; spec-3 §6.7c AMENDED, D2MOO 1a30fbe4. The D1 data
+        // beat (MC 11928) moved the SWAP witness to REAL data: item-bases.json
+        // carries damageMin/damageMax on EVERY weapon-kind base (price-ordered
+        // ORIGINAL balance, curve in the json note), so the bow bought through
+        // the Buy door IS the swap — no synthetic base, no authoring door.
+        // (b)–(d) stay synthetic PINS: the ED%/flat/+life DATA rows are the
+        // data-future row 66 keeps open, and their lines say so. Every echo
+        // below reads the sim's OWN derived state, never a restated formula.
+        // No strike, no RNG: the beats behind this one keep their exact bytes.
         GD.Print("GEAR_STATS_OK swap=live ed=live flat=live life=live " +
                  "defer=AR_to_hit,block,skills,IAS,procs note=6.7c MC 11914 — the §6.7b DEFER retires; COMPLEX rows named, LEDGER 66");
 
-        // (a) THE SWAP — a synthetic ranged bow replaces the bracket dice.
-        var probe = new Item(bow.Base with { DamageMin = 6, DamageMax = 9 }, bow.ItemLevel);
-        m.Gear[MercGearSlot.Weapon] = probe;
+        // (a) THE SWAP — the REAL bought bow already owns the dice (D1 data).
         var (sMin, sMax, sWeaponEd, sEdSum) = m.StrikeStats();
         GD.Print($"GEAR_DICE base={m.DamageMin}-{m.DamageMax} now={sMin}-{sMax} " +
-                 "note=synthetic weapon 6-9 REPLACES the bracket dice (real data rows await the data beat)");
-        if (sMin != 6 || sMax != 9 || sWeaponEd != 0 || sEdSum != 0)
+                 $"note=REAL soluga row {bow.Base.DamageMin}-{bow.Base.DamageMax} REPLACES the bracket dice " +
+                 "(D1 data beat, row 66 data-future-weapons CLOSED)");
+        if (sMin != bow.Base.DamageMin || sMax != bow.Base.DamageMax || sWeaponEd != 0 || sEdSum != 0
+            || (sMin == m.DamageMin && sMax == m.DamageMax)) // the swap must be OBSERVABLE vs the bracket (soluga ≠ the entry rows)
         {
-            GD.PushError($"stats beat: swap echo {sMin}-{sMax}/{sWeaponEd}/{sEdSum} expected 6-9/0/0");
+            GD.PushError($"stats beat: swap echo {sMin}-{sMax}/{sWeaponEd}/{sEdSum} expected the real bow {bow.Base.DamageMin}-{bow.Base.DamageMax}/0/0 (distinct from the bracket {m.DamageMin}-{m.DamageMax})");
             return false;
         }
 
@@ -108,7 +114,7 @@ public static partial class HireLeg
         var (edMin, edMax, edW, edSum) = m.StrikeStats();
         long edHit = Roll(edMin, edMax, edW, 0, edSum);
         GD.Print($"GEAR_ED pct=50 envelope={edMin}-{edMax} strike={edHit} expect=10 " +
-                 "note=floor(7×150/100), the ΣED path");
+                 "note=floor(7×150/100), the ΣED path — synthetic pin, ED data still data-future (row 66)");
         body.Mods.Add(new ItemMod("dmg_min", 3));
         body.Mods.Add(new ItemMod("dmg_max", 3));
         m.Gear[MercGearSlot.Weapon] = new Item(bow.Base with { DamageMin = 10, DamageMax = 10 }, 1);
@@ -145,14 +151,16 @@ public static partial class HireLeg
 
         // Restore the REAL bow, drop the synthetic body — the beats behind (the
         // XP chain, the death, the keep, the strip, the sell) run exactly the
-        // §6.7b shape again: no range on the real soluga row, so the bracket dice stand.
+        // §6.7b shape again: the real soluga row carries its REAL range (D1),
+        // so the shipped-data swap stands — the echo reads the bow's own
+        // range, never the bracket.
         m.Gear[MercGearSlot.Weapon] = bow;
         m.Gear.Remove(MercGearSlot.Body);
         var (backMin, backMax, backWeaponEd, backEdSum) = m.StrikeStats();
         GD.Print($"GEAR_DICE base={m.DamageMin}-{m.DamageMax} now={backMin}-{backMax} " +
-                 "note=soluga carries no range — the bracket dice stand (data-future, row 66)");
+                 "note=restored REAL bow owns the dice — shipped-data swap (row 66 weapons CLOSED; ED/flat/life data-future stays)");
         if (!ReferenceEquals(bow, m.Gear[MercGearSlot.Weapon]) || m.Gear.Count != 1
-            || backMin != m.DamageMin || backMax != m.DamageMax || backWeaponEd != 0 || backEdSum != 0)
+            || backMin != bow.Base.DamageMin || backMax != bow.Base.DamageMax || backWeaponEd != 0 || backEdSum != 0)
         {
             GD.PushError("stats beat: the synthetic witness was not restored clean");
             return false;
