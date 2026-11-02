@@ -65,7 +65,10 @@ using Godot;
 /// then the town chest: store into tab 2 and take back, every position read
 /// from the session's own reports — STASH_OK) →
 /// ORCH_M4_OK → Quit(0).
-/// Windowed → MainMenu.tscn. Zero rules live here (Game → Sim → nothing).
+/// Windowed → MainMenu.tscn — or, when BABA_S4_LEG names a leg dir, the M5-S4
+/// windowed INPUT driver (MC 11937: synthesized clicks through the real input
+/// pipeline + PNG evidence; env unset, that branch is dead code). Zero rules
+/// live here (Game → Sim → nothing).
 /// </summary>
 public partial class Boot : Node
 {
@@ -74,8 +77,28 @@ public partial class Boot : Node
         // The EXACT headless check (DisplayServer.Headless is NOT in the 4.7.2 bindings).
         if (DisplayServer.GetName() == "headless")
             RunMarkerLeg();
+        else if (System.Environment.GetEnvironmentVariable(S4InputLeg.EnvVar) is { Length: > 0 } legDir)
+            RunWindowedInputLeg(legDir); // M5-S4 evidence driver — env-gated, windowed-only (the SessionClockNode pattern)
         else
             GetTree().ChangeSceneToFile("res://scenes/MainMenu.tscn");
+    }
+
+    /// <summary>M5-S4 INPUT LEG (MC 11937, DoD 2/3): windowed ONLY and BABA_S4_LEG-gated —
+    /// unset (every windowed game AND every headless anchor) this branch is dead code.
+    /// It New's the ONE session at the fixed leg seed (the log head rides
+    /// GameContext.New; the driver prints the seed), or LOAD's user://save when
+    /// BABA_S4_CONTINUE says on — the S3-named Continue exception riding its
+    /// comment head — instantiates the ACT scene for real, and hands it to the
+    /// driver that plays the DoD sequence through SYNTHESIZED input events only
+    /// (the same _UnhandledInput pipeline a human click rides) while PNG
+    /// screenshots land in the leg dir.</summary>
+    private void RunWindowedInputLeg(string legDir)
+    {
+        if (System.Environment.GetEnvironmentVariable(S4InputLeg.ContinueVar) == "1") GameContext.Load();
+        else GameContext.New(S4InputLeg.LegSeed);
+        var act = InstantiateActSmoke();
+        if (act is null) { GetTree().Quit(1); return; }
+        AddChild(new S4InputLeg { OutDir = legDir, Act = act });
     }
 
     /// <summary>The DoD leg 3/3b gate + the slice journey legs. The legs below

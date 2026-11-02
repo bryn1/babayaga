@@ -16,11 +16,13 @@ public partial class IsoCamera : Camera2D
     public static Vector2 GridToScreen(Vector2I c) =>
         new((c.X - c.Y) * (TileW / 2f), (c.X + c.Y) * (TileH / 2f));
 
-    /// <summary>World px → the cell that contains it (inverse of GridToScreen).</summary>
+    /// <summary>World px → the cell that contains it (inverse of GridToScreen).
+    /// M5-S4: the math lives in ClickMap.ScreenToCell (the xunit-pinned home);
+    /// this DELEGATES — one implementation per concern, same behaviour.</summary>
     public static Vector2I ScreenToGrid(Vector2 p)
     {
-        float a = p.X / (TileW / 2f), b = p.Y / (TileH / 2f);
-        return new Vector2I(Mathf.RoundToInt((a + b) * 0.5f), Mathf.RoundToInt((b - a) * 0.5f));
+        var (x, y) = ClickMap.ScreenToCell(p.X, p.Y, TileW, TileH);
+        return new Vector2I(x, y);
     }
 
     /// <summary>The ONE metric: reuse of the Sim's Chebyshev distance — no second one.</summary>

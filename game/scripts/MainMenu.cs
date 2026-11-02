@@ -33,7 +33,13 @@ public partial class MainMenu : Control
 
         AddMenuButton(box, "New Game", () =>
         {
-            GameContext.New(1);
+            // M5-S4 SEED TRUTH (plan-c2 S4 "kill MainMenu.cs:36 blindness"): the
+            // New seed is printed AND rides the log as a comment (comments skip
+            // clean — it is replay metadata, not grammar), so the windowed log
+            // can be replayed through the CLI at --seed <the printed number>.
+            var s = GameContext.New(1);
+            GD.Print($"NEW_GAME_SEED {s.Seed}");
+            CommandLog.Ambient?.Record($"# seed {s.Seed}");
             GetTree().ChangeSceneToFile("res://scenes/Act.tscn");
         });
         AddMenuButton(box, "Continue", () =>

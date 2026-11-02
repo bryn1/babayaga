@@ -6,8 +6,12 @@ using Godot;
 /// <summary>
 /// Click-to-move hero — consumes [input] actions ONLY (move_to LMB, attack RMB),
 /// no polling. Hero grid/world position lives HERE ALONE (the Sim stores none and
-/// the bridge does not widen). Path = A* over AreaRenderer's walkable cells
-/// (WORLD-LOCAL), Chebyshev steps; distance reads reuse WorldPos.DistanceTo.
+/// the bridge does not widen — the ARCH-declared row plan-c2 §0 re-verifies).
+/// Path = A* over AreaRenderer's walkable cells (WORLD-LOCAL), Chebyshev steps;
+/// distance reads reuse WorldPos.DistanceTo. In-area walking is DECLARED
+/// presentation-owned (plan-c2 S4 row 1: "presentation A* (NO sim call)"); the
+/// edge door WALKS then fires the travel door. A click on the LIT standing-stone
+/// marker RIDES (P9) through the SAME door and the SAME hint path.
 /// Attack / loot route through the §2 bridge surface; rejections become HUD hints.
 /// The door intent carries the WAYPOINT ORDER CONTRACT verbatim (v10 §game/):
 /// light the DESTINATION stone BEFORE the travel needing it — discover-AFTER-
@@ -48,6 +52,10 @@ public partial class HeroController : Node2D
         _pos = new WorldPos(cell.X, cell.Y);
         _path.Clear();
         _doorTarget = null;
+        // The sprite rides the PLACEMENT too (S4 legs found: before, an arrival
+        // or a stone RIDE left the sprite at its old spot until the first walk
+        // tick — the hero stood invisible at the origin on respawn and ride-in).
+        if (_sprite is not null) _sprite.Position = IsoCamera.GridToScreen(cell);
     }
 
     /// <summary>The committed grid cell of the hero — the marker/read surface;
@@ -88,6 +96,14 @@ public partial class HeroController : Node2D
         AddChild(_sprite);
     }
 
+    /// <summary>Committed cell while a walk path is still playing (S4 driver
+    /// read: a stone RIDE lands with NO path steps — plan P9's [C] check).</summary>
+    public bool IsWalking => _path.Count > 0;
+
+    /// <summary>A cell's world px → WINDOW px under the live camera (the read the
+    /// S4 driver clicks by; the inverse of the input path's own transform use).</summary>
+    public Vector2 CellToScreen(Vector2I cell) => GetCanvasTransform() * IsoCamera.GridToScreen(cell);
+
     public override void _UnhandledInput(InputEvent @event)
     {
         var s = GameContext.Session;
@@ -98,22 +114,36 @@ public partial class HeroController : Node2D
         if (!mb.IsActionPressed("move_to")) return;
 
         var cell = IsoCamera.ScreenToGrid(world);
-        if (!_tiles.IsWalkable(cell)) return; // no path to an unwalkable cell
-        PlanPath(new WorldPos(cell.X, cell.Y));
+        // The M5-S4 decision table (ClickMap, xunit-pinned): the LIT standing-stone
+        // marker rides, walkable ground walks (presentation A*, NO sim call —
+        // plan-c2 S4 row 1; the Sim stores no positions, the ARCH-declared row
+        // the hero cell here rests on), everything else refuses — out-of-range
+        // included: no path is ever planned to an off-grid click.
+        switch (ClickMap.DecideLeft(cell.X, cell.Y, AreaRenderer.W, AreaRenderer.H,
+                     _tiles.IsWalkable(cell), _tiles.IsLitStone(cell)))
+        {
+            case ClickMap.Left.Ride: RideStone(s); break;
+            case ClickMap.Left.Move: PlanPath(new WorldPos(cell.X, cell.Y)); break;
+            default: break; // refuse: blocked ground or off-grid
+        }
     }
 
     /// <summary>RMB: strike the monster under the cursor; pending loot is taken in
     /// the same click (Loot key → Loot(1)). M5-S3 (MC 11934): both doors ride the
     /// CommandLog.Call wrapper — with the bridge OFF it is the plain call, with it
     /// ON each lands as one CLI-grammar line (a rejection as its comment), and the
-    /// hint catch below is untouched.</summary>
+    /// hint catch below is untouched. M5-S4 (FIX-DA5 5): a kill despawns one
+    /// sprite of the attacked row — the Sim spawns a fresh monster per kill, so
+    /// the sprite roster is presentation truth this class alone maintains.</summary>
     private void TryAttack(GameSession s, Vector2 world)
     {
         var key = _monsters.MonsterAt(world);
         if (key is null) return;
         try
         {
-            CommandLog.Call($"attack {key} 1", () => s.Attack(key, 1));
+            GameSession.AttackReport? report = null;
+            CommandLog.Call($"attack {key} 1", () => report = s.Attack(key, 1));
+            if (report?.Kills > 0) _monsters.Despawn(key); // kill → sprite gone (never the reverse)
             if (s.Drops.Pending > 0) CommandLog.Call("loot 1", () => s.Loot(1));
         }
         catch (SessionRejectedException e) { _hud.Hint(e.Message); } // never a crash
@@ -146,11 +176,29 @@ public partial class HeroController : Node2D
         var s = GameContext.Session;
         if (s is null) return;
         var dest = DoorArea(s, doorCell);
-        if (dest is null) return;
+        if (dest is not null) TravelDoor(s, dest);
+    }
+
+    /// <summary>P9 ride half (S4 map row 2): the LMB landed on the LIT standing-stone
+    /// marker → ClickMap's ride gate resolves the destination from the session's
+    /// OWN waypoint truth (dark stones never ride), then the SAME travel door the
+    /// edge walks use fires — the hint path is reused verbatim, and no path step
+    /// is ever taken (the [C] read: Area flips with IsWalking false).</summary>
+    private void RideStone(GameSession s)
+    {
+        var dest = ClickMap.RideTarget(s.CurrentArea, s.Areas.Get(s.CurrentArea).LinkedTo,
+            s.Waypoints.HasNode, s.Waypoints.IsDiscovered);
+        if (dest is null) { _hud.Hint("no lit stone answers this one"); return; } // gate, never a door call
+        TravelDoor(s, dest);
+    }
+
+    /// <summary>THE ONE travel door call site (edge walk AND stone ride share it):
+    /// M5-S3 (MC 11934) discover/waypoint log as the CLI's own lines; a rejection
+    /// is a HUD hint.</summary>
+    private void TravelDoor(GameSession s, string dest)
+    {
         try
         {
-            // M5-S3 (MC 11934): the two travel doors log as the CLI's own
-            // discover/waypoint lines (the S4 input-map row 1+2 verbs).
             if (s.Waypoints.HasNode(dest) && !s.Waypoints.IsDiscovered(dest))
                 CommandLog.Call($"discover {dest}", () => s.DiscoverWaypoint(dest));
             CommandLog.Call($"waypoint {dest}", () => s.TravelTo(dest));

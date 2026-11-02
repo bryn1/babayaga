@@ -58,8 +58,9 @@ public static class BridgeLeg
     /// <summary>The CLI dump line, byte-shape and all: CommandRunner emits its
     /// lines with the same default JsonSerializerOptions over the same payload
     /// shape ({"CMD":"dump","STATE":&lt;parsed Dump()&gt;}), so the replayed
-    /// CLI line and this one compare byte-for-byte.</summary>
-    private static string DumpLine(BabaYaga.Sim.GameSession session) =>
+    /// CLI line and this one compare byte-for-byte. PUBLIC since M5-S4: the
+    /// windowed input leg ends on the SAME shape — one dump-line builder.</summary>
+    public static string DumpLine(BabaYaga.Sim.GameSession session) =>
         JsonSerializer.Serialize(
             new Dictionary<string, object?> { ["CMD"] = "dump", ["STATE"] = JsonNode.Parse(session.Dump()) },
             new JsonSerializerOptions());
