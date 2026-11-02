@@ -4,7 +4,9 @@ using Godot;
 /// <summary>
 /// The act scene — composes IsoCamera + AreaRenderer + MonsterField +
 /// HeroController + Hud around the ONE GameContext session (never a 2nd session).
-/// Tab toggles the Inventory.tscn panel OVER this scene; F5 saves; Esc opens the
+/// Tab toggles the Inventory.tscn panel OVER this scene; T opens the
+/// TownPanel.tscn vendor+captain overlay IN TOWN (M5-S6, MC 11940); F5 saves;
+/// Esc opens the
 /// DeathMenu.tscn RESPAWN door FOR THE DEAD (P11, plan-c2 FIX-DA5 8) and hints the
 /// menu row (LEDGER 75) while alive — M5 ships no pause (R1c). Renders
 /// session.CurrentArea (slice: grodzisko ↔ mchy); a travel rebuilds the tiles +
@@ -19,6 +21,7 @@ public partial class Act : Node
     private Hud _hud = null!;
     private Control? _panel;
     private DeathMenu? _deathMenu;
+    private TownPanel? _townPanel;
 
     /// <summary>Read accessors for the headless journey leg (Boot) — the same
     /// wired objects the windowed game drives, never a second set.</summary>
@@ -94,6 +97,18 @@ public partial class Act : Node
             GameContext.Save();
             _hud.Hint("the stow-hand copies your kit to the save-stone");
         }
+        else if (@event.IsActionPressed("town_panel"))
+        {
+            // M5-S6 TOWN PANEL (MC 11940, plan-c2 S6): TOWN-ONLY — the widget
+            // opens on the PULLED town key (TownPanelLogic.OpensFor, xunit-
+            // pinned); outside grodzisko the key stays inert with a hint. The
+            // engine's gates (Buy has no area gate; Hire/Revive/Dismiss have
+            // their own) stay the engine's behind the widget — no new rule
+            // lives here.
+            var t = GameContext.Session;
+            if (t is not null && TownPanelLogic.OpensFor(t.CurrentArea, t.Areas.TownKey)) ToggleTownPanel();
+            else _hud.Hint("the pedlar and the captain wait in grodzisko");
+        }
         else if (@event.IsActionPressed("game_menu"))
         {
             // M5-S4 P11 (plan-c2 FIX-DA5 8, the owner-soft-lock row): the DEAD
@@ -126,8 +141,7 @@ public partial class Act : Node
     }
 
     /// <summary>DeathMenu.tscn follows the SAME instantiate-once idiom as the
-    /// inventory panel — it reads GameContext.Session, never builds its own.
-    /// It rides a CanvasLayer of its own (a Control under the Node2D world would
+    /// inventory panel — it reads GameContext.Session, never builds its own.    /// It rides a CanvasLayer of its own (a Control under the Node2D world would
     /// pan with the camera and dodge the GUI clicks — the XVFB leg caught it).
     /// RESPAWN rides the ONE Respawn door through the CommandLog wrapper (the
     /// S3a "respawn" twin — death recovery itself replays); QUIT is the
@@ -148,6 +162,28 @@ public partial class Act : Node
             return; // fresh-instantiated Control is already visible — the OPEN is done
         }
         _deathMenu.Visible = !_deathMenu.Visible; // a second Esc hides it, a third opens it
+    }
+
+    /// <summary>TownPanel.tscn follows the SAME instantiate-once idiom (M5-S6,
+    /// MC 11940) and the SAME CanvasLayer placement — a Control under the
+    /// Node2D world would pan with the camera and dodge the GUI clicks (the
+    /// XVFB lesson). It reads GameContext.Session, never builds its own;
+    /// OnHint paints the engine's refusal text (rejection → HUD hint).</summary>
+    private void ToggleTownPanel()
+    {
+        if (_townPanel is null)
+        {
+            var packed = GD.Load<PackedScene>("res://scenes/TownPanel.tscn");
+            if (packed is null) { GD.PushError("missing res://scenes/TownPanel.tscn"); return; }
+            if (packed.Instantiate() is not TownPanel panel)
+            { GD.PushError("TownPanel.tscn root is not a TownPanel"); return; }
+            panel.OnHint = msg => _hud.Hint(msg);
+            AddChild(new CanvasLayer { Name = "TownPanelLayer", Layer = 21 });
+            _townPanel = panel;
+            GetNode<CanvasLayer>("TownPanelLayer").AddChild(_townPanel);
+            return; // fresh-instantiated Control is already visible — the OPEN is done
+        }
+        _townPanel.Visible = !_townPanel.Visible;
     }
 
     private void RespawnViaDoor()

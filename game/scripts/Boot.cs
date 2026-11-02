@@ -67,7 +67,9 @@ using Godot;
 /// ORCH_M4_OK → Quit(0).
 /// Windowed → MainMenu.tscn — or, when BABA_S4_LEG names a leg dir, the M5-S4
 /// windowed INPUT driver (MC 11937: synthesized clicks through the real input
-/// pipeline + PNG evidence; env unset, that branch is dead code). Zero rules
+/// pipeline + PNG evidence; env unset, that branch is dead code), or when
+/// BABA_S6_LEG names one, the M5-S6 town-panel driver (MC 11940, same shape).
+/// Zero rules
 /// live here (Game → Sim → nothing).
 /// </summary>
 public partial class Boot : Node
@@ -79,6 +81,8 @@ public partial class Boot : Node
             RunMarkerLeg();
         else if (System.Environment.GetEnvironmentVariable(S4InputLeg.EnvVar) is { Length: > 0 } legDir)
             RunWindowedInputLeg(legDir); // M5-S4 evidence driver — env-gated, windowed-only (the SessionClockNode pattern)
+        else if (System.Environment.GetEnvironmentVariable(S6InputLeg.EnvVar) is { Length: > 0 } s6Dir)
+            RunTownPanelLeg(s6Dir); // M5-S6 town-panel evidence driver (MC 11940) — same gate shape
         else
             GetTree().ChangeSceneToFile("res://scenes/MainMenu.tscn");
     }
@@ -99,6 +103,19 @@ public partial class Boot : Node
         var act = InstantiateActSmoke();
         if (act is null) { GetTree().Quit(1); return; }
         AddChild(new S4InputLeg { OutDir = legDir, Act = act });
+    }
+
+    /// <summary>M5-S6 TOWN-PANEL LEG (MC 11940, DoD 2): the same gate shape —
+    /// windowed ONLY, BABA_S6_LEG-gated, unset = dead code. New session at the
+    /// leg seed, the REAL Act, and the driver that clicks the TownPanel buttons
+    /// (buy → belt → hire → dismiss), walks out, and presses the HUD's own
+    /// belt hotkey — every state move a synthesized input, never a verb.</summary>
+    private void RunTownPanelLeg(string legDir)
+    {
+        GameContext.New(S6InputLeg.LegSeed);
+        var act = InstantiateActSmoke();
+        if (act is null) { GetTree().Quit(1); return; }
+        AddChild(new S6InputLeg { OutDir = legDir, Act = act });
     }
 
     /// <summary>The DoD leg 3/3b gate + the slice journey legs. The legs below
