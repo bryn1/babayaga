@@ -29,7 +29,7 @@ STATUS: row 77 PAYMENT: per-area monster table landed as data/area-monsters.json
 | 1 | 5 attributes with per-class start table [charstats] | M1 | BUILT-M1 (per-class START life/mana pinned one row per class, values QUOTED from data/class-*.json — ClassStartTests, MC 11949) |
 | 2 | 5 stat pts + 1 skill pt per level; 5 quest skill pts | M1 | BUILT-M1 |
 | 3 | Class-keyed Life/Vit, Mana/Ener, Stam/Vit rates table | M1 | BUILDING |
-| 4 | Life formula incl. Increase-Max-Life multiplier | M1 | BUILT-M1 |
+| 4 | Life formula incl. Increase-Max-Life multiplier | M1 | BUILT-M1 (worn-gear +Life rides BaseLife pre-multiplier, +Vit IS the post-multiplier "Vitality from items" term — P1 §1.3 quoted; derived from the hero panel, no save field; LifeItemTermTests + anchors, MC 11950 — the mana idiom of row 5 mirrored) |
 | 5 | Mana formula with post-multiplier item terms | M1 | BUILT-M1 (worn-gear +Mana rides BaseMana pre-multiplier, +Energy joins AFTER it — P1 §1.3; derived from the hero panel, no save field; ManaItemTermTests + anchors, MC 11949) |
 | 6 | Stamina: run-only drain, class drain rates, heavy-armor 2× | M1 | NOT-BUILT |
 | 7 | Attack Rating = Dex×5 + flats, then %AR | M1 | BUILT-M1 |
