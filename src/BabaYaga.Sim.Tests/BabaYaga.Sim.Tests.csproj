@@ -91,6 +91,13 @@
          11950/11952 precedent). -->
     <Compile Include="..\..\tests\StashPanelTests.cs" Link="tests\StashPanelTests.cs" />
     <Compile Include="..\..\game\scripts\StashPanelLogic.cs" Link="game\StashPanelLogic.cs" />
+    <!-- CZELUSC DEFENDERS (MC 11954): the lair's spawn-data pins — new file under
+         tests/, same link idiom (project file, not a test .cs — the MC 11950/11952
+         precedent). The test ports the MonsterField/AreaRenderer spawn chain, so it
+         rides the ONE Fnv helper: Fnv.cs is PURE (System.Text only, no Godot types),
+         linked in beside the tests instead of a second implementation being written. -->
+    <Compile Include="..\..\tests\CzeluscDefenderTests.cs" Link="tests\CzeluscDefenderTests.cs" />
+    <Compile Include="..\..\game\scripts\Fnv.cs" Link="game\Fnv.cs" />
   </ItemGroup>
 
   <ItemGroup>
