@@ -26,6 +26,15 @@ namespace BabaYaga.Sim.Cli;
 ///   give &lt;slot&gt; &lt;x&gt; &lt;y&gt; → GiveHirelingGear; strip &lt;slot&gt; → StripHirelingGear —
 ///   both echo the gear report's anchors, the displaced EXCHANGED item when the
 ///   slot spat one back, and the post-move GEAR line.
+///   The M5-S3a replay-gate twins joined them (MC 11933):
+///   belt_add &lt;x&gt; &lt;y&gt; → AddToBelt(x, slot) (the pack index lands in the cell —
+///   echo reads the cell after the move); use &lt;slot&gt; → UsePotion (the report's
+///   SLOT/KIND/BEFORE/AFTER/MAX verbatim — the 40 %-clamped math is the door's);
+///   cast &lt;skill&gt; &lt;monster&gt; → Cast (the report verbatim — the ember roll is the
+///   door's own CombatRng draw, a survivor never counters, Casting.cs header);
+///   respawn → Respawn (the DEAD-guard and the XP penalty are the door's; the
+///   echo reads the raised state). The dispatch layer rolls NOTHING — the DA F4
+///   replay-synth law the S3a rng rows pin.
 /// </summary>
 public sealed partial class ScriptedSession
 {
@@ -132,6 +141,78 @@ public sealed partial class ScriptedSession
         p["TAB_COL"] = r.TabCol;
         p["INV_ROW"] = r.InvRow;
         p["INV_COL"] = r.InvCol;
+        return p;
+    }
+
+    // ---- M5-S3a replay-gate twins (MC 11933): the four game→sim calls an M5
+    // play-session makes, each a THIN door-opener so the S3 replay gate can
+    // feed the CommandLog back through this CLI (plan-c2 S3a; DA F4). ----
+
+    /// belt_add &lt;x&gt; &lt;y&gt; → AddToBelt(carriedIndex, slot) — the carried copy at pack
+    /// index x lands in belt cell y (1–4). Every gate is the ENGINE'S (range,
+    /// not-a-potion, occupied cell, already-belted) and arrives as the named
+    /// ERROR line. Void door — the echo reads the cell after the move (the
+    /// Waypoint-echoes-AREA idiom); nothing here rolls.
+    private Dictionary<string, object?> BeltAdd(Dictionary<string, object?> p, string[] parts)
+    {
+        Arg(parts, 3, "belt_add <x> <y>");
+        int x = Num(parts, 1, 0, "belt_add"), slot = Num(parts, 2, 1, "belt_add");
+        S.AddToBelt(x, slot);
+        p["CARRIED"] = x;
+        p["SLOT"] = slot;
+        p["BASE"] = S.Belt[slot - 1]!.Base.Id; // the door accepted, so the cell is filled
+        p["ITEM"] = S.Belt[slot - 1]!.DisplayName;
+        return p;
+    }
+
+    /// use &lt;slot&gt; → UsePotion(slot) — drinks the belted potion. The DEAD gate,
+    /// the empty slot, the unknown row and the already-at-Max waste are the
+    /// engine's; the 40 % floored-and-clamped heal is the door's. Echo the
+    /// report's anchors verbatim (the stash/gear idiom) — no rng is consumed.
+    private Dictionary<string, object?> Use(Dictionary<string, object?> p, string[] parts)
+    {
+        Arg(parts, 2, "use <slot>");
+        var r = S.UsePotion(Num(parts, 1, 1, "use"));
+        p["SLOT"] = r.Slot;
+        p["KIND"] = r.Kind;
+        p["BEFORE"] = r.Before;
+        p["AFTER"] = r.After;
+        p["MAX"] = r.Max;
+        return p;
+    }
+
+    /// cast &lt;skill&gt; &lt;monster&gt; → Cast(skillId, monsterKey) — the weaving door
+    /// (the brief's shorthand "cast &lt;monsterKey&gt;" cannot stand alone: the door
+    /// takes the weave too, and a CLI-side default skill would BE new sim
+    /// semantics). Gates in order the door owns (DEAD first); the effect — the
+    /// uniform ember roll on the seeded CombatRng, the synergy floor, the
+    /// KillFlow chain, the exact mana debit — is the door's, and a survivor
+    /// does NOT counter this beat (Casting.cs header, plan-c2 R1c). Echo the
+    /// report verbatim; the roll is the door's, never the dispatch's.
+    private Dictionary<string, object?> Cast(Dictionary<string, object?> p, string[] parts)
+    {
+        Arg(parts, 3, "cast <skill> <monster>");
+        var r = S.Cast(parts[1], parts[2]);
+        p["SKILL"] = r.SkillId;
+        p["MONSTER"] = parts[2];
+        p["MANA"] = r.ManaBefore;
+        p["MANA_AFTER"] = r.ManaAfter;
+        p["DAMAGE"] = r.Damage;
+        p["TARGET_LIFE"] = r.TargetLife;
+        p["KILLED"] = r.Killed;
+        return p;
+    }
+
+    /// respawn → Respawn() — the stone-resurrection door (pairs with the S4
+    /// death menu, FIX-DA5 8): the alive-rejection, the DeathPenalty math and
+    /// the relocation are the door's, none of it rolls. Echo reads the raised
+    /// state (the LIFE the stones give, the AREA the hero wakes in).
+    private Dictionary<string, object?> Respawn(Dictionary<string, object?> p, string[] parts)
+    {
+        Arg(parts, 1, "respawn");
+        S.Respawn();
+        p["LIFE"] = S.Character.Life;
+        p["AREA"] = S.CurrentArea;
         return p;
     }
 }

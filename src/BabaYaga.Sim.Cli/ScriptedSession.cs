@@ -12,7 +12,9 @@ namespace BabaYaga.Sim.Cli;
 ///   waypoint &lt;node&gt; | discover &lt;node&gt; | quest &lt;id&gt; accept|step|complete | save &lt;path&gt; | load &lt;path&gt; | dump
 ///   | rest &lt;frames&gt; | hire &lt;id&gt; | dismiss | revive &lt;id&gt; | stash_store &lt;tab&gt; &lt;x&gt; &lt;y&gt;
 ///   | stash_take &lt;tab&gt; &lt;x&gt; &lt;y&gt; (engine doors, MC 11896)
-///   | give &lt;slot&gt; &lt;x&gt; &lt;y&gt; | strip &lt;slot&gt; (merc gear doors, MC 11903) — see EngineDoorVerbs.cs
+///   | give &lt;slot&gt; &lt;x&gt; &lt;y&gt; | strip &lt;slot&gt; (merc gear doors, MC 11903)
+///   | belt_add &lt;x&gt; &lt;y&gt; | use &lt;slot&gt; | cast &lt;skill&gt; &lt;monster&gt; | respawn (the M5-S3a
+///   replay-gate twins — belt/cast/death doors, MC 11933) — see EngineDoorVerbs.cs
 ///   | read-only debug verbs (no session) — see DebugVerbs.cs
 ///   | live-session beats (payload builders) — see RunningVerbs.cs
 /// A rejected change or unknown command throws — the runner owns the ERROR line.
@@ -88,6 +90,10 @@ public sealed partial class ScriptedSession
             "stash_take" => StashTake(payload, parts),
             "give" => Give(payload, parts),
             "strip" => Strip(payload, parts),
+            "belt_add" => BeltAdd(payload, parts),
+            "use" => Use(payload, parts),
+            "cast" => Cast(payload, parts),
+            "respawn" => Respawn(payload, parts),
             _ => throw new SessionRejectedException($"unknown command '{parts[0]}'"),
         };
 
