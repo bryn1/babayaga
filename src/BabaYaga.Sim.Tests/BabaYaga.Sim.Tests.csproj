@@ -84,6 +84,13 @@
          the windowed door-line table — new file under tests/, same link idiom
          (project file, not a test .cs — the MC 11950 precedent). -->
     <Compile Include="..\..\tests\HeroEquipCellTests.cs" Link="tests\HeroEquipCellTests.cs" />
+    <!-- M5 STASH CHEST PANEL (MC 11953): the chest panel's mapping/gate/locked-
+         tab core is PURE (no Godot types), same link idiom; the test carries
+         the door-line table, the town gate, the LOCKED-TAB law, the echo rows
+         and the shipped-file scans (project file, not a test .cs — the MC
+         11950/11952 precedent). -->
+    <Compile Include="..\..\tests\StashPanelTests.cs" Link="tests\StashPanelTests.cs" />
+    <Compile Include="..\..\game\scripts\StashPanelLogic.cs" Link="game\StashPanelLogic.cs" />
   </ItemGroup>
 
   <ItemGroup>

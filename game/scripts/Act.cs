@@ -5,8 +5,8 @@ using Godot;
 /// The act scene — composes IsoCamera + AreaRenderer + MonsterField +
 /// HeroController + Hud around the ONE GameContext session (never a 2nd session).
 /// Tab toggles the Inventory.tscn panel OVER this scene; T opens the
-/// TownPanel.tscn vendor+captain overlay IN TOWN (M5-S6, MC 11940); F5 saves;
-/// Esc opens the
+/// TownPanel.tscn vendor+captain overlay IN TOWN (M5-S6, MC 11940); C opens the
+/// StashPanel.tscn town chest IN TOWN (M5, MC 11953); F5 saves; Esc opens the
 /// DeathMenu.tscn RESPAWN door FOR THE DEAD (P11, plan-c2 FIX-DA5 8) and hints the
 /// menu row (LEDGER 75) while alive — M5 ships no pause (R1c). Renders
 /// session.CurrentArea (slice: grodzisko ↔ mchy); a travel rebuilds the tiles +
@@ -22,6 +22,7 @@ public partial class Act : Node
     private Control? _panel;
     private DeathMenu? _deathMenu;
     private TownPanel? _townPanel;
+    private StashPanel? _stashPanel;
 
     /// <summary>Read accessors for the headless journey leg (Boot) — the same
     /// wired objects the windowed game drives, never a second set.</summary>
@@ -108,6 +109,20 @@ public partial class Act : Node
             var t = GameContext.Session;
             if (t is not null && TownPanelLogic.OpensFor(t.CurrentArea, t.Areas.TownKey)) ToggleTownPanel();
             else _hud.Hint("the pedlar and the captain wait in grodzisko");
+        }
+        else if (@event.IsActionPressed("stash_panel"))
+        {
+            // M5 STASH CHEST (MC 11953, row-75 chest half): the C key — the
+            // existing town-interaction path (the town_panel idiom above; no
+            // chest SPRITE stands in the world yet, so there is nothing to
+            // click and the key IS the interaction). TOWN-ONLY on the PULLED
+            // town key (StashPanelLogic.OpensFor, xunit-pinned); outside
+            // grodzisko the key stays inert with a hint — and the ENGINE's
+            // own DEAD→town gates on Store/Take stay the authority behind the
+            // widget (the Stash.cs gate order), never re-implemented here.
+            var u = GameContext.Session;
+            if (u is not null && StashPanelLogic.OpensFor(u.CurrentArea, u.Areas.TownKey)) ToggleStashPanel();
+            else _hud.Hint("the town chest stands in grodzisko");
         }
         else if (@event.IsActionPressed("game_menu"))
         {
@@ -198,6 +213,29 @@ public partial class Act : Node
             return; // fresh-instantiated Control is already visible — the OPEN is done
         }
         _townPanel.Visible = !_townPanel.Visible;
+    }
+
+    /// <summary>StashPanel.tscn follows the SAME instantiate-once idiom (MC
+    /// 11953, the ToggleTownPanel twin) and the SAME CanvasLayer placement —
+    /// a Control under the Node2D world would pan with the camera and dodge
+    /// the GUI clicks (the XVFB lesson). It reads GameContext.Session, never
+    /// builds its own; OnHint paints the engine's refusal text (rejection →
+    /// HUD hint) — the locked-tab hint's engine-pinned wording included.</summary>
+    private void ToggleStashPanel()
+    {
+        if (_stashPanel is null)
+        {
+            var packed = GD.Load<PackedScene>("res://scenes/StashPanel.tscn");
+            if (packed is null) { GD.PushError("missing res://scenes/StashPanel.tscn"); return; }
+            if (packed.Instantiate() is not StashPanel panel)
+            { GD.PushError("StashPanel.tscn root is not a StashPanel"); return; }
+            panel.OnHint = msg => _hud.Hint(msg);
+            AddChild(new CanvasLayer { Name = "StashPanelLayer", Layer = 23 }); // above the pack's 22
+            _stashPanel = panel;
+            GetNode<CanvasLayer>("StashPanelLayer").AddChild(_stashPanel);
+            return; // fresh-instantiated Control is already visible — the OPEN is done
+        }
+        _stashPanel.Visible = !_stashPanel.Visible;
     }
 
     private void RespawnViaDoor()

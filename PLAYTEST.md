@@ -31,6 +31,7 @@ re-run the two build commands — the build-twice law.
 | RIGHT mouse | attack (stationary monsters, they counter back) |
 | TAB | inventory panel open / close |
 | T | town panel (pedlar + captain) — only inside grodzisko |
+| C | town chest (stash): store from the pack, take back — only inside grodzisko |
 | 1 2 3 4 | drink the belt potion in that slot |
 | R | throw the koldun's first spark at your engaged target |
 | ESC | when DEAD: the death menu with RESPAWN. Alive: only a hint (M5 ships no pause) |

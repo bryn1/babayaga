@@ -85,6 +85,8 @@ public partial class Boot : Node
             RunTownPanelLeg(s6Dir); // M5-S6 town-panel evidence driver (MC 11940) — same gate shape
         else if (System.Environment.GetEnvironmentVariable(EquipCellLeg.EnvVar) is { Length: > 0 } eqDir)
             RunEquipCellLeg(eqDir); // M5 hero-equip evidence driver (MC 11952) — same gate shape
+        else if (System.Environment.GetEnvironmentVariable(StashChestLeg.EnvVar) is { Length: > 0 } stDir)
+            RunStashChestLeg(stDir); // M5 town-chest evidence driver (MC 11953) — same gate shape
         else
             GetTree().ChangeSceneToFile("res://scenes/MainMenu.tscn");
     }
@@ -132,6 +134,20 @@ public partial class Boot : Node
         var act = InstantiateActSmoke();
         if (act is null) { GetTree().Quit(1); return; }
         AddChild(new EquipCellLeg { OutDir = legDir, Act = act });
+    }
+
+    /// <summary>M5 TOWN-CHEST LEG (MC 11953, DoD 2): the same gate shape —
+    /// windowed ONLY, BABA_STASH_LEG-gated, unset = dead code. New session at
+    /// the leg seed, the REAL Act, and the driver that buys at the pedlar,
+    /// opens the chest with the C key and CLICKS THE PAINTED ANCHORS — store
+    /// on the pack side, take on the tab side — then the LOCKED tab click;
+    /// every state move a synthesized input, never a verb.</summary>
+    private void RunStashChestLeg(string legDir)
+    {
+        GameContext.New(StashChestLeg.LegSeed);
+        var act = InstantiateActSmoke();
+        if (act is null) { GetTree().Quit(1); return; }
+        AddChild(new StashChestLeg { OutDir = legDir, Act = act });
     }
 
     /// <summary>The DoD leg 3/3b gate + the slice journey legs. The legs below
