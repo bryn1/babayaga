@@ -34,18 +34,32 @@ public partial class MonsterField : Node2D
     private readonly SpriteRoster<Sprite2D> _roster = new();
     private Node2D? _row;
 
+    // M5-S7 FIX-DA5 10 count-marker state (the S7 row of plan-c2).
+    private int _spawnRow;
+    private bool _pendingCountMarker;
+    private string _pendingPhase = "";
+    private bool _sessionStarted;
+
     public void Build(string areaKey, bool isTown, IReadOnlyList<Vector2I> walkable, Vector2I arrivalCell)
     {
         _row?.QueueFree();
         _roster.Clear();
         _row = new Node2D { Name = "Monsters" };
         AddChild(_row);
-        if (isTown || walkable.Count == 0) return;
-        if (!Table().TryGetValue(areaKey, out var rows)) return;
+        _spawnRow = 0;
+        _pendingCountMarker = false;
+        var phase = _sessionStarted ? $"area-build:{areaKey}" : $"session-start:{areaKey}";
+        _sessionStarted = true;
+        if (isTown || walkable.Count == 0 || !Table().TryGetValue(areaKey, out var rows))
+        {
+            PrintSpriteMarker(phase); // town / no-row ground: the field's own law is 0 == 0
+            return;
+        }
 
         var rng = new Random((int)Fnv.Hash(areaKey + ":mon"));
         foreach (var row in rows)
         {
+            _spawnRow += row.Count; // the data row commands this many standing sprites
             var band = Band(walkable, arrivalCell, row.Placement);
             for (int i = 0; i < row.Count; i++)
             {
@@ -61,6 +75,41 @@ public partial class MonsterField : Node2D
                 _roster.Add(row.Kind, cell.X, cell.Y, sprite);
             }
         }
+        PrintSpriteMarker(phase); // session start / every area build: the roster stands at its row
+    }
+
+    /// <summary>M5-S7 FIX-DA5 10 — the presentation-drift detector plan-c2 §2 S7
+    /// names (quote: "M5_SPRITE_COUNT &lt;n&gt; == spawn-row &lt;m&gt; … at session start
+    /// and after each kill-despawn"). The replay gate is structurally BLIND to the
+    /// sprite roster (the Sim spawns a FRESH monster per kill — dumps cannot see
+    /// sprites, the verdict's P4-A), so the field testifies for itself: live
+    /// sprites STANDING in the field (the nodes, not roster bookkeeping — a
+    /// suppressed free stands as a ghost and moves the node count) vs the spawn
+    /// rows data/area-monsters.json commands for this area. GREEN prints the plan's
+    /// literal '==' line; drift prints '!=' + PRESENTATION-DRIFT. WINDOWED ONLY —
+    /// the headless story anchors' bytes are untouched (the exact headless check
+    /// Boot.cs uses).</summary>
+    private void PrintSpriteMarker(string phase)
+    {
+        if (DisplayServer.GetName() == "headless") return;
+        int n = 0;
+        if (_row is not null)
+            foreach (var c in _row.GetChildren())
+                if (GodotObject.IsInstanceValid(c)) n++;
+        GD.Print(n == _spawnRow
+            ? $"M5_SPRITE_COUNT {n} == spawn-row {_spawnRow} [{phase}]"
+            : $"M5_SPRITE_COUNT {n} != spawn-row {_spawnRow} [{phase}] PRESENTATION-DRIFT");
+    }
+
+    /// <summary>The post-kill marker rides ONE FRAME: QueueFree lands at frame
+    /// end, so counting now would still see the freed sprite (a false drift);
+    /// one frame on, a legitimately freed sprite is gone and a SUPPRESSED free
+    /// stands — the ghost class this marker exists to catch.</summary>
+    public override void _Process(double delta)
+    {
+        if (!_pendingCountMarker) return;
+        _pendingCountMarker = false;
+        PrintSpriteMarker(_pendingPhase);
     }
 
     /// <summary>M5-S4 kill-despawn (plan FIX-DA5 5, the S4-owned row): the killed
@@ -93,6 +142,8 @@ public partial class MonsterField : Node2D
         };
         _row?.AddChild(fresh);
         _roster.Add(key, cell.X, cell.Y, fresh);
+        _pendingCountMarker = true; // M5-S7: the marker rides the frame after the free
+        _pendingPhase = $"post-kill:{key}";
     }
 
     /// <summary>Kills this field has taken (the per-instance despawn counter).</summary>
