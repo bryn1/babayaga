@@ -54,7 +54,11 @@ public partial class TownPanel : Control
     /// centred across. The box sizes itself; nothing anchors here.</summary>
     private void LayoutToSize()
     {
-        if (Size == Vector2.Zero) return;
+        // D3 sibling-guard (MC 11943): the same pre-ready RESIZED window threw
+        // the identical NRE here (s6-xvfb.log) — one guard at the shared
+        // idiom, both files. Reject the pre-_Ready pass; layout rides the
+        // settle frame / later RESIZED.
+        if (!IsNodeReady() || Size == Vector2.Zero) return;
         _dim.Position = Vector2.Zero;
         _dim.Size = Size;
         _box.ResetSize();
