@@ -7,6 +7,12 @@
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+
+    <!-- M5-S5 (MC 11939): HUDCORE compiles ONLY the pure HudReadout core of the
+         linked Hud.cs beside these tests (the S3/S4 purity idiom, kept inside
+         one file because the S5 ownership row pins the HUD to Hud.cs); the
+         Godot shell stays engine-side, no engine process, no engine reference. -->
+    <DefineConstants>$(DefineConstants);HUDCORE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -57,6 +63,11 @@
          TownPanel rides is PURE (no Godot types), the widget glue stays outside. -->
     <Compile Include="..\..\tests\TownPanelTests.cs" Link="tests\TownPanelTests.cs" />
     <Compile Include="..\..\game\scripts\TownPanelLogic.cs" Link="game\TownPanelLogic.cs" />
+    <!-- M5-S5 HUD read-backs (MC 11939): the HUDCORE define (PropertyGroup)
+         compiles the pure HudReadout half of Hud.cs in beside the tests; the
+         Godot shell of the same file stays engine-side (file header). -->
+    <Compile Include="..\..\tests\HudReadoutTests.cs" Link="tests\HudReadoutTests.cs" />
+    <Compile Include="..\..\game\scripts\Hud.cs" Link="game\Hud.cs" />
   </ItemGroup>
 
   <ItemGroup>
