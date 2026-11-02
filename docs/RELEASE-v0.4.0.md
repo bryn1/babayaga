@@ -69,9 +69,14 @@ GEAR_OK + GEAR_STATS_OK, STASH_OK and ORCH_M4_OK, zero ERROR lines.
 
 ## Known limits (honest list)
 
-- **Playable graphics session NOT yet built**: the game runs as the pure-C# sim (CLI) and the
+- **Graphics play session OPEN at this tag** (the retired claim, exact words archived in git
+  history): the game ran as the pure-C# sim (CLI) and the
   headless Godot story; the windowed UI (equipment panel row 68, sheet 71, automap 72, town
-  portal 73, shop/craft/menu widgets 75, art-screenshot leg 76) is open work.
+  portal 73, shop/craft/menu widgets 75, art-screenshot leg 76) was open work.
+  UPDATED 2026-11-02 (M5-S8a): this line is the v0.4.0 record only — windowed play was
+  delivered and gate-PASSED after this tag (`.audits/202610301950-31593a83/out/TEST-verdict-m5-b.md`,
+  JUDGED f01bcde2; see PLAYTEST.md + README §PLAY); v0.5.0 release notes ride a later
+  owner-PASS commit.
 - Real item damage/ED/life data rows are future — `item-bases.json` carries no damage columns;
   the gear-stat mechanism is proven on synthetic bases (row 66 DATA-FUTURE).
 - Merc complex curves (to-hit / block / +skills / IAS / procs from gear) DEFERRED by design
