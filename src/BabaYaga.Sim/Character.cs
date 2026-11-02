@@ -35,6 +35,14 @@ public sealed class Character
     public int IncreaseMaxLifePercent { get; set; }
     public int IncreaseMaxManaPercent { get; set; }
 
+    /// <summary>The hero's worn panel, assigned ONCE by the owning GameSession
+    /// (the panel object itself, never a copy). Mana item terms are DERIVED at
+    /// the read through it — the Hireling.MaxLife GearStat precedent (M4-S16,
+    /// §6.7c): never a save field, save format v7 UNCHANGED. Null for a
+    /// standalone Character (CLI debug verbs, unit fixtures) — it derives
+    /// gear-free, exactly as before this row.</summary>
+    public EquipmentPanel? WornGear { get; set; }
+
     /// <summary>The CURRENT pools the belt potions raise (LEDGER row 69) — start
     /// full, lowered by TakeDamage, floored at 0. The setter is the restore/
     /// authoring door (the same public-setter idiom as Monster.Life and FlatLife);
@@ -92,8 +100,27 @@ public sealed class Character
     public long MaxLife => Stats.MaxLife(
         Profile, Level, VitAlloc, VitFromItems, FlatLife, IncreaseMaxLifePercent);
 
+    /// Σ of one mod stat over WORN gear only — the Hireling.GearStat summing
+    /// idiom (the same worn-only law the merc panel obeys: carried feeds
+    /// nothing; SumMod's carried+worn door stays the MF/GF/regen-% door).
+    private int WornStat(string stat) =>
+        WornGear is null ? 0 : WornGear.Equipped.Values.Sum(i => i.ModSum(stat));
+
+    /// <summary>The max-mana derivation with the row-5 ITEM TERMS (P1 §1.3, the
+    /// mana twin of the quoted life formula — "item Energy and the per-level
+    /// +Mana are added AFTER the Increase-Max-Mana % multiplier"; VERIFIED,
+    /// d2r.org/mechanics/mana: "Increase Maximum Mana … multiplies your base
+    /// mana … It does not multiply mana from Energy on items or the per-level
+    /// +Mana"). Flat "+Mana" from worn gear rides Stats.BaseMana's flat term —
+    /// INSIDE the parens, so the % multiplies it; "+Energy" from worn gear joins
+    /// AFTER the multiplier as ManaPerEner × Ener. Both sums are DERIVED at the
+    /// read from WornGear (never a save field); they ADD to the public authoring
+    /// fields (save-restore and quest flats keep their own doors).</summary>
     public long MaxMana => Stats.MaxMana(
-        Profile, Level, EnerAlloc, EnerFromItems, FlatMana, IncreaseMaxManaPercent);
+        Profile, Level, EnerAlloc,
+        EnerFromItems + WornStat("energy"),
+        FlatMana + WornStat("mana"),
+        IncreaseMaxManaPercent);
 
     public long AttackRating => Stats.AttackRating(TotalDex, WeaponBaseAr, FlatAr, ArPercent);
 

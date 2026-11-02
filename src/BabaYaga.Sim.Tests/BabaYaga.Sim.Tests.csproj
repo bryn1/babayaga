@@ -73,6 +73,10 @@
          also carries the shipped-file scan rows for the D1/D3 fix shapes. -->
     <Compile Include="..\..\tests\M5GateFixTests.cs" Link="tests\M5GateFixTests.cs" />
     <Compile Include="..\..\game\scripts\InventoryPanelLogic.cs" Link="game\InventoryPanelLogic.cs" />
+    <!-- ARCH-closing rows 5+1 (MC 11949): the mana item-term wire tests and the
+         per-class start pins — new files under tests/, same link idiom. -->
+    <Compile Include="..\..\tests\ManaItemTermTests.cs" Link="tests\ManaItemTermTests.cs" />
+    <Compile Include="..\..\tests\ClassStartTests.cs" Link="tests\ClassStartTests.cs" />
   </ItemGroup>
 
   <ItemGroup>

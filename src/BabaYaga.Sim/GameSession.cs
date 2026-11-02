@@ -83,6 +83,12 @@ public sealed partial class GameSession
         Ladder = XpTable.Load(D("xp-ladder.json"));
         SkillData = SkillDataLoader.Load(D($"{profile.Key}-skills.json"));
         Character = new Character(profile, SkillData.ClassName);
+        // Row-5 wire (MC 11949): the hero's mana item terms are DERIVED from
+        // THIS panel at the read (Character.WornGear — the Hireling gear-stat
+        // precedent). The panel object is shared, never copied: equipping and
+        // the save-restore re-equip ride the same instance the derivation
+        // reads; nothing new enters the save (v7 unchanged).
+        Character.WornGear = Equipment;
         Skills = new SkillTree(SkillData);
         Bases = ItemBaseTable.Load(D("item-bases.json"));
         var affixes = AffixPool.Load(D("affixes.json"));
