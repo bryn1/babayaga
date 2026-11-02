@@ -103,15 +103,18 @@ public partial class HeroController : Node2D
     }
 
     /// <summary>RMB: strike the monster under the cursor; pending loot is taken in
-    /// the same click (Loot key → Loot(1)).</summary>
+    /// the same click (Loot key → Loot(1)). M5-S3 (MC 11934): both doors ride the
+    /// CommandLog.Call wrapper — with the bridge OFF it is the plain call, with it
+    /// ON each lands as one CLI-grammar line (a rejection as its comment), and the
+    /// hint catch below is untouched.</summary>
     private void TryAttack(GameSession s, Vector2 world)
     {
         var key = _monsters.MonsterAt(world);
         if (key is null) return;
         try
         {
-            s.Attack(key, 1);
-            if (s.Drops.Pending > 0) s.Loot(1);
+            CommandLog.Call($"attack {key} 1", () => s.Attack(key, 1));
+            if (s.Drops.Pending > 0) CommandLog.Call("loot 1", () => s.Loot(1));
         }
         catch (SessionRejectedException e) { _hud.Hint(e.Message); } // never a crash
     }
@@ -146,8 +149,11 @@ public partial class HeroController : Node2D
         if (dest is null) return;
         try
         {
-            if (s.Waypoints.HasNode(dest) && !s.Waypoints.IsDiscovered(dest)) s.DiscoverWaypoint(dest);
-            s.TravelTo(dest);
+            // M5-S3 (MC 11934): the two travel doors log as the CLI's own
+            // discover/waypoint lines (the S4 input-map row 1+2 verbs).
+            if (s.Waypoints.HasNode(dest) && !s.Waypoints.IsDiscovered(dest))
+                CommandLog.Call($"discover {dest}", () => s.DiscoverWaypoint(dest));
+            CommandLog.Call($"waypoint {dest}", () => s.TravelTo(dest));
             OnAreaChanged?.Invoke(); // Act rebuilds tiles + monsters + placement under the new area
             _hud.Hint(s.Waypoints.IsDiscovered(dest)
                 ? $"the stone carries you to {dest}"

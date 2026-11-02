@@ -18,14 +18,30 @@ public static class GameContext
     /// <summary>Globalized user://save — the Continue path's save file.</summary>
     public static string SavePath() => ProjectSettings.GlobalizePath("user://save");
 
-    public static GameSession New(ulong seed, string classKey = "koldun") =>
-        Session = GameSession.New(seed, classKey, DataDir());
+    public static GameSession New(ulong seed, string classKey = "koldun")
+    {
+        var session = Session = GameSession.New(seed, classKey, DataDir());
+        // M5-S3 bridge (MC 11934): session creation precedes the log (DA F4), so
+        // the head line is SYNTHESIZED here — and only when BABA_LOG says so;
+        // env unset, Ambient stays null and nothing anywhere writes.
+        CommandLog.Ambient = CommandLog.FromEnvironment();
+        CommandLog.Ambient?.Open($"new {classKey}");
+        return session;
+    }
 
     public static void Save() => Session?.Save(SavePath());
 
     /// <summary>Loads user://save when it exists; a New session otherwise.</summary>
-    public static GameSession Load(ulong fallbackSeed = 1) =>
-        Session = FileAccess.FileExists("user://save")
+    public static GameSession Load(ulong fallbackSeed = 1)
+    {
+        var session = Session = FileAccess.FileExists("user://save")
             ? GameSession.Load(SavePath(), DataDir())
             : GameSession.New(fallbackSeed, "koldun", DataDir());
+        // Continue attaches to a mid-stream session no replay can re-bootstrap —
+        // the log opens on a comment head (honest: the replay contract is New
+        // Game sessions, the F4 head; lines still record for the trail).
+        CommandLog.Ambient = CommandLog.FromEnvironment();
+        CommandLog.Ambient?.Open($"# continue-from-save {SavePath()}");
+        return session;
+    }
 }

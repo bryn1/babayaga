@@ -39,6 +39,13 @@
     <Compile Include="..\..\tests\HirelingDeathTests.cs" Link="tests\HirelingDeathTests.cs" />
     <Compile Include="..\..\tests\HirelingGearTests.cs" Link="tests\HirelingGearTests.cs" />
     <Compile Include="..\..\tests\HirelingStatTests.cs" Link="tests\HirelingStatTests.cs" />
+    <!-- M5-S3 sim bridge (MC 11934): the test rides the same link idiom; it
+         exercises the two PURE bridge files under game/scripts (no Godot types). -->
+    <Compile Include="..\..\tests\GameBridgeTests.cs" Link="tests\GameBridgeTests.cs" />
+    <!-- The bridge files under test: PURE by design (the S3 design note), so
+         they compile in beside the tests; the Godot glue stays outside. -->
+    <Compile Include="..\..\game\scripts\SessionClock.cs" Link="game\SessionClock.cs" />
+    <Compile Include="..\..\game\scripts\CommandLog.cs" Link="game\CommandLog.cs" />
   </ItemGroup>
 
   <ItemGroup>

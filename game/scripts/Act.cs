@@ -49,6 +49,18 @@ public partial class Act : Node
         _hero.Wire(_renderer, _monsters, _hud);
         _hero.OnAreaChanged = () => Rebuild(GameContext.Session!.CurrentArea);
 
+        // M5-S3 SIM BRIDGE (MC 11934): the ONE SIM-state clock, windowed only —
+        // the headless marker legs run inside one _Ready, so its _Process never
+        // pumps them (the story anchors stay byte-identical by construction).
+        // HeroController's walk clock and Hud's repaint clock stay untouched:
+        // those are presentation time; this feeds RestTick alone.
+        if (DisplayServer.GetName() != "headless")
+        {
+            var simClock = new SessionClockNode { Name = "SimClock" };
+            simClock.OnHint = msg => _hud.Hint(msg);
+            AddChild(simClock);
+        }
+
         Rebuild(session.CurrentArea);
     }
 
