@@ -83,6 +83,8 @@ public partial class Boot : Node
             RunWindowedInputLeg(legDir); // M5-S4 evidence driver — env-gated, windowed-only (the SessionClockNode pattern)
         else if (System.Environment.GetEnvironmentVariable(S6InputLeg.EnvVar) is { Length: > 0 } s6Dir)
             RunTownPanelLeg(s6Dir); // M5-S6 town-panel evidence driver (MC 11940) — same gate shape
+        else if (System.Environment.GetEnvironmentVariable(EquipCellLeg.EnvVar) is { Length: > 0 } eqDir)
+            RunEquipCellLeg(eqDir); // M5 hero-equip evidence driver (MC 11952) — same gate shape
         else
             GetTree().ChangeSceneToFile("res://scenes/MainMenu.tscn");
     }
@@ -116,6 +118,20 @@ public partial class Boot : Node
         var act = InstantiateActSmoke();
         if (act is null) { GetTree().Quit(1); return; }
         AddChild(new S6InputLeg { OutDir = legDir, Act = act });
+    }
+
+    /// <summary>M5 HERO-EQUIP LEG (MC 11952): the same gate shape — windowed
+    /// ONLY, BABA_EQ_LEG-gated, unset = dead code. New session at the leg seed,
+    /// the REAL Act, and the driver that buys at the pedlar, opens the pack and
+    /// CLICKS THE PAINTED ANCHOR CELL (click-to-wear, the declared control-
+    /// scheme translation of D2's cursor drag) — every state move a synthesized
+    /// input, never a verb.</summary>
+    private void RunEquipCellLeg(string legDir)
+    {
+        GameContext.New(EquipCellLeg.LegSeed);
+        var act = InstantiateActSmoke();
+        if (act is null) { GetTree().Quit(1); return; }
+        AddChild(new EquipCellLeg { OutDir = legDir, Act = act });
     }
 
     /// <summary>The DoD leg 3/3b gate + the slice journey legs. The legs below

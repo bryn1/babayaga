@@ -23,6 +23,11 @@ public partial class InventoryPanel : Control
     private static readonly Color CellColor = new("2E2117");
     private static readonly Color CellEdge = new("4A3624");
 
+    /// <summary>Wired by Act to the HUD hint line (the TownPanel/SessionClockNode
+    /// OnHint idiom, MC 11952): an equip click the ENGINE refuses paints the
+    /// engine's own words — never a silent swallow.</summary>
+    public System.Action<string>? OnHint;
+
     private HBoxContainer? _columns; // built by Refresh, positioned by LayoutToSize
 
     public override void _Ready()
@@ -74,7 +79,16 @@ public partial class InventoryPanel : Control
     /// presentation-side re-derivation — the Sim owns no answer to "which cell?").
     /// The anchor map is a C# set of InventoryPanelLogic.AnchorKey strings — the
     /// D2 fix: this key is NOT a valid Godot metadata identifier and never goes
-    /// to metadata again.</summary>
+    /// to metadata again.
+    /// CLICK-TO-WEAR (MC 11952, the declared control-scheme translation): D2
+    /// equips via cursor DRAG; this clone is command-driven with NO cursor state
+    /// (ARCH law), so a left-click on a PAINTED anchor cell rides the SAME
+    /// logged door the CLI twin speaks — CommandLog.Call("equip &lt;x&gt; &lt;y&gt;",
+    /// s.EquipFromCell) — every gate stays the engine's and its refusal arrives
+    /// as the OnHint line (the TownPanel button law). Empty cells are named
+    /// "free_r_c" so the evidence leg can hunt the PAINTED truth (an empty cell
+    /// is never clickable — a phantom click is worse than no click; the panel
+    /// invents no placement beside the Sim).</summary>
     private Control BuildGrid(BabaYaga.Sim.GameSession s)
     {
         var occ = new bool[BabaYaga.Sim.InventoryGrid.Rows, BabaYaga.Sim.InventoryGrid.Columns];
@@ -92,10 +106,36 @@ public partial class InventoryPanel : Control
                     Color = CellColor,
                     CustomMinimumSize = new Vector2(48, 48),
                 };
-                if (anchors.Contains(InventoryPanelLogic.AnchorKey(r, c))) cell.Color = new Color("7A5A2A"); // thatch token: item sits here
+                int row = r, col = c; // the loop vars for the closure (C# loops capture per-iteration anyway — pinned by clarity)
+                if (anchors.Contains(InventoryPanelLogic.AnchorKey(r, c)))
+                {
+                    cell.Color = new Color("7A5A2A"); // thatch token: item sits here
+                    cell.Name = InventoryPanelLogic.AnchorNodeName(r, c);
+                    cell.GuiInput += e =>
+                    {
+                        if (e is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true })
+                            EquipViaDoor(row, col);
+                    };
+                }
+                else cell.Name = $"free_{r}_{c}";
                 grid.AddChild(cell);
             }
         return grid;
+    }
+
+    /// <summary>One anchor-cell click = one LOGGED door line (the TownPanel
+    /// button idiom): the grammar string IS what replays; the engine's refusal
+    /// paints itself as a hint; success refreshes the paint (the worn cell
+    /// empties, the Worn list grows — the evidence pair).</summary>
+    private void EquipViaDoor(int row, int col)
+    {
+        var s = GameContext.Session; if (s is null) return;
+        try
+        {
+            CommandLog.Call(InventoryPanelLogic.EquipCellLine(row, col), () => s.EquipFromCell(row, col));
+        }
+        catch (BabaYaga.Sim.SessionRejectedException e) { OnHint?.Invoke(e.Message); return; } // the hint IS the answer
+        Refresh();
     }
 
     private Control BuildEquipment(BabaYaga.Sim.GameSession s)

@@ -8,7 +8,9 @@ namespace BabaYaga.Sim.Cli;
 /// payload of its output line. Grammar (one command per line; '#' starts a
 /// comment, blank lines are ignored):
 ///   new &lt;class&gt; | levelto &lt;n&gt; | spend &lt;skill&gt; [n] | attack &lt;monster&gt; [times] |
-///   special &lt;monster&gt; | loot [n] | equip lastdrop | buy &lt;item&gt; | sell last | gamble |
+///   special &lt;monster&gt; | loot [n] | equip lastdrop | equip &lt;x&gt; &lt;y&gt; (hero cell-equip
+///   door twin, MC 11952 — the windowed anchor-cell click rides the same line) |
+///   buy &lt;item&gt; | sell last | gamble |
 ///   waypoint &lt;node&gt; | discover &lt;node&gt; | quest &lt;id&gt; accept|step|complete | save &lt;path&gt; | load &lt;path&gt; | dump
 ///   | rest &lt;frames&gt; | hire &lt;id&gt; | dismiss | revive &lt;id&gt; | stash_store &lt;tab&gt; &lt;x&gt; &lt;y&gt;
 ///   | stash_take &lt;tab&gt; &lt;x&gt; &lt;y&gt; (engine doors, MC 11896)
