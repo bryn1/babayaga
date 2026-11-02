@@ -142,6 +142,10 @@ public partial class Act : Node
             if (packed is null) { GD.PushError("missing res://scenes/Inventory.tscn"); return; }
             if (packed.Instantiate() is not Control panel)
             { GD.PushError("Inventory.tscn root is not a Control"); return; }
+            // MC 11952: the click-to-wear refusal paints itself (the TownPanel
+            // OnHint idiom) — every equip click the engine rejects arrives on
+            // the HUD line, never a silent swallow.
+            if (panel is InventoryPanel inv) inv.OnHint = msg => _hud.Hint(msg);
             _panel = panel;
             AddChild(new CanvasLayer { Name = "InventoryLayer", Layer = 22 }); // above the town panel's 21
             GetNode<CanvasLayer>("InventoryLayer").AddChild(_panel);

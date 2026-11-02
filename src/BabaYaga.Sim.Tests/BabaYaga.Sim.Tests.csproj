@@ -80,6 +80,10 @@
     <!-- ARCH row 4 (MC 11950): the hero worn-life/+Vit item-term tests — the
          mana idiom mirrored on the life twin; same link idiom. -->
     <Compile Include="..\..\tests\LifeItemTermTests.cs" Link="tests\LifeItemTermTests.cs" />
+    <!-- HERO EQUIP (MC 11952): the cell-addressable equip door, its CLI twin and
+         the windowed door-line table — new file under tests/, same link idiom
+         (project file, not a test .cs — the MC 11950 precedent). -->
+    <Compile Include="..\..\tests\HeroEquipCellTests.cs" Link="tests\HeroEquipCellTests.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -75,15 +75,34 @@ public sealed partial class ScriptedSession
         return p;
     }
 
+    /// equip takes TWO forms (MC 11952): 'equip lastdrop' — the original verb,
+    /// unchanged; 'equip &lt;x&gt; &lt;y&gt;' — the thin twin of the hero's cell-addressable
+    /// EquipFromCell door (the EngineDoorVerbs idiom: every gate — DEAD first,
+    /// the grid range, the anchor, the wearable law, the exchange room — is the
+    /// ENGINE'S and arrives as the named ERROR line; the dispatch rolls nothing).
+    /// The cell echo reads the door's own report (the gear-anchors idiom).
     private Dictionary<string, object?> Equip(Dictionary<string, object?> p, string[] parts)
     {
-        if (parts.Length != 2 || parts[1] != "lastdrop")
-            throw new SessionRejectedException("equip takes exactly one form: 'equip lastdrop'");
-        var item = S.EquipLastDrop();
-        var slot = S.Equipment.Equipped.First(kv => ReferenceEquals(kv.Value, item)).Key;
-        p["ITEM"] = item.DisplayName;
-        p["SLOT"] = slot.ToString();
-        return p;
+        if (parts.Length == 2 && parts[1] == "lastdrop")
+        {
+            var item = S.EquipLastDrop();
+            var slot = S.Equipment.Equipped.First(kv => ReferenceEquals(kv.Value, item)).Key;
+            p["ITEM"] = item.DisplayName;
+            p["SLOT"] = slot.ToString();
+            return p;
+        }
+        if (parts.Length == 3)
+        {
+            var r = S.EquipFromCell(Num(parts, 1, 0, "equip"), Num(parts, 2, 0, "equip"));
+            p["SLOT"] = r.Slot;
+            p["BASE"] = r.Base;
+            p["ITEM"] = r.Name;
+            p["INV_ROW"] = r.InvRow;
+            p["INV_COL"] = r.InvCol;
+            if (r.ExchangedBase is not null) p["EXCHANGED"] = $"{r.ExchangedName}@{r.ExchangedRow},{r.ExchangedCol}";
+            return p;
+        }
+        throw new SessionRejectedException("equip takes 'equip lastdrop' or 'equip <x> <y>' (the pack cell)");
     }
 
     private Dictionary<string, object?> Buy(Dictionary<string, object?> p, string[] parts)

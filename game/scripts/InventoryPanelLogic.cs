@@ -15,6 +15,19 @@ public static class InventoryPanelLogic
     /// never handed to SetMeta/HasMeta (see the header's D2 note).</summary>
     public static string AnchorKey(int row, int col) => $"{row},{col}";
 
+    /// <summary>The anchor cell's NODE NAME (the leg's hunt handle, MC 11952):
+    /// the underscore form because a node name must be a valid Godot
+    /// identifier too — the same D2 rule that banned "0,0" from metadata
+    /// bans it here; the pair (row,col) never goes to metadata.</summary>
+    public static string AnchorNodeName(int row, int col) => $"cell_{row}_{col}";
+
+    /// <summary>The CLI twin line an anchor-cell click rides through
+    /// CommandLog.Call (MC 11952, the TownPanelLogic door-line idiom): the
+    /// painted cell IS the grammar line "equip &lt;x&gt; &lt;y&gt;" the engine door
+    /// EquipFromCell answers — cells are the Sim's truth (ARCH v8), the panel
+    /// never invents a second placement answer beside it.</summary>
+    public static string EquipCellLine(int row, int col) => $"equip {row} {col}";
+
     /// <summary>First-fit a w×h item into the occupancy grid (rows = the
     /// grid's Rows, cols = its Columns); marks every covered cell occupied
     /// and returns the ANCHOR key (the top-left cell the panel paints with
