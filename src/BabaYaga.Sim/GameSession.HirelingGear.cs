@@ -30,11 +30,15 @@ namespace BabaYaga.Sim;
 /// rooms" (AreUnitsInNeighboredRooms, amendment §3), our clone reads it at the
 /// whole-area level ("she stands with you on the area you stand on"); (2) the
 /// rzutca axe whitelist is fenced in the DATA (D2 ships no throwing hireling —
-/// nearest shape is the A5 axe marshal, owner may re-rule); (3) DEFER, named:
-/// STAT EFFECT — a worn weapon changes NOTHING on the merc's dice. The merc
-/// damage path (MercStrike → HirelingTable.StatsAt) never reads an Item, and
-/// the amendment's base+weapon rule would invent a formula the D2MOO witness
-/// line never shows; the deferral rides the LEDGER row and the test names it.
+/// nearest shape is the A5 axe marshal, owner may re-rule). THE STAT EFFECT IS
+/// LIVE (M4-S16, MC 11914, spec-3 §6.7c AMENDED — this replaces the §6.7b
+/// DEFER row): a worn weapon's base damage range REPLACES the merc's bracket
+/// dice, worn dmg_pct sums into the hero primitive's ΣED (−90 clamp), flat
+/// dmg_min/dmg_max widen the rolled range before the %, and worn +life raises
+/// MaxLife — all DERIVED from the persisted gear through Hireling.StrikeStats/
+/// MaxLife (v7 UNCHANGED — no stat is a save field). The COMPLEX rows stay
+/// DEFERRED, named: attack-rating/to-hit curve, shield block %, +skills from
+/// gear, IAS, proc items, Str/Dex-bearing gear (LEDGER 66).
 /// STATE READINGS pinned: Item carries NO Identified flag (grep-zero over
 /// src/ + data/ — D2's IFLAG_IDENTIFIED half of the door has no counterpart in
 /// our model: every item we hold is KNOWN by construction), and the Hireling

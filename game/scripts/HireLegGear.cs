@@ -11,26 +11,31 @@ using Godot;
 public static partial class HireLeg
 {
 
-    // ---- GEAR — the §6.7b 4-slot panel, LIVE (M4-S15, MC 11903) -------------
+    // ---- GEAR — the §6.7b 4-slot panel + §6.7c stats, LIVE (M4-S15/S16) ------
 
-    /// The gear tail (spec-3 §6.7b AMENDED, MC 11898; card/11903): the bow is
-    /// BOUGHT through the same Buy door the CLI's buy verb rides, its pack
-    /// anchor derived PRESENTATION-side exactly like the panel (StashQuestLeg's
-    /// TryDerive — the Sim answers no "which cell?"), and the give lands her
-    /// FIRST weapon: GEAR_EQ echoes the door's own report (slot/item/source
-    /// cell) and prints the gold after it — the trade is FREE (§6.7b T1). The
-    /// DEFER row is printed too: a worn weapon changes NOTHING on her dice (the
-    /// merc damage path reads the bracket table, never an Item — the base+weapon
-    /// formula is deliberately NOT invented; LEDGER row 66 names the deferral).
-    /// A mercenary kill AFTER the give still pays the same HIRE_XP own= chain
-    /// (the XP chain is the gear's only effect and it does not move). Then the
-    /// law AGAIN, this time WITH the bow on: MERC_DIES, and the gear rides the
-    /// corpse (the amendment's through-death half, printed by GEAR_DIE); the
-    /// stone raises the hero, the captain raises HER, and the SAME instance is
-    /// still on her — GEAR_KEEP echoes the slot. One last ride to her ground,
-    /// and the strip door takes the bow back straight into the hero's pack
-    /// (GEAR_STRIP + carried read back). The tail rides home for the stash
-    /// beat behind her again.
+    /// The gear tail (spec-3 §6.7b AMENDED, MC 11898; card/11903; the stat rows
+    /// §6.7c AMENDED, MC 11914): the bow is BOUGHT through the same Buy door
+    /// the CLI's buy verb rides, its pack anchor derived PRESENTATION-side
+    /// exactly like the panel (StashQuestLeg's TryDerive — the Sim answers no
+    /// "which cell?"), and the give lands her FIRST weapon: GEAR_EQ echoes the
+    /// door's own report (slot/item/source cell) and prints the gold after it —
+    /// the trade is FREE (§6.7b T1). The DEFER row RETIRED with §6.7c: the
+    /// GEAR_STATS_OK line names the four LIVE rows (swap/ED/flat/life) and the
+    /// still-DEFERRED COMPLEX rows, and the STATS block echoes the sim's own
+    /// derived StrikeStats/MaxLife reads — a synthetic ranged weapon shows the
+    /// bracket dice REPLACED (GEAR_DICE base=… now=…), the amendment's integer
+    /// order prints exact (ED 7→10, flat-before-% 13→19, the −90 clamp 20→2),
+    /// and a worn +life raises MaxLife (GEAR_LIFE). The synthetic bases/mods
+    /// ride the AUTHORING door (real item-bases.json carries no damage columns
+    /// yet — the data-future row, LEDGER 66) and roll NO RNG. A mercenary kill
+    /// AFTER the block still pays the same HIRE_XP own= chain (the XP chain
+    /// does not move). Then the law AGAIN, this time WITH the bow on:
+    /// MERC_DIES, and the gear rides the corpse (the amendment's through-death
+    /// half, printed by GEAR_DIE); the stone raises the hero, the captain
+    /// raises HER, and the SAME instance is still on her — GEAR_KEEP echoes
+    /// the slot. One last ride to her ground, and the strip door takes the bow
+    /// back straight into the hero's pack (GEAR_STRIP + carried read back).
+    /// The tail rides home for the stash beat behind her again.
     private static bool GearBeat(GameSession s, Act act)
     {
         var m = s.Merc!;
@@ -52,8 +57,6 @@ public static partial class HireLeg
         long goldAfterGive = s.Gold;                 // the BUY cost above is not the give's doing
         GD.Print($"GEAR_EQ slot={g.Slot} item={g.Name} base={g.Base} from={g.InvRow},{g.InvCol} " +
                  $"gold_after={goldAfterGive} (the give moved no gold)");
-        GD.Print($"GEAR_DEFER stat_effect=none dice={m.DamageMin}-{m.DamageMax} " +
-                 "note=merc dice stay the bracket-table read — base+weapon is NOT invented (deferred, row 66)");
         if (g.Slot != "weapon" || g.Base != "soluga" || (g.InvRow, g.InvCol) != (ax, ay)
             || !ReferenceEquals(bow, m.Gear[MercGearSlot.Weapon]) || s.Carried.Contains(bow)
             || s.Gold != goldBefore - price)
@@ -61,6 +64,97 @@ public static partial class HireLeg
             GD.PushError($"gear give check failed: slot={g.Slot} base={g.Base} cell={g.InvRow},{g.InvCol}/{ax},{ay} " +
                          $"same={ReferenceEquals(bow, m.Gear[MercGearSlot.Weapon])} carried={s.Carried.Contains(bow)} " +
                          $"gold={s.Gold}/{goldBefore - price}");
+            return false;
+        }
+
+        // ---- STATS LIVE — the §6.7c SIMPLE rows, the DEFER retired -----------
+        // (M4-S16, MC 11914; spec-3 §6.7c AMENDED, D2MOO 1a30fbe4.) The real
+        // data still carries NO damage columns (measured: item-bases.json has
+        // none — the data-future row of LEDGER 66), so the swap witnesses ride
+        // the AUTHORING door (the public Gear dict + public Mods list, the
+        // Character.Life doctrine) on SYNTHETIC bases and mods — the same
+        // derived path the hero primitive's inputs feed, and every echo below
+        // reads the sim's OWN derived state, never a restated formula. No
+        // strike, no RNG: the beats behind this one keep their exact bytes.
+        GD.Print("GEAR_STATS_OK swap=live ed=live flat=live life=live " +
+                 "defer=AR_to_hit,block,skills,IAS,procs note=6.7c MC 11914 — the §6.7b DEFER retires; COMPLEX rows named, LEDGER 66");
+
+        // (a) THE SWAP — a synthetic ranged bow replaces the bracket dice.
+        var probe = new Item(bow.Base with { DamageMin = 6, DamageMax = 9 }, bow.ItemLevel);
+        m.Gear[MercGearSlot.Weapon] = probe;
+        var (sMin, sMax, sWeaponEd, sEdSum) = m.StrikeStats();
+        GD.Print($"GEAR_DICE base={m.DamageMin}-{m.DamageMax} now={sMin}-{sMax} " +
+                 "note=synthetic weapon 6-9 REPLACES the bracket dice (real data rows await the data beat)");
+        if (sMin != 6 || sMax != 9 || sWeaponEd != 0 || sEdSum != 0)
+        {
+            GD.PushError($"stats beat: swap echo {sMin}-{sMax}/{sWeaponEd}/{sEdSum} expected 6-9/0/0");
+            return false;
+        }
+
+        // (b)+(c) ED % with the −90 clamp, and flat BEFORE the % — pinned weapon
+        // bases so the amendment's integer order lands on exact floors: 7×150/100
+        // = 10; (10+3)×150/100 = 19; 20×(100−90)/100 = 2 (a −95 sum clamps to −90).
+        // StrikeStats answers the PRE-ROLL envelope (what the dice roll IN); the
+        // exact figure is what the ONE hero primitive then floors it to, replayed
+        // here at the envelope's min==max pin — the tests prove the roll lands on
+        // these same integers through the real MercStrike.
+        static long Roll(long min, long max, int weaponEd, long flat, int edSum) =>
+            CombatResolver.PhysicalDamage(new Rng(0), (int)min, (int)max, weaponEd,
+                flat, edSum); // the REAL primitive on a throwaway stream — min==max pins the roll
+        var body = new Item(s.Bases.For("watan"), 1);
+        body.Mods.Add(new ItemMod("dmg_pct", 50));
+        m.Gear[MercGearSlot.Body] = body;
+        m.Gear[MercGearSlot.Weapon] = new Item(bow.Base with { DamageMin = 7, DamageMax = 7 }, 1);
+        var (edMin, edMax, edW, edSum) = m.StrikeStats();
+        long edHit = Roll(edMin, edMax, edW, 0, edSum);
+        GD.Print($"GEAR_ED pct=50 envelope={edMin}-{edMax} strike={edHit} expect=10 " +
+                 "note=floor(7×150/100), the ΣED path");
+        body.Mods.Add(new ItemMod("dmg_min", 3));
+        body.Mods.Add(new ItemMod("dmg_max", 3));
+        m.Gear[MercGearSlot.Weapon] = new Item(bow.Base with { DamageMin = 10, DamageMax = 10 }, 1);
+        var (flMin, flMax, flW, flSum) = m.StrikeStats();
+        long flHit = Roll(flMin, flMax, flW, 0, flSum);
+        GD.Print($"GEAR_FLAT flat=3 pct=50 envelope={flMin}-{flMax} strike={flHit} expect=19 " +
+                 "note=flat joins the range BEFORE the %");
+        body.Mods.Clear();
+        body.Mods.Add(new ItemMod("dmg_pct", -95));
+        m.Gear[MercGearSlot.Weapon] = new Item(bow.Base with { DamageMin = 20, DamageMax = 20 }, 1);
+        var (clMin, clMax, clW, clEdSum) = m.StrikeStats();
+        long clHit = Roll(clMin, clMax, clW, 0, clEdSum);
+        GD.Print($"GEAR_CLAMP pct=-95 envelope={clMin}-{clMax} strike={clHit} expect=2 " +
+                 "note=ΣED floor −90: 20×10/100");
+        if (edMin != 7 || edMax != 7 || edHit != 10 || flMin != 13 || flMax != 13 || flHit != 19
+            || clMin != 20 || clMax != 20 || clHit != 2 || clEdSum != -95)
+        {
+            GD.PushError($"stats beat: arithmetic echo {edMin}-{edMax}/{edHit} {flMin}-{flMax}/{flHit} " +
+                         $"{clMin}-{clMax}/{clHit}/{clEdSum} expected 7-7/10 13-13/19 20-20/2/-95 " +
+                         "(the −90 floor is INSIDE the primitive)");
+            return false;
+        }
+
+        // (d) +LIFE — worn +life raises MaxLife, derived (no save field, v7 kept).
+        body.Mods.Clear();
+        body.Mods.Add(new ItemMod("life", 25));
+        long bracketLife = HirelingTable.StatsAt(m.Row, m.Level).Life;
+        GD.Print($"GEAR_LIFE base={bracketLife} now={m.MaxLife} note=+25 worn life, derived at the read");
+        if (m.MaxLife != bracketLife + 25)
+        {
+            GD.PushError($"stats beat: life echo base={bracketLife} now={m.MaxLife} expected +25 exactly");
+            return false;
+        }
+
+        // Restore the REAL bow, drop the synthetic body — the beats behind (the
+        // XP chain, the death, the keep, the strip, the sell) run exactly the
+        // §6.7b shape again: no range on the real soluga row, so the bracket dice stand.
+        m.Gear[MercGearSlot.Weapon] = bow;
+        m.Gear.Remove(MercGearSlot.Body);
+        var (backMin, backMax, backWeaponEd, backEdSum) = m.StrikeStats();
+        GD.Print($"GEAR_DICE base={m.DamageMin}-{m.DamageMax} now={backMin}-{backMax} " +
+                 "note=soluga carries no range — the bracket dice stand (data-future, row 66)");
+        if (!ReferenceEquals(bow, m.Gear[MercGearSlot.Weapon]) || m.Gear.Count != 1
+            || backMin != m.DamageMin || backMax != m.DamageMax || backWeaponEd != 0 || backEdSum != 0)
+        {
+            GD.PushError("stats beat: the synthetic witness was not restored clean");
             return false;
         }
 

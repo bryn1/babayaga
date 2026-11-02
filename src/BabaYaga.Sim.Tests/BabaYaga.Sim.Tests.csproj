@@ -37,6 +37,7 @@
     <Compile Include="..\..\tests\CliVerbsTests.cs" Link="tests\CliVerbsTests.cs" />
     <Compile Include="..\..\tests\HirelingDeathTests.cs" Link="tests\HirelingDeathTests.cs" />
     <Compile Include="..\..\tests\HirelingGearTests.cs" Link="tests\HirelingGearTests.cs" />
+    <Compile Include="..\..\tests\HirelingStatTests.cs" Link="tests\HirelingStatTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
