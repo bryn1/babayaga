@@ -68,6 +68,11 @@
          Godot shell of the same file stays engine-side (file header). -->
     <Compile Include="..\..\tests\HudReadoutTests.cs" Link="tests\HudReadoutTests.cs" />
     <Compile Include="..\..\game\scripts\Hud.cs" Link="game\Hud.cs" />
+    <!-- M5 FIX-back (MC 11943): the D2 cell-re-derivation core extracted from
+         InventoryPanel is PURE (no Godot types), same link idiom; the test
+         also carries the shipped-file scan rows for the D1/D3 fix shapes. -->
+    <Compile Include="..\..\tests\M5GateFixTests.cs" Link="tests\M5GateFixTests.cs" />
+    <Compile Include="..\..\game\scripts\InventoryPanelLogic.cs" Link="game\InventoryPanelLogic.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -68,7 +68,11 @@ public partial class DeathMenu : Control
 
     private void LayoutToSize()
     {
-        if (Size == Vector2.Zero) return;
+        // D3 fix (MC 11943): NOTIFICATION_RESIZED can fire before _Ready has
+        // assigned the fields — the NullReferenceException on every death-menu
+        // open (verdict D3, s4-xvfb-newgame.log). Reject that pass; the settle
+        // frame / later RESIZED lays out as soon as the widget exists.
+        if (!IsNodeReady() || Size == Vector2.Zero) return;
         _dim.Position = Vector2.Zero;
         _dim.Size = Size;
         _box.ResetSize(); // the VBox measures its children (the buttons size the column)

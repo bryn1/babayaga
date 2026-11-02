@@ -125,7 +125,15 @@ public partial class Act : Node
     }
 
     /// <summary>Inventory.tscn is instantiated ONCE and only toggled after — it
-    /// reads GameContext.Session, never builds its own.</summary>
+    /// reads GameContext.Session, never builds its own. The fresh branch OPENS
+    /// (M5-FX, MC 11943 — D2's full fix, the sibling-door mechanisms together):
+    /// a fresh-instantiated Control is already visible, so the door RETURNS
+    /// there — falling into the flip would hide the panel the press just built
+    /// (the ToggleDeathMenu/ToggleTownPanel idiom, which this door always meant
+    /// to carry: "instantiated ONCE and only toggled AFTER") — AND the panel
+    /// rides a CanvasLayer of its own (a bare Control under Act sits on the
+    /// world canvas and the camera pans it off-screen — the gate's XVFB lesson,
+    /// the same reason the death menu and town panel wrap theirs).</summary>
     private void ToggleInventory()
     {
         if (_panel is null)
@@ -135,7 +143,9 @@ public partial class Act : Node
             if (packed.Instantiate() is not Control panel)
             { GD.PushError("Inventory.tscn root is not a Control"); return; }
             _panel = panel;
-            AddChild(_panel);
+            AddChild(new CanvasLayer { Name = "InventoryLayer", Layer = 22 }); // above the town panel's 21
+            GetNode<CanvasLayer>("InventoryLayer").AddChild(_panel);
+            return; // fresh-instantiated Control is already visible — the OPEN is done
         }
         _panel.Visible = !_panel.Visible;
     }
