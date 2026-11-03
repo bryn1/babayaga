@@ -10,13 +10,15 @@ docs/ARCHITECTURE.md §R2). Zero Blizzard assets, zero D2-derived product names:
 appears in this repo only as a cited reference key in provenance comments, docs and the LEDGER.
 No license applies to third-party content because none is present.
 
-## State — M4 released (v0.4.0); M5 presentation gate PASSED (untagged)
+## State — pre-v0.5.0: M4 tagged (v0.4.0); the v0.5.0 notes are committed, the tag awaits the owner green run
 
 The tagged release is v0.4.0 (Milestone 4). MILESTONE 5 ("make it visible") passed its
 twin-green windowed gate 2026-11-02 (`TEST-verdict-m5-b.md`, VERDICT PASS, JUDGED
-f01bcde2, 445 tests, parity 10/10) — the game is windowed-playable NOW (see PLAY).
-v0.5.0 rides a later owner-PASS commit (no tag in this pass). The owner's own device run
-(PLAYTEST.md) is the one open row.
+f01bcde2, 445 tests at that gate, parity 10/10) — the game is windowed-playable NOW (see
+PLAY). v0.5.0 is PRE-STAGED: its release-notes body exists as a committed artifact
+(`docs/RELEASE-v0.5.0.md` — shipped + known limits + promised-not-shipped) and the doc-sync
+sweep ran clean (MC 11991); **the tag flips in the SAME commit as the owner's green
+PLAYTEST.md run** (LEDGER row 76 is the one open row; kit rev2, the owner has not played it).
 
 What is LIVE (each item cites its LEDGER.md row; laws in docs/MECHANICS.md):
 
@@ -32,6 +34,11 @@ What is LIVE (each item cites its LEDGER.md row; laws in docs/MECHANICS.md):
   captain, THE 4-SLOT GEAR LAW (weapon/body/helm/shield only), stats through gear (range swap,
   ED % with −90 clamp, flat-before-%, worn +life raises MaxLife), and the hero-death law: the
   hero dying kills a living hireling at the same instant (rows 65, 66, 83; §6.7/6.7b/6.7c amendments).
+- **Ritual craft — the bone cube (B, in town)**: five oracle-witnessed, balance-audited
+  recipes (`data/cube-recipes.json`, audit MC 11985/11986); the cube reads the CARRIED pack
+  — no cube-grid container yet (rows 48, 75; MC 11969/11975/11978).
+- **A hired strzelczyni walks beside you — VISUAL-ONLY** (sprite only, no follower combat;
+  FollowerField, MC 11977) and true-alpha painted art across the slice (row 85 D1–D6 CURED).
 - **Life by potions** — NO passive life regeneration, BY LAW (the potion economy IS the design);
   mana regenerates on the verified D2 per-frame quantum (row 79).
 - **Stash** — town-only chest, tab 1 + reward-unlocked tab 2, grid store/take; gold bank is a
@@ -39,7 +46,7 @@ What is LIVE (each item cites its LEDGER.md row; laws in docs/MECHANICS.md):
 - **Scripted CLI verbs** — the full session grammar incl. `rest / hire / dismiss / revive /
   stash_store / stash_take / give / strip` (row 82).
 
-Evidence measured for this tag (2026-11-02, HEAD 511e1c0; run dir
+Evidence measured at the v0.4.0 tag (2026-11-02, HEAD 511e1c0; run dir
 `.audits/202610301950-31593a83` at the Games workspace root):
 
 - `dotnet test BabaYaga.sln` → **Failed: 0, Passed: 356, Skipped: 0** (xunit rule contracts).
@@ -47,6 +54,14 @@ Evidence measured for this tag (2026-11-02, HEAD 511e1c0; run dir
 - Headless Godot story, two consecutive runs **byte-identical, exit 0**, printing
   `SIM_TICK ×3`, `QUEST_OK`, `MANA_OK`, `REGEN_OK`, `BELT_OK`, `DEATH_OK`, `TRADE_OK`,
   `ACT1_OPEN_OK`, `HIRE_OK`, `GEAR_OK`, `GEAR_STATS_OK`, `STASH_OK`, `ORCH_M4_OK` with 0 ERROR lines.
+
+Evidence measured for the v0.5.0 pre-staging (2026-11-03, base 76754b9, MC 11991):
+
+- `dotnet test BabaYaga.sln` → **Passed! Failed: 0, Passed: 635, Skipped: 0**.
+- Headless story, two consecutive runs **byte-identical, exit 0**, stdout md5
+  `40c1e0a2e23501efa32906b9d894942d` (LEDGER row 87's re-pin; the v0.4.0 marker set above
+  plus `DA_SCENE_ACT_OK`/`JOURNEY_OK`), 0 ERROR lines; game build ×2 `0 Error(s)`,
+  `--import` exit 0.
 
 ## Build & run
 
@@ -69,6 +84,9 @@ Headless story run (the Godot presentation layer walks, casts, hires and stores 
 GODOT_BIN=/home/claudecode/Games/.tools/godot/Godot_v4.7.2-stable_mono_linux_x86_64/Godot_v4.7.2-stable_mono_linux.x86_64
 dotnet build game/Game.csproj            # THE BUILD-TWICE LAW: build it a SECOND time and
 dotnet build game/Game.csproj            # require "0 Error(s)" on both before trusting markers
+bash assets/import.sh                    # ONE-TIME per clone: the painted art lives in
+                                         # assets/raw/ (git truth); game/assets/ is its
+                                         # one-way copy and is NOT in git (see .gitignore)
 HOME=/tmp "$GODOT_BIN" --headless --path game --import
 HOME=/tmp "$GODOT_BIN" --headless --path game --quit-after 240   # story log; expect exit 0
 ```
@@ -99,23 +117,28 @@ M5 gate evidence: run `.audits/202610301950-31593a83/out/TEST-verdict-m5-b.md`.
 ## Test
 
 ```bash
-dotnet test BabaYaga.sln        # 445 xunit rule-contract tests, engine-process-free
-                                # (M5 gate 2026-11-02: 445 passed, 0 failed)
+dotnet test BabaYaga.sln        # 635 xunit rule-contract tests, engine-process-free
+                                # (measured 2026-11-03; M5 gate 2026-11-02: 445 passed, 0 failed)
 ```
 
 Beyond the in-repo suite, maintainers run an OUT-OF-REPO D2 table-parity harness (10 checks:
 XP ladder, to-hit/block, party XP + death penalty, quality roll, gamble/vendor, monster stat
 shape) that drives this exact CLI against the granted reference tables — it lives beside the
-audit run dir, deliberately not in the product repo; at this tag it passes 10/10.
+audit run dir, deliberately not in the product repo; last recorded on a merged tree at 10/10
+(LEDGER row 84 and later row appends; re-runs are maintainer-side).
 
 ## Known limits (honest list)
 
-- **Windowed play is LIVE** (M5, gate-passed 2026-11-02 — see PLAY + PLAYTEST.md); the
-  remaining windowed UI is open LEDGER rows: equipment panel + weapon sets 68, hotkeys
-  70, character sheet 71, automap 72, town portal scroll 73, shop/craft/game-menu widget
-  halves of 75; the owner-device playtest (76) is the open pass.
-- **Real item damage/ED/life data rows are future**: `data/item-bases.json` carries no damage
-  columns yet; the gear-stat mechanism is proven on synthetic bases (row 66 DATA-FUTURE).
+- **Windowed play is LIVE** (M5, gate-passed 2026-11-02 — see PLAY + PLAYTEST.md); the town
+  panel, stash chest, cube and game-menu widgets are LIVE too (row 75 half: MC 11940/11953/
+  11957/11975). The remaining windowed UI is open LEDGER rows: equipment paper-doll panel +
+  weapon sets 68, skill hotkeys 70, character sheet 71, automap 72, town portal scroll 73;
+  the owner-device playtest (76) is the open pass.
+- **Real item damage rows landed for weapons** (`data/item-bases.json` carries
+  `damageMin/damageMax` per weapon base — the §6.7c range swap is observable, MC 11914 +
+  the D1 data beat MC 11928); armor/ED-side real-data rows stay future and the gear-stat
+  test witnesses are still SYNTHETIC (row 66 DATA-FUTURE); the `+energy` affix is code-live
+  but DATA-SILENT (zero energy rows in `data/affixes.json`).
 - **Merc complex curves DEFERRED by design**: gear-driven attack rating, shield block %,
   +skills, IAS, procs, Str/Dex requirements (docs/MECHANICS.md §Stats through gear).
 - **Acts 2–5 unwritten**: their data rows exist as parse-tested skeletons; only act 1 is live.
@@ -124,11 +147,14 @@ audit run dir, deliberately not in the product repo; at this tag it passes 10/10
 - **Regen fractions are session-only**: the 256ths mana accumulator is not a save field, so a
   load may drop a sub-1-point pending tick; Replenish-Life/leech are future own rows.
 - Walking needs a DISCOVERED endpoint (dark↔dark wander refused by tested contract); ¾
-  corpse-return recovery NOT built (row 64); ritual-craft (48), procedural layout (59),
-  curse/aura stack engine and effect families (28–35) NOT-BUILT.
+  corpse-return recovery NOT built (row 64); procedural layout still open (row 59 — LEDGER
+  status BUILDING); curse/aura stack engine and the damage-effect family rows (28–29, 31–35)
+  unbuilt — the crit family (30) IS built. Ritual-craft (48) SHIPPED with the v0.5.0 slice
+  (cube panel, five recipes); no cube-grid container and no windowed SELL button yet.
 
 ## Where truth lives
 
 LEDGER.md — feature rows + per-milestone STATUS lines (the ONE ledger, moves with every commit);
 docs/MECHANICS.md — the live laws with their AMENDED dates; docs/ARCHITECTURE.md — module map and
-dependency rule; docs/RELEASE-v0.4.0.md — this release's shipped/limits/not-shipped record.
+dependency rule; docs/RELEASE-v0.4.0.md — the v0.4.0 tag's shipped/limits/not-shipped record;
+docs/RELEASE-v0.5.0.md — the pre-staged v0.5.0 record (tag flips on the owner's green PLAYTEST run).
