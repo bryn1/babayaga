@@ -62,10 +62,10 @@ public sealed class CraftPanelTests
     [Fact]
     public void ShippedPanel_FiveAdmitted_PaintsTheFiveRealRows()
     {
-        // The SHIPPED truth (row 75 / MC 11969): all five shipped rows are
-        // PLACEHOLDER-skipped — the panel must answer that with ONE honest
-        // line and ZERO fake rows. SkippedCount stays engine-side: the pure
-        // surface answers rows, never a skip count.
+        // The SHIPPED truth (row 75; MC 11979 — the five PLACEHOLDER rows are
+        // gone): the panel must paint EXACTLY the five REAL shipped rows in
+        // file order, no more and no fewer. SkippedCount stays engine-side:
+        // the pure surface answers rows, never a skip count.
         var s = Town();
         Assert.Equal(5, s.CubeRecipes.Recipes.Count);
         Assert.Equal(0, s.CubeRecipes.SkippedCount); // engine read-back, NOT a paint input
@@ -86,7 +86,7 @@ public sealed class CraftPanelTests
         try
         {
             var s = Town(7, dir);
-            Assert.Equal(6, s.CubeRecipes.Recipes.Count); // admitted WITH the five skips
+            Assert.Equal(6, s.CubeRecipes.Recipes.Count); // admitted: the five REAL shipped recipes + this fixture row
             var rows = CraftPanelLogic.RowLabels(s.CubeRecipes, s.Bases);
             // Item NAMES (not ids) × counts, pulled through s.Bases — the exact
             // string the panel paints and the windowed leg reads back (one

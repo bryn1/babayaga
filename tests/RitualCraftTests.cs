@@ -10,13 +10,14 @@ namespace BabaYaga.Sim.Tests;
 /// the CLI twin verb "craft &lt;recipeId&gt;". RED-FIRST: every row below is RED on the
 /// base tree (CS0117 — GameSession.CraftRecipe / CubeRecipeTable do not exist there).
 ///
-/// ADMISSION LAW witnesses (§2 cycle-2): the shipped data/cube-recipes.json carries 5
-/// PLACEHOLDER-id rows — the loader ADMITS 0 and SKIPS 5 read back via Recipes/
+/// ADMISSION LAW witnesses (§2 cycle-2; MC 11979 CURRENT TRUTH — the five PLACEHOLDER
+/// rows were replaced by five REAL recipes): the shipped data/cube-recipes.json carries
+/// FIVE REAL RECIPES — the loader ADMITS 5 with SKIPPED COUNT 0 read back via Recipes/
 /// SkippedCount, prints NOTHING (the anchor story md5 holds — the loader runs at every
 /// boot, so a print would move it; the loader-live anchor leg re-measures it), and the
-/// door answers a skipped id with the unknown-id refusal VERBATIM. Schema-invalid rows
-/// THROW InvalidDataException (the HirelingTable/WaypointGraph idiom); cross-table
-/// unknown ids SKIP silently.
+/// door answers a retired PLACEHOLDER id with the unknown-id refusal VERBATIM. Schema-
+/// invalid rows THROW InvalidDataException (the HirelingTable/WaypointGraph idiom);
+/// cross-table unknown ids SKIP silently.
 ///
 /// DOOR witnesses (§3): gate order DEAD → town (the stash/hire Areas.TownKey idiom,
 /// ORIGINAL DESIGN fenced) → recipe-known → deterministic pack-index-order multiset
@@ -33,8 +34,9 @@ namespace BabaYaga.Sim.Tests;
 /// SYNTHETIC recipes (§2(iii)) ride the RangedDataDir convention — a GUID temp copy of
 /// the REAL data dir with cube-recipes.json patched through JsonNode (and affixes.json
 /// emptied ONLY for the row-15 zero-pool witness), never a committed fixture dir, never
-/// a data/** edit. The shipped cube file keeps its 5 skipped rows in every fixture, so
-/// skip+admit coexist in the same load. CLI rows use CommandRunner.Run(path, seed,
+/// a data/** edit. The shipped cube file brings its five REAL recipes into every
+/// fixture, so synthetic admits load alongside them (6 = five shipped + one patched).
+/// CLI rows use CommandRunner.Run(path, seed,
 /// dir, output) — the CliTwinVerbsTests idiom; the dispatch layer rolls nothing.
 /// </summary>
 public sealed class RitualCraftTests
@@ -119,17 +121,17 @@ public sealed class RitualCraftTests
     private static JsonNode Node(List<string> lines, string cmd) =>
         lines.Select(l => JsonNode.Parse(l)!).First(n => n["CMD"]?.GetValue<string>() == cmd)!;
 
-    // ---- §5 row 17 + §2(ii): the SHIPPED file admits 0, skips 5, refuses by name ----
+    // ---- §5 row 17 + §2(ii): the SHIPPED file admits 5, skips 0, refuses by name ----
 
     [Fact]
     public void Loader_ShippedFile_AdmitsFiveRealRecipes_ZeroSkips_AndCraftRefusesAGonePlaceholderById()
     {
-        var s = Town(9); // the shipped data dir — every session boots over these five skips
+        var s = Town(9); // the shipped data dir — every session boots over these five REAL recipes
         Assert.Equal(5, s.CubeRecipes.Recipes.Count); // read-back, never a print
         Assert.Equal(0, s.CubeRecipes.SkippedCount);
         var ex = Assert.Throws<SessionRejectedException>(() => s.CraftRecipe("popiol_iskra"));
         Assert.Equal("ritual recipe 'popiol_iskra' is unknown", ex.Message); // the D4 line, verbatim
-        Assert.Null(s.CubeRecipes.Find("stara_kosc")); // a skipped row simply does not exist
+        Assert.Null(s.CubeRecipes.Find("stara_kosc")); // a retired PLACEHOLDER row simply does not exist
     }
 
     [Fact]
@@ -139,7 +141,7 @@ public sealed class RitualCraftTests
         try
         {
             var s = Town(9, dir);
-            Assert.Equal(6, s.CubeRecipes.Recipes.Count); // admit rides WITH the five skips
+            Assert.Equal(6, s.CubeRecipes.Recipes.Count); // the synthetic admit rides WITH the five REAL shipped recipes
             Assert.Equal(0, s.CubeRecipes.SkippedCount);
             BuyJantars(s, 3);
             var r = s.CraftRecipe("r_ember");
