@@ -37,14 +37,20 @@ public partial class Hud : CanvasLayer
 
     public override void _Ready()
     {
+        // MC 11959 THE HUD CLICK LAW, wired at EVERY construction site: the
+        // HUD is READ-OUT — every part here lets world clicks THROUGH (belt
+        // 1–4 / cast_1 are KEYBOARD doors, nothing under this panel answers a
+        // click today; a future interactive child must name itself into
+        // HudReadout.MouseFilterFor's Stop set and keep its own STOP).
         var panel = new PanelContainer
         {
             AnchorsPreset = (int)Control.LayoutPreset.TopWide,
             Name = "HudPanel",
+            MouseFilter = MouseFilterLaw.For("hud.panel"),
         };
         AddChild(panel);
 
-        var box = new VBoxContainer();
+        var box = new VBoxContainer { MouseFilter = MouseFilterLaw.For("hud.box") };
         panel.AddChild(box);
 
         // Orb row: life (blood-rune/life-glow) + mana (mana-deep/mana-glow) icons
@@ -60,7 +66,7 @@ public partial class Hud : CanvasLayer
         _merc = Line(box); // M5-S5 mercenary line — the §6.7 pull, read-only below
         _flash = Line(box); // M5-S5 damage/hint flash row — the last event, below
 
-        _hint = new Label { HorizontalAlignment = HorizontalAlignment.Center };
+        _hint = new Label { HorizontalAlignment = HorizontalAlignment.Center, MouseFilter = MouseFilterLaw.For("hud.hint") };
         AddChild(_hint);
     }
 
@@ -225,10 +231,10 @@ public partial class Hud : CanvasLayer
 
     private static Control OrbRow(string artPath, string colorHex, out Label label, out OrbGauge gauge, string kind)
     {
-        var row = new HBoxContainer();
+        var row = new HBoxContainer { MouseFilter = MouseFilterLaw.For("hud.orb-row") };
         gauge = new OrbGauge(artPath, colorHex);
         row.AddChild(gauge);
-        label = new Label { VerticalAlignment = VerticalAlignment.Center };
+        label = new Label { VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterLaw.For("hud.line") };
         row.AddChild(label);
         label.Name = kind;
         return row;
@@ -236,7 +242,7 @@ public partial class Hud : CanvasLayer
 
     private static Label Line(VBoxContainer box)
     {
-        var l = new Label();
+        var l = new Label { MouseFilter = MouseFilterLaw.For("hud.line") };
         box.AddChild(l);
         return l;
     }
@@ -258,6 +264,7 @@ public partial class Hud : CanvasLayer
         {
             _tex = AreaRenderer.ArtOrNull(artPath) ?? AreaRenderer.Diamond(new Color(colorHex), 64, 64);
             TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
+            MouseFilter = MouseFilterLaw.For("hud.orb-gauge"); // the art column never eats a world click (MC 11959)
             var size = new Vector2(_tex.GetWidth(), _tex.GetHeight());
             CustomMinimumSize = size;
             Size = size;
@@ -362,6 +369,21 @@ public static class HudReadout
         max <= 0 || current <= 0 ? 0
         : current >= max ? heightPx
         : (int)(current * heightPx / max);
+
+    /// <summary>The HUD click LAW as data (MC 11959): every read-out part —
+    /// the panel box, the orb rows, the counters, the hint label — lets world
+    /// clicks THROUGH ("Ignore": a PanelContainer swallows every click under
+    /// its rect — MC 11958 measured it live, the west-door walk had ONE
+    /// click-through pixel); every interactive overlay STOPS ("Stop": a click
+    /// on an open panel never falls through to the world), and so does any
+    /// part nobody named — the fail-safe direction: a new widget can never
+    /// leak world clicks by accident. The Godot shell maps the names through
+    /// MouseFilterLaw; the overlays keep their shipped blocking defaults
+    /// (bodies PASS, buttons STOP — the InventoryPanel root's documented
+    /// full-screen margin is the one exception, pinned by the scan rows).</summary>
+    public static string MouseFilterFor(string part) =>
+        part is "hud.panel" or "hud.box" or "hud.orb-row" or "hud.orb-gauge" or "hud.line" or "hud.hint"
+            ? "Ignore" : "Stop";
 
     /// <summary>The damage-flash text: the drop between the life the HUD LAST
     /// PAINTED and this pull — the same presentation delta as the LevelShown/

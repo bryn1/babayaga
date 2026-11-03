@@ -106,6 +106,12 @@
          the MC 11950/11952 precedent). -->
     <Compile Include="..\..\tests\GameMenuTests.cs" Link="tests\GameMenuTests.cs" />
     <Compile Include="..\..\game\scripts\GameMenuLogic.cs" Link="game\GameMenuLogic.cs" />
+    <!-- HUD MOUSE PASS-THROUGH (MC 11959): the HUD click law (read-out parts
+         Ignore, overlays Stop) rides the HUDCORE half of Hud.cs (pure, already
+         linked), and the new test carries the shipped-file scans pinning the
+         Godot shell, the overlays and the state-reader leg to it (project
+         file, not a test .cs — the MC 11950/11952 precedent). -->
+    <Compile Include="..\..\tests\HudMouseFilterTests.cs" Link="tests\HudMouseFilterTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
