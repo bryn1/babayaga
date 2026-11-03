@@ -15,15 +15,27 @@ test -d "$SRC" || { echo "missing $SRC — nothing to import" >&2; exit 1; }
 mkdir -p "$DEST"/{tiles,hero,monsters,ui}
 shopt -s nullglob
 for f in "$SRC"/*; do
+  resize=""
   case "$(basename "$f")" in
     tile-*.png)        dest="$DEST/tiles" ;;
     hero-*.png)        dest="$DEST/hero" ;;
     mon-*.png)         dest="$DEST/monsters" ;;
     ui-*.png)          dest="$DEST/ui" ;;
+    # M5.5 ART DEBT D5 (MC 11975): a follower sheet is the same two-frame
+    # 320x160 character contract as the hero sheets — cleanest existing class,
+    # NO new one. A poi-*portrait raw is FULL-SIZE truth; its game/assets/ui/
+    # copy is the 128x128 LANCZOS twin, produced by the committed slicer's
+    # --resize mode (tools/slice_sheet.py) — never a hand-resized copy.
+    fol-*.png)         dest="$DEST/hero" ;;
+    poi-*portrait*.png) dest="$DEST/ui"; resize=128x128 ;;
     title-card.png)    dest="$DEST" ;;
     *)                 dest="$DEST" ;;   # EXCLUDES nothing: unknown classes ride at the root
   esac
-  cp -f "$f" "$dest"/
+  if [ -n "$resize" ]; then
+    python3 tools/slice_sheet.py --resize "$resize" "$f" "$dest/$(basename "$f")"
+  else
+    cp -f "$f" "$dest"/
+  fi
 done
 find "$DEST" -name '*.import' -delete
 echo "imported: $(find "$DEST" -type f | wc -l) files into $DEST (re-run godot --import to regenerate sidecars)"
