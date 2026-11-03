@@ -1,12 +1,15 @@
 # Baba Yaga — Owner Playtest Checklist (M5, kit 2026-11-03)
 
 kit 2026-11-03 (rev2): + cube, + follower, art fully alpha
+kit 2026-11-03 (rev3): run block gains `bash assets/import.sh` — a fresh checkout paints PLACEHOLDER art without it (MC 11991 finding)
 
 The venue for YOUR run of the windowed game. Sixteen rows: fifteen play rows
 (P1–P15) plus Continue. Each row: what you do, what you should SEE, a tick box.
-The automated gate walked P1–P12 + Continue green on the 2026-11-02 tree
-(`.audits/202610301950-31593a83/out/TEST-verdict-m5-b.md`, VERDICT PASS, JUDGED
-f01bcde2). That verdict PREDATES the cube, the follower and the alpha-art cure —
+The automated gate walked the eleven rows it knew (P1–P11 + Continue) green on the
+2026-11-02 tree (`.audits/202610301950-31593a83/out/TEST-verdict-m5-b.md`, VERDICT
+PASS, JUDGED f01bcde2); the P12 game menu SHIPPED after that gate tree and rides its
+own windowed leg (`out/leg-m5-menu/`, LEG_EXIT=0). That verdict PREDATES the cube,
+the follower, the game menu and the alpha-art cure —
 no TEST-verdict file covers P13–P15: those three rows are verified by unit tests
 (`tests/CraftPanelTests.cs`, `tests/RitualCraftContentTests.cs`,
 `tests/FollowerFieldTests.cs` — all green in `dotnet test BabaYaga.sln` on this
@@ -21,8 +24,12 @@ first discovery.
 ```bash
 # one-time, from the repo root (needs dotnet SDK 8):
 dotnet build game/Game.csproj && dotnet build game/Game.csproj   # build twice, both "0 Error(s)"
+bash assets/import.sh                                            # one-time per clone: the painted art
+     # lives in assets/raw/ (git truth); game/assets/ is its one-way copy and is NOT in git —
+     # without this step a fresh checkout paints PLACEHOLDER art (the order: raw -> game/assets,
+     # THEN --import; import.sh clears the stale .import sidecars so godot regenerates them next)
 GODOT_BIN=/home/claudecode/Games/.tools/godot/Godot_v4.7.2-stable_mono_linux_x86_64/Godot_v4.7.2-stable_mono_linux.x86_64
-HOME=/tmp "$GODOT_BIN" --headless --path game --import           # one-time asset import
+HOME=/tmp "$GODOT_BIN" --headless --path game --import           # one-time engine sidecar import
 
 # the game (a window opens, NOT headless):
 "$GODOT_BIN" --path game
@@ -66,7 +73,9 @@ re-run the two build commands — the build-twice law.
       take a hit or two outside, come back, press 1. SEE: Life rises, belt cell empties;
       at FULL life pressing 1 just prints a hint — no crash.
 - [ ] **P8 Hire.** Press T in town, hire the strzelczyni from the captain — her price is
-      100 gold. SEE: Gold drops by her price (830→730 on a 1000 start after the P7 potion),
+      100 gold. SEE: the Gold line drops by EXACTLY 100 — her row reads
+      "HIRE Strzelczyni (bow-kin) 100g" and the decrease is the check (kills on the way
+      ADD gold, so don't chase an absolute total — watch it fall by 100),
       a Merc line appears on the HUD, she follows you when you travel — and since this kit
       rev she also walks BESIDE you on screen (see P14).
 - [ ] **P9 Ride stones.** Enter mchy (the stones light on arrival). LEFT-click the lit
