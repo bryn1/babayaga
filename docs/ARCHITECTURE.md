@@ -530,6 +530,23 @@ game/
                           assets/import.sh has run — intended reproducibility property.
 ```
 
+AMENDED (MC 11980): current state; the frozen block above is historical per rev2 — never edited.
+A per-area spawn table EXISTS: `data/area-monsters.json` — one entry per area key, rows
+{kind, count, placement}, kind = a data/monsters.json key; the game/data/ twin is
+byte-identical (`cmp` EMPTY, 2026-11-03) and sealed by tests/SkeletonDataTests.cs
+`GameDataCopy_IsVerbatim` (:210–222 — every data/*.json against its twin, :220). Bands:
+near-spawn = Chebyshev <= 3 from the arrival cell, deep = >= 5 (`NearMax`/`DeepMin` consts
+MonsterField.cs:24–25; band pick :189). A town spawns nothing — `isTown` is the FIRST term of
+the spawn gate (MonsterField.cs:53). Spawner seed = `Fnv.Hash(area + ":mon")`
+(MonsterField.cs:59), rows build in file order. Loaded through the `GameContext.DataDir()`
+surface (MonsterField.cs:205 → GameContext.cs:17); the copy to game/data/ stays one-way,
+never hand-edited. czelusc defenders row (MC 11954 — strzyga near-spawn 3 + widlast deep 2)
+pinned by tests/CzeluscDefenderTests.cs (:40–41 mirror the band consts; :157–174 the czelusc
+data pins). The MONSTER-RENDERER DEBT named in the frozen block is PAID by this table — the
+JSON's own `_comment` names it LEDGER debt row 77, first payment, M4-S3. This addendum sits
+OUTSIDE the fenced tree block above, so the byte-twin region (placement §1 vs this §game/
+fence) is UNCHANGED by it — no `M4-placement.md` rev5 rider is required for this cure.
+
 State bridge (invariant — violating it is a bug; v13 rewrite to code-truth, plan-c2 FIX-DA5 9):
 `game/` calls the GameSession public surface the CLI ALREADY proves. The pull surface is
 unchanged (Level/Gold/CurrentArea/EngagedKey; Character.Level/Xp/MaxLife/MaxMana;
