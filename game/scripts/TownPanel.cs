@@ -93,12 +93,46 @@ public partial class TownPanel : Control
         }
         else
         {
-            _box.AddChild(Row(
-                new Label { Text = $"{merc.Name} — Life {merc.Life}/{merc.MaxLife} (lvl {merc.Level})" },
-                Button(TownPanelLogic.ReviveLabel(merc.Name), () => Revive(merc.Id)),
-                Button(TownPanelLogic.DismissButton, Dismiss)));
+            // MC 11977: the HIRED row carries the merc's portrait when one is
+            // shipped (FollowerFieldLogic.PortraitPathOrNull — the map mirror
+            // of assets/raw, ArtOrNull-guarded; strzelczyni has one, witez/
+            // rzutca stay text-only HONESTLY). NO MouseFilter line: the
+            // TextureRect engine default is PASS — the SAME law the panel's
+            // own bodies ride — the row's buttons sit topmost at their own
+            // centres and take every click (the town-panel STOP law; the
+            // sealed HudMouseFilterTests overlay scan keeps this file
+            // assignment-free, and the windowed leg clicks the DISMISS row
+            // WITH the portrait painted as the live proof).
+            var cells = new System.Collections.Generic.List<Control>();
+            if (PortraitCell(merc.Id) is { } portrait) cells.Add(portrait);
+            cells.Add(new Label { Text = $"{merc.Name} — Life {merc.Life}/{merc.MaxLife} (lvl {merc.Level})" });
+            cells.Add(Button(TownPanelLogic.ReviveLabel(merc.Name), () => Revive(merc.Id)));
+            cells.Add(Button(TownPanelLogic.DismissButton, Dismiss));
+            _box.AddChild(Row(cells.ToArray()));
         }
     }
+
+    /// <summary>The hired row's portrait cell — 128px source scaled to the
+    /// row height (KeepAspect, a fixed square the button height sets), or
+    /// null: honest text-only when no portrait is mapped or shipped.</summary>
+    private static Control? PortraitCell(string classKey)
+    {
+        var path = FollowerFieldLogic.PortraitPathOrNull(classKey);
+        var art = path is null ? null : AreaRenderer.ArtOrNull(path);
+        if (art is null) return null; // no portrait — the row stays text-only (honest, no placeholder art in the panel)
+        return new TextureRect
+        {
+            Texture = art,
+            CustomMinimumSize = new Vector2(PortraitRow, PortraitRow),
+            StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+            // NO MouseFilter line HERE ON PURPOSE: TextureRect's engine
+            // default is PASS — the same law the panel bodies ride; the row's
+            // buttons are topmost at their own centres (the sealed
+            // HudMouseFilterTests overlay scan keeps this file assignment-free).
+        };
+    }
+
+    private const float PortraitRow = 40f; // the row height the 128px source scales to
 
     // ---- the five doors: one logged line per click (TownPanelLogic's table) ----
 
