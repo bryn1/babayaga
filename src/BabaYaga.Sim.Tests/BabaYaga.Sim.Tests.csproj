@@ -150,6 +150,15 @@
          implementation, after the CS0103 RED rows were captured — the
          MC 11977 order.) -->
     <Compile Include="..\..\game\scripts\GamblePanelLogic.cs" Link="game\GamblePanelLogic.cs" />
+    <!-- INVENTORY DUMP-TRUTH PAINT (MC 11995): the PRE-GA audit P2 fix — the
+         panel paints the sim's dump anchors (row/col), the paint-time
+         re-derivation is REPLACED not paralleled. The new test carries the
+         three-way hole case (painted == dump == EquipFromCell-accepted), the
+         50+ hole-shape sweep with the no-compaction stability law, the pure
+         scan and the shipped-panel/leg-driver scans (project file, not a
+         test .cs — the MC 11950/52/58/59/69/70/77/79/87 precedent; the link
+         landed BEFORE the implementation — this card captures its RED). -->
+    <Compile Include="..\..\tests\InventoryPanelDumpTruthTests.cs" Link="tests\InventoryPanelDumpTruthTests.cs" />
   </ItemGroup>
 
   <ItemGroup>

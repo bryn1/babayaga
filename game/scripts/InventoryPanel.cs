@@ -3,11 +3,14 @@ using Godot;
 
 /// <summary>
 /// The 4×10 inventory grid + equipment panel, bound to session.Carried and
-/// session.Equipment.Equipped (pull-only, never a 2nd session). The Sim never
-/// reports per-cell placement back (CarriedSpots is INTERNAL by design — ARCH v8),
-/// so the panel re-derives cells presentation-side: first-fit over the grid in
-/// Carried order (the pure InventoryPanelLogic, xunit-pinned). Tab (toggled by
-/// Act) shows and hides it; refresh on show.
+/// session.Equipment.Equipped (pull-only, never a 2nd session). The cells it
+/// paints are the Sim's OWN answer to "which cell?" — the public dump
+/// report's per-item row/col, pulled through InventoryPanelLogic.PackAnchors
+/// exactly as the stash panel pulls its pack side (MC 11995, PRE-GA audit
+/// P2 — this REPLACES the MC 11943 presentation-side re-derivation, which
+/// answered the same question a second way and diverged from the engine
+/// after any hole-leaving removal; see InventoryPanelLogic's header law).
+/// Tab (toggled by Act) shows and hides it; refresh on show.
 /// M5-GATE FIX (MC 11943, verdict D2): the cell map is a plain C# collection.
 /// Handing the cell key "0,0" to Godot metadata threw ERROR "Invalid metadata
 /// identifier" mid-_Ready and aborted Act.ToggleInventory BEFORE the visible
@@ -75,8 +78,11 @@ public partial class InventoryPanel : Control
         LayoutToSize(); // a show-refresh at a landed rect centres at once; RESIZED re-centres on any resize
     }
 
-    /// <summary>4×10 cells; items drawn first-fit in Carried order (cells are a
-    /// presentation-side re-derivation — the Sim owns no answer to "which cell?").
+    /// <summary>4×10 cells; the anchors painted are the session dump's OWN
+    /// per-item row/col (InventoryPanelLogic.PackAnchors — the Sim's ONE
+    /// answer to "which cell?", the StashPanelLogic pulled-read idiom reused,
+    /// MC 11995; the geometry re-derivation this REPLACES is named dead in
+    /// the logic file).
     /// The anchor map is a C# set of InventoryPanelLogic.AnchorKey strings — the
     /// D2 fix: this key is NOT a valid Godot metadata identifier and never goes
     /// to metadata again.
@@ -87,16 +93,15 @@ public partial class InventoryPanel : Control
     /// s.EquipFromCell) — every gate stays the engine's and its refusal arrives
     /// as the OnHint line (the TownPanel button law). Empty cells are named
     /// "free_r_c" so the evidence leg can hunt the PAINTED truth (an empty cell
-    /// is never clickable — a phantom click is worse than no click; the panel
-    /// invents no placement beside the Sim).</summary>
+    /// is never clickable — a phantom click is worse than no click; since
+    /// MC 11995 painted truth and engine truth are the SAME answer, so a
+    /// painted anchor can no longer name a cell the door refuses).</summary>
     private Control BuildGrid(BabaYaga.Sim.GameSession s)
     {
-        var occ = new bool[BabaYaga.Sim.InventoryGrid.Rows, BabaYaga.Sim.InventoryGrid.Columns];
         var anchors = new HashSet<string>();
+        foreach (var (row, col) in InventoryPanelLogic.PackAnchors(s.Dump()))
+            anchors.Add(InventoryPanelLogic.AnchorKey(row, col));
         var grid = new GridContainer { Columns = BabaYaga.Sim.InventoryGrid.Columns };
-        foreach (var item in s.Carried)
-            if (InventoryPanelLogic.TryDeriveSpot(occ, item.Base.Width, item.Base.Height, out var spot))
-                anchors.Add(spot);
 
         for (int r = 0; r < BabaYaga.Sim.InventoryGrid.Rows; r++)
             for (int c = 0; c < BabaYaga.Sim.InventoryGrid.Columns; c++)
