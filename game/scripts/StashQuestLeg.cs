@@ -15,9 +15,12 @@ using Godot;
 ///   ponurak band area-monsters.json gives the rite's road), one WALK_STEP
 ///   into czelusc (the linkedTo road off known ground — the walk lights
 ///   NOTHING, the destination arrives DARK, the lit set read equal before/
-///   after) — and czelusc prints `MONSTER_SPAWN_NONE`: area-monsters.json
-///   carries NO czelusc row (data READ-ONLY), so the kill the FSM never
-///   demanded is honestly absent ON the goal ground, stated, never faked.
+///   after) — czelusc STANDS GUARDED since MC 11954: area-monsters.json
+///   carries its rows (strzyga ×3 near-spawn + widlast ×2 deep), so the leg
+///   prints NO spawn line on the goal ground; the `MONSTER_SPAWN_NONE`
+///   branch below survives as the honest GUARD for an EMPTY-field area,
+///   never as this lair's story — and the kill the FSM never demanded stays
+///   honestly unclaimed ON the goal ground, stated, never faked.
 ///   `QUEST_STEP` taken ON czelusc (the FSM's goal-flag move, the Act1OpenLeg
 ///   precedent) → `NEW_TAB tab=2 unlocked_before=False` pasted BEFORE the
 ///   completion → QuestComplete pays the StashTab → `QUEST4_REWARD kind=StashTab`
@@ -77,9 +80,11 @@ public static class StashQuestLeg
         // the walk lights NOTHING and the lair stone arrives DARK.
         if (!Walk(s, act, row.GoalAreaKey)) return false;
 
-        // Honest data reading: czelusc carries NO area-monsters.json row (the
-        // file is READ-ONLY this card), so NOTHING spawns on the goal ground and
-        // no kill is claimed there — the FSM's step demands position, never a
+        // Honest data reading: czelusc STANDS GUARDED since MC 11954 (the file
+        // carries its strzyga ×3 + widlast ×2 rows), so this gate reads FALSE on
+        // the goal ground and the NONE line never prints there — it stands as
+        // the GUARD for an EMPTY-field area only. No kill is claimed either way:
+        // the FSM's step demands position, never a
         // kill (the Act1OpenLeg precedent the leg states, not hides).
         if (act.Monsters.RowSnapshot().Count == 0)
             GD.Print($"MONSTER_SPAWN_NONE area={s.CurrentArea} note=no area-monsters row — kill rode kopcowisko above");
