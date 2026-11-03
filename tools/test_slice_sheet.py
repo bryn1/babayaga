@@ -81,6 +81,23 @@ def main():
     r3 = subprocess.run([sys.executable, SLICER], capture_output=True, text=True)
     check(r3.returncode != 0, f"no-args run exits non-zero (got {r3.returncode})")
 
+    # E) --resize WxH mode (MC 11975, portrait path): a 1024x1024 RGBA render
+    #    resized to 128x128 must come out EXACTLY that size, center-crop-then-
+    #    ONE-pinned-LANCZOS like the sheet path. A resize that lands on ANY
+    #    other size fails this row (planted-wrong-size RED, demonstrated
+    #    2026-11-03 against a copy pinned to 64x64 — RED — then the true
+    #    slicer — GREEN).
+    portrait = os.path.join(tmp, "portrait.png")
+    Image.new("RGBA", (1024, 1024), (10, 20, 30, 255)).save(portrait)
+    out_r = os.path.join(tmp, "out_resize.png")
+    r4 = subprocess.run([sys.executable, SLICER, "--resize", "128x128", portrait, out_r],
+                        capture_output=True, text=True)
+    check(r4.returncode == 0,
+          f"--resize 128x128 exit 0 (got {r4.returncode}: {r4.stderr.strip()})")
+    if r4.returncode == 0:
+        got_r = Image.open(out_r)
+        check(got_r.size == (128, 128), f"--resize output dims == (128,128) (got {got_r.size})")
+
     print("RESULT: " + ("FAILURES=" + str(len(FAILURES)) if FAILURES else "ALL GREEN"))
     return 1 if FAILURES else 0
 

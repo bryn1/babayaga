@@ -48,6 +48,12 @@ trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/assets"
 cp -a "$RAW" "$TMP/assets/raw"
 cp -a "$(dirname "$RAW")/import.sh" "$TMP/assets/import.sh"
+# MC 11975: import.sh may call the committed slicer (poi-*portrait --resize
+# 128x128, M4 art-debt D5) — the sandbox carries tools/slice_sheet.py too, so
+# the classifier + slicer stay the SINGLE source of the layout mapping; this
+# script still duplicates neither.
+mkdir -p "$TMP/tools"
+cp -a tools/slice_sheet.py "$TMP/tools/"
 bash "$TMP/assets/import.sh" >/dev/null
 
 manifest "$TMP" > "$TMP/produced"
