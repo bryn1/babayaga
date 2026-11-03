@@ -79,7 +79,11 @@ using Godot;
 /// fixture dir for the proven-craft half), or when BABA_FOL_LEG names one,
 /// the MC 11977 windowed-follower driver (same shape — painted HIRE button,
 /// the captain-row portrait read back from the PAINT, one world-click step,
-/// the follower-adjacency state read, the painted DISMISS row).
+/// the follower-adjacency state read, the painted DISMISS row), or when
+/// BABA_GAM_LEG names one, the MC 11987 town-panel GAMBLE-row driver (same
+/// shape — painted BUY on the GAMBLE row, the pack-tail + gold truth read,
+/// the next projected offer read back from the PAINT, the drained-purse
+/// refusal word read off the HUD line).
 /// Zero rules
 /// live here (Game → Sim → nothing).
 /// </summary>
@@ -106,6 +110,8 @@ public partial class Boot : Node
             RunCubeLeg(cubeDir); // M5 ritual-craft panel evidence driver (MC 11970) — same gate shape
         else if (System.Environment.GetEnvironmentVariable(FollowerLeg.EnvVar) is { Length: > 0 } folDir)
             RunFollowerLeg(folDir); // MC 11977 follower-sprite + captain-portrait evidence driver — same gate shape
+        else if (System.Environment.GetEnvironmentVariable(GambleLeg.EnvVar) is { Length: > 0 } gamDir)
+            RunGambleLeg(gamDir); // MC 11987 town-panel GAMBLE-row evidence driver — same gate shape
         else
             // LEDGER row 86 CURE (MC 11957): a SYNCHRONOUS ChangeSceneToFile from
             // inside _Ready made the engine remove_child the boot scene while the
@@ -247,6 +253,24 @@ public partial class Boot : Node
         var act = InstantiateActSmoke();
         if (act is null) { GetTree().Quit(1); return; }
         AddChild(new FollowerLeg { OutDir = legDir, Act = act });
+    }
+
+    /// <summary>M5 WINDOWED GAMBLE LEG (MC 11987): the same gate shape —
+    /// windowed ONLY, BABA_GAM_LEG-gated, unset = dead code. New session at
+    /// the leg seed, the REAL Act, and the driver that CLICKS THE PAINTED
+    /// BUY on the town panel's GAMBLE row (the sim's Gamble door rides the
+    /// logged "gamble" line — the CLI grammar, replayed BYTE-IDENTICAL at
+    /// the leg seed), reads the pack tail + gold from the session, reads the
+    /// row's ADVANCED projected label from the PAINT, and drains the purse
+    /// with painted clicks until the ENGINE's refusal words stand on the HUD
+    /// (every state move a synthesized input, never a verb — the CubeLeg
+    /// scan idiom extended: GambleLeg.cs calls NO session door).</summary>
+    private void RunGambleLeg(string legDir)
+    {
+        GameContext.New(GambleLeg.LegSeed);
+        var act = InstantiateActSmoke();
+        if (act is null) { GetTree().Quit(1); return; }
+        AddChild(new GambleLeg { OutDir = legDir, Act = act });
     }
 
     /// <summary>The DoD leg 3/3b gate + the slice journey legs. The legs below

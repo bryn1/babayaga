@@ -14,7 +14,12 @@ using Godot;
 /// clicks ARE the replayable session); every engine refusal becomes a HUD hint
 /// (the HeroController idiom), never a swallow. The engine's gates stay the
 /// engine's; the belt-slot pick is the presentation-side choice pinned in
-/// TownPanelLogic.
+/// TownPanelLogic. MC 11987 adds ONE GAMBLE row — the sim's face-down store
+/// (GameSession.Gamble) made player-facing: its label composes the engine's
+/// own GambleStore draw, DISPLAY-PROJECTED panel-side (the fence lives in
+/// GamblePanelLogic's header — the session exposes no pending offer and the
+/// projection never feeds the door), and its BUY rides the same logged-door
+/// law through GamblePanelLogic's grammar twin.
 /// </summary>
 public partial class TownPanel : Control
 {
@@ -24,6 +29,15 @@ public partial class TownPanel : Control
 
     private ColorRect _dim = null!;
     private VBoxContainer _box = null!;
+
+    // MC 11987 THE GAMBLE ROW's display state — the panel-owned projection
+    // stream ONLY (the fence lives in GamblePanelLogic's header: the session
+    // exposes no pending offer, this draws the engine's GambleStore.Next on
+    // its own seeded Rng to paint the row's label; the BUY door ever calls
+    // s.Gamble() with zero arguments — nothing here can feed the sim).
+    private Rng? _displayRng;
+    private ulong _displaySeed;
+    private GambleOffer? _offer; // the projected offer currently painted; advanced by a successful buy
 
     private static GameSession? S => GameContext.Session;
 
@@ -82,6 +96,20 @@ public partial class TownPanel : Control
             _box.AddChild(Row(new Label { Text = $"{row.Name} ({row.Width}x{row.Height})" },
                 Button(TownPanelLogic.BuyLabel(row.Name, price), () => Buy(id, row.Consumable))));
         }
+
+        // MC 11987 THE GAMBLE ROW (the sim's face-down store, P2 §4.7, made
+        // player-facing): ONE row, label composed by GamblePanelLogic from an
+        // engine GambleStore draw — the DISPLAY-ONLY projection fenced there
+        // (the session rolls its offer inside the door and exposes no pending
+        // offer; src/** is READ-ONLY under this card). The BUY click rides the
+        // ONE logged session verb; the refusal words are the engine's own.
+        if (_displayRng is null || _displaySeed != s.Seed) // reseed per session, never across sessions
+        {
+            _displayRng = new Rng(GamblePanelLogic.DisplaySeedOf(_displaySeed = s.Seed));
+            _offer = null; // a new session's stream starts at its FIRST projected draw
+        }
+        _offer ??= GamblePanelLogic.ProjectOffer(s.Bases, _displayRng, s.Level);
+        _box.AddChild(GambleRow.Build(_offer, Gamble));
 
         _box.AddChild(Header("The captain"));
         var merc = s.Merc;
@@ -175,6 +203,24 @@ public partial class TownPanel : Control
         var s = S; if (s is null) return;
         try { CommandLog.Call(TownPanelLogic.DismissLine, () => s.Dismiss()); }
         catch (SessionRejectedException e) { Hint(e.Message); return; }
+        Refresh();
+    }
+
+    /// <summary>MC 11987 THE GAMBLE DOOR — the one click, the ONE logged
+    /// session verb (TownPanelLogic's grammar twin GamblePanelLogic.
+    /// GambleLine, the CLI's "gamble" verbatim): the SIM decides the offer,
+    /// the price and the rolled item; the refusal paths (short purse, full
+    /// pack — GameSession.Trade.cs) paint the ENGINE's words through the
+    /// same catch as every row here. On success the row's DISPLAY advances to
+    /// its next projected draw (the display stream is panel-owned — the
+    /// fence in GamblePanelLogic — and the gold/pack truth rides the header
+    /// and the pack, pulled by Refresh).</summary>
+    private void Gamble()
+    {
+        var s = S; if (s is null) return;
+        try { CommandLog.Call(GamblePanelLogic.GambleLine, () => s.Gamble()); }
+        catch (SessionRejectedException e) { Hint(e.Message); return; } // the hint IS the answer
+        _offer = null; // the row shows the NEXT projected offer — display-side only
         Refresh();
     }
 

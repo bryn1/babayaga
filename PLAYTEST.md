@@ -97,7 +97,9 @@ re-run the two build commands — the build-twice law.
       the map edges — ponuraki and kretowniki roam there) — RNG rolls, never a guaranteed
       farm. Pierscien drops from NOTHING today and the pedlar sells no rings (her window:
       Soluga + the two potions), so "Three Rings, One Ward" stays honestly refused until
-      a ring source ships. The cube reads your CARRIED PACK — no cube-grid container yet.
+      a ring source ships — and since the town panel gained its GAMBLE row, the face-down
+      offer CAN draw a Pierscien (the ring rides the gamble Stock — RNG rolls, still never
+      a guaranteed farm). The cube reads your CARRIED PACK — no cube-grid container yet.
 - [ ] **P14 The follower.** Hire the strzelczyni (P8), then leave town. SEE: she STANDS
       AND MOVES BESIDE YOU — her sprite holds one free tile next to the hero and steps
       along as you walk, in every area. Honest by design: she is VISUAL-ONLY so far — she
