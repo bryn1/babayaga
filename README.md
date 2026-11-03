@@ -87,9 +87,11 @@ GODOT_BIN=/home/claudecode/Games/.tools/godot/Godot_v4.7.2-stable_mono_linux_x86
 Controls (each wired in `game/project.godot` [input] and consumed in `game/scripts/`):
 LMB walk / click lit stone to ride (HeroController), RMB attack (HeroController), TAB
 inventory (Act), T town panel in grodzisko (Act), C town chest (stash) in grodzisko
-(Act), 1–4 belt potions + R first spark (Hud), F5 save (Act), ESC = death menu with
-RESPAWN when dead (Act; alive = hint only,
-M5 ships no pause). Owner-facing checklist with what to expect per row: **PLAYTEST.md**.
+(Act), 1–4 belt potions + R first spark (Hud), F5 save (Act), ESC (`game_menu` action) =
+the game menu RESUME / SAVE & QUIT when alive — SAVE & QUIT rides the F5 save door then
+the title screen — and the death menu with RESPAWN when dead, where the game menu never
+opens (Act; the D2 truth: in Diablo II, Escape opens the game menu). Owner-facing
+checklist with what to expect per row: **PLAYTEST.md**.
 M5 gate evidence: run `.audits/202610301950-31593a83/out/TEST-verdict-m5-b.md`.
 
 ## Test

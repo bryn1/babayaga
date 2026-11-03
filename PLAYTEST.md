@@ -34,10 +34,10 @@ re-run the two build commands — the build-twice law.
 | C | town chest (stash): store from the pack, take back — only inside grodzisko |
 | 1 2 3 4 | drink the belt potion in that slot |
 | R | throw the koldun's first spark at your engaged target |
-| ESC | when DEAD: the death menu with RESPAWN. Alive: only a hint (M5 ships no pause) |
+| ESC | alive: the GAME MENU (RESUME / SAVE & QUIT) — opens and closes with the key. DEAD: the death menu (authoritative — ESC never opens the game menu over a corpse) |
 | F5 | save — Continue on the main menu picks it up |
 
-## The twelve rows
+## The thirteen rows
 
 - [ ] **P1 It opens.** Start the game. SEE: title card "BABA YAGA" + "A DARK SLAVIC
       SAGA", three whole buttons — New Game / Continue / Quit — centred, nothing clipped.
@@ -63,6 +63,13 @@ re-run the two build commands — the build-twice law.
 - [ ] **P11 Die and rise.** Let the monsters kill you. SEE: "YOU DIED — the stones
       remember you" with RESPAWN / QUIT buttons (press ESC if it isn't open). Click
       RESPAWN: SEE you alive again at grodzisko, HUD restored, game plays on. No hang.
+- [ ] **P12 The game menu.** ALIVE, press ESC. SEE: a dimmed screen with "GAME MENU" and
+      EXACTLY two buttons — RESUME / SAVE & QUIT. Press ESC again: it closes. Open it over
+      an open town panel (T, then ESC): the menu paints OVER the pedlar rows; click
+      RESUME: the town panel is STILL OPEN under where the menu was. Now ESC again and
+      click SAVE & QUIT: SEE the title card (BABA YAGA) again — and your save is current:
+      Continue picks up exactly where you stood. (While DEAD, ESC opens ONLY the death
+      menu of P11 — the game menu never appears over a corpse.)
 - [ ] **Continue.** Press F5 (hint: "the stow-hand copies your kit to the save-stone"),
       quit, restart, click Continue. SEE: you load where you saved, and a LEFT-click
       move still works right after loading.
@@ -71,9 +78,6 @@ re-run the two build commands — the build-twice law.
 
 - Monsters STAND still and only counter when you attack (M5 rule); audio is off-device
   untested (dummy driver under CI).
-- A one-time boot message `Parent node is busy…` prints at startup; harmless — the menu
-  paints normally and the judged gate ran with it present.
-- ESC while alive prints a hint only; the full game menu is LEDGER row 75's later half.
 
 Anything else that misbehaves on your device: note the row letter + what you saw, and
 send it — the fleet will gate it like the rest.
