@@ -138,6 +138,18 @@
          file under tests/, same link idiom (project file, not a test .cs — the
          MC 11950/52/58/59/69/70/77 precedent). -->
     <Compile Include="..\..\tests\RitualCraftContentTests.cs" Link="tests\RitualCraftContentTests.cs" />
+    <!-- TOWN-PANEL GAMBLE ROW (MC 11987): the row's pure mapping core (the ONE
+         logged "gamble" line, the label builder, the fenced display-projection
+         of the engine's GambleStore.Next draw) is PURE (no Godot types), same
+         link idiom; the test carries the label-composition rows, the refusal-
+         word passthrough, the LIVE grammar replay, the projection-determinism
+         rows and the shipped-file scans (project file, not a test .cs — the
+         MC 11950/52/58/59/69/70/77/79 precedent). -->
+    <Compile Include="..\..\tests\GamblePanelTests.cs" Link="tests\GamblePanelTests.cs" />
+    <!-- (the CS2001 masking note stands: this logic link landed WITH the
+         implementation, after the CS0103 RED rows were captured — the
+         MC 11977 order.) -->
+    <Compile Include="..\..\game\scripts\GamblePanelLogic.cs" Link="game\GamblePanelLogic.cs" />
   </ItemGroup>
 
   <ItemGroup>

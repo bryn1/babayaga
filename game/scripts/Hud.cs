@@ -383,6 +383,10 @@ public static class HudReadout
     /// full-screen margin is the one exception, pinned by the scan rows).</summary>
     public static string MouseFilterFor(string part) =>
         part is "hud.panel" or "hud.box" or "hud.orb-row" or "hud.orb-gauge" or "hud.line" or "hud.hint"
+            // MC 11987: the town panel's GAMBLE-row offer label is a READ-OUT
+            // (Ignore) — its row and button name themselves Stop in GambleRow.cs,
+            // so the click stays inside the open panel either way.
+            or "town.gamble-offer"
             ? "Ignore" : "Stop";
 
     /// <summary>The damage-flash text: the drop between the life the HUD LAST
