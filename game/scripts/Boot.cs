@@ -66,11 +66,13 @@ using Godot;
 /// then the town chest: store into tab 2 and take back, every position read
 /// from the session's own reports — STASH_OK) →
 /// ORCH_M4_OK → Quit(0).
-/// Windowed → MainMenu.tscn — or, when BABA_S4_LEG names a leg dir, the M5-S4
+/// Windowed → MainMenu.tscn (the scene change DEFERRED out of _Ready — LEDGER
+/// row 86 cured by MC 11957) — or, when BABA_S4_LEG names a leg dir, the M5-S4
 /// windowed INPUT driver (MC 11937: synthesized clicks through the real input
 /// pipeline + PNG evidence; env unset, that branch is dead code), or when
-/// BABA_S6_LEG names one, the M5-S6 town-panel driver (MC 11940, same shape).
-/// Zero rules
+/// BABA_S6_LEG names one, the M5-S6 town-panel driver (MC 11940, same shape),
+/// or when BABA_MENU_LEG names one, the MC 11957 game-menu/interlock driver
+/// (same shape again). Zero rules
 /// live here (Game → Sim → nothing).
 /// </summary>
 public partial class Boot : Node
@@ -88,8 +90,20 @@ public partial class Boot : Node
             RunEquipCellLeg(eqDir); // M5 hero-equip evidence driver (MC 11952) — same gate shape
         else if (System.Environment.GetEnvironmentVariable(StashChestLeg.EnvVar) is { Length: > 0 } stDir)
             RunStashChestLeg(stDir); // M5 town-chest evidence driver (MC 11953) — same gate shape
+        else if (System.Environment.GetEnvironmentVariable(GameMenuLeg.EnvVar) is { Length: > 0 } gmDir)
+            RunGameMenuLeg(gmDir); // MC 11957 game-menu evidence driver — same gate shape
         else
-            GetTree().ChangeSceneToFile("res://scenes/MainMenu.tscn");
+            // LEDGER row 86 CURE (MC 11957): a SYNCHRONOUS ChangeSceneToFile from
+            // inside _Ready made the engine remove_child the boot scene while the
+            // root was still busy adding children — one engine ERROR line per
+            // windowed boot (measured 2026-11-03 before this line: 1 hit, C#
+            // backtrace naming Boot._Ready verbatim; root cause is the call SITE,
+            // not the engine). The engine's own hint names the cure shape: the
+            // scene change rides CallDeferred — the idle frame is not processing
+            // the parent, the swap lands clean, the line is GONE (never
+            // cosmetically swallowed — after: 0 hits, the menu still paints, the
+            // headless story bytes never reach this branch).
+            Callable.From(() => GetTree().ChangeSceneToFile("res://scenes/MainMenu.tscn")).CallDeferred();
     }
 
     /// <summary>M5-S4 INPUT LEG (MC 11937, DoD 2/3): windowed ONLY and BABA_S4_LEG-gated —
@@ -149,6 +163,22 @@ public partial class Boot : Node
         var act = InstantiateActSmoke();
         if (act is null) { GetTree().Quit(1); return; }
         AddChild(new StashChestLeg { OutDir = legDir, Act = act });
+    }
+
+    /// <summary>MC 11957 GAME-MENU LEG (DoD 2): the same gate shape — windowed
+    /// ONLY, BABA_MENU_LEG-gated, unset = dead code. New session at the leg
+    /// seed (or LOAD of the runner-staged user://save when BABA_MENU_CONTINUE
+    /// says on — the S4 ContinueVar shape, here to stage the DEAD hero the
+    /// interlock row must press ESC against), the REAL Act, and the driver
+    /// that presses ESC and CLICKS THE PAINTED MENU BUTTONS — every state
+    /// move a synthesized input, never a verb.</summary>
+    private void RunGameMenuLeg(string legDir)
+    {
+        if (System.Environment.GetEnvironmentVariable(GameMenuLeg.ContinueVar) == "1") GameContext.Load();
+        else GameContext.New(GameMenuLeg.LegSeed);
+        var act = InstantiateActSmoke();
+        if (act is null) { GetTree().Quit(1); return; }
+        AddChild(new GameMenuLeg { OutDir = legDir, Act = act });
     }
 
     /// <summary>The DoD leg 3/3b gate + the slice journey legs. The legs below

@@ -98,6 +98,14 @@
          linked in beside the tests instead of a second implementation being written. -->
     <Compile Include="..\..\tests\CzeluscDefenderTests.cs" Link="tests\CzeluscDefenderTests.cs" />
     <Compile Include="..\..\game\scripts\Fnv.cs" Link="game\Fnv.cs" />
+    <!-- ESC GAME MENU (MC 11957): the panel's press-model/gate/z-order core is
+         PURE (no Godot types), same link idiom; the test carries the spy-order
+         mapping rows, the DEAD interlock, the toggle idempotence, the overlap
+         law PARSED from Act's own wiring, the CallDeferred boot law (row 86
+         cure pinned) and the driver-leg scans (project file, not a test .cs —
+         the MC 11950/11952 precedent). -->
+    <Compile Include="..\..\tests\GameMenuTests.cs" Link="tests\GameMenuTests.cs" />
+    <Compile Include="..\..\game\scripts\GameMenuLogic.cs" Link="game\GameMenuLogic.cs" />
   </ItemGroup>
 
   <ItemGroup>

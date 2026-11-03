@@ -7,8 +7,10 @@ using Godot;
 /// Tab toggles the Inventory.tscn panel OVER this scene; T opens the
 /// TownPanel.tscn vendor+captain overlay IN TOWN (M5-S6, MC 11940); C opens the
 /// StashPanel.tscn town chest IN TOWN (M5, MC 11953); F5 saves; Esc opens the
-/// DeathMenu.tscn RESPAWN door FOR THE DEAD (P11, plan-c2 FIX-DA5 8) and hints the
-/// menu row (LEDGER 75) while alive — M5 ships no pause (R1c). Renders
+/// game menu for the LIVING (MC 11957 — the D2 truth: Escape opens the game
+/// menu; GameMenu.tscn, two real actions) and the DeathMenu.tscn RESPAWN door
+/// FOR THE DEAD (P11, plan-c2 FIX-DA5 8 — the two are an EXCLUSIVE branch,
+/// never a double-open). Renders
 /// session.CurrentArea (slice: grodzisko ↔ mchy); a travel rebuilds the tiles +
 /// monster row + standing stone under the new area.
 /// </summary>
@@ -23,6 +25,7 @@ public partial class Act : Node
     private DeathMenu? _deathMenu;
     private TownPanel? _townPanel;
     private StashPanel? _stashPanel;
+    private GameMenu? _gameMenu;
 
     /// <summary>Read accessors for the headless journey leg (Boot) — the same
     /// wired objects the windowed game drives, never a second set.</summary>
@@ -126,16 +129,26 @@ public partial class Act : Node
         }
         else if (@event.IsActionPressed("game_menu"))
         {
-            // M5-S4 P11 (plan-c2 FIX-DA5 8, the owner-soft-lock row): the DEAD
-            // get the death menu with the RESPAWN door; an alive Esc keeps the
-            // LEDGER-75 hint — M5 ships no pause (plan R1c). The gate is
-            // DeathMenuLogic.OpensFor, xunit-pinned. The leg marker below is
-            // windowed-only noise in the evidence log (headless never sees it).
+            // MC 11957 — the LEDGER-75 hint this row used to print is RETIRED.
+            // D2 truth (oracle, cited): in Diablo II Escape opens the game menu
+            // — the ALIVE get the real windowed panel now (GameMenu: RESUME /
+            // SAVE & QUIT, two real actions, no theater row). The DEAD keep
+            // the P11 death menu ALONE: this branch is EXCLUSIVE (if/else) — a
+            // dead Esc never opens or replaces it with the game menu, and a
+            // visible game menu YIELDS when the death menu opens (interlock:
+            // GameMenuLogic.OpensFor + the yield line below + GameMenuTests +
+            // the windowed leg's dead row). The leg marker stays windowed-only
+            // noise in the evidence log (headless never sees it).
             var s = GameContext.Session;
             if (DisplayServer.GetName() != "headless")
                 GD.Print($"M5_ACT_MENU dead={s?.IsDead == true}");
-            if (s is not null && DeathMenuLogic.OpensFor(s.IsDead)) ToggleDeathMenu();
-            else _hud.Hint("the game menu lands with the widget row (LEDGER 75)");
+            if (s is not null && DeathMenuLogic.OpensFor(s.IsDead))
+            {
+                if (_gameMenu is not null && GameMenuLogic.GameMenuMustYield(true, _gameMenu.Visible))
+                    _gameMenu.Visible = false; // the death menu is authoritative (the yield law, xunit-pinned)
+                ToggleDeathMenu();
+            }
+            else ToggleGameMenu();
         }
     }
 
@@ -236,6 +249,33 @@ public partial class Act : Node
             return; // fresh-instantiated Control is already visible — the OPEN is done
         }
         _stashPanel.Visible = !_stashPanel.Visible;
+    }
+
+    /// <summary>GameMenu.tscn follows the SAME instantiate-once idiom (the
+    /// ToggleDeathMenu/ToggleTownPanel twins, MC 11957) and rides its OWN
+    /// CanvasLayer ABOVE every other overlay (GameMenuLogic.Layer — the
+    /// town-panel overlap row: the menu PAINTS over an open town panel and
+    /// never closes it; RESUME reveals the panel still open underneath). The
+    /// two wired doors: OnSaveDoor IS the EXISTING F5 path (GameContext.Save
+    /// — reused, never duplicated) and OnMainMenuScene the EXISTING flow
+    /// (the same res://scenes/MainMenu.tscn Boot and MainMenu ride); the
+    /// SAVE-first-then-scene ORDER lives in GameMenuLogic (xunit spy).</summary>
+    private void ToggleGameMenu()
+    {
+        if (_gameMenu is null)
+        {
+            var packed = GD.Load<PackedScene>("res://scenes/GameMenu.tscn");
+            if (packed is null) { GD.PushError("missing res://scenes/GameMenu.tscn"); return; }
+            if (packed.Instantiate() is not GameMenu menu)
+            { GD.PushError("GameMenu.tscn root is not a GameMenu"); return; }
+            menu.OnSaveDoor = GameContext.Save; // THE F5 DOOR ITSELF (save_game handler above)
+            menu.OnMainMenuScene = () => GetTree().ChangeSceneToFile("res://scenes/MainMenu.tscn");
+            AddChild(new CanvasLayer { Name = "GameMenuLayer", Layer = GameMenuLogic.Layer }); // above the chest's 23 — the z-order law, GameMenuTests-pinned
+            _gameMenu = menu;
+            GetNode<CanvasLayer>("GameMenuLayer").AddChild(_gameMenu);
+            return; // fresh-instantiated Control is already visible — the OPEN is done
+        }
+        _gameMenu.Visible = GameMenuLogic.ToggleTo(_gameMenu.Visible); // a second Esc hides it, a third opens it
     }
 
     private void RespawnViaDoor()
