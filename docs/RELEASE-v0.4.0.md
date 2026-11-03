@@ -93,6 +93,11 @@ GEAR_OK + GEAR_STATS_OK, STASH_OK and ORCH_M4_OK, zero ERROR lines.
   built (row 48); procedural map layout BUILDING (row 59); curse/aura stack engine and the
   effect-family rows (crushing blow, open wounds, poison, chill, stun) remain NOT-BUILT
   (rows 28–35).
+  UPDATED 2026-11-03 (MC 11991 pre-stage): this block stays the v0.4.0 tag's record —
+  ritual-craft SHIPPED after this tag (engine MC 11969, five recipes MC 11978, windowed
+  cube panel MC 11975; see docs/RELEASE-v0.5.0.md); the ¾-corpse-return, procedural layout
+  (row 59, still open/BUILDING) and the named effect-family rows (28–29, 31–35 — the crit
+  family 30 has been BUILT-M1 since M1; "28–35" is this tag's wording) remain open there too.
 
 ## NOT SHIPPED (what this milestone promised beyond what it delivered)
 
