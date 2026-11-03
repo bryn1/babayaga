@@ -1,10 +1,20 @@
-# Baba Yaga — Owner Playtest Checklist (M5, kit 2026-11-02)
+# Baba Yaga — Owner Playtest Checklist (M5, kit 2026-11-03)
 
-The venue for YOUR run of the windowed game. Twelve rows: eleven play rows (P1–P11)
-plus Continue. Each row: what you do, what you should SEE, a tick box. The automated
-gate already walked all twelve rows on this build and every one printed/skipped green
-(run `.audits/202610301950-31593a83/out/TEST-verdict-m5-b.md`, VERDICT PASS, JUDGED
-f01bcde2) — your job is the FELT check on your own device, not first discovery.
+kit 2026-11-03 (rev2): + cube, + follower, art fully alpha
+
+The venue for YOUR run of the windowed game. Sixteen rows: fifteen play rows
+(P1–P15) plus Continue. Each row: what you do, what you should SEE, a tick box.
+The automated gate walked P1–P12 + Continue green on the 2026-11-02 tree
+(`.audits/202610301950-31593a83/out/TEST-verdict-m5-b.md`, VERDICT PASS, JUDGED
+f01bcde2). That verdict PREDATES the cube, the follower and the alpha-art cure —
+no TEST-verdict file covers P13–P15: those three rows are verified by unit tests
+(`tests/CraftPanelTests.cs`, `tests/RitualCraftContentTests.cs`,
+`tests/FollowerFieldTests.cs` — all green in `dotnet test BabaYaga.sln` on this
+tree) plus each card's own windowed Xvfb legs and the orchestrator's own-eyes
+runs (evidence dirs `.audits/202610301950-31593a83/out/leg-m5-cube/`,
+`out/leg-m5-fol/`, `out/leg-m5-d7/`; write-ups `out/EVIDENCE-m5-cube.md`,
+`out/EVIDENCE-m5-fol.md`). Your job is the FELT check on your own device, not
+first discovery.
 
 ## Run it
 
@@ -32,13 +42,13 @@ re-run the two build commands — the build-twice law.
 | TAB | inventory panel open / close |
 | T | town panel (pedlar + captain) — only inside grodzisko |
 | C | town chest (stash): store from the pack, take back — only inside grodzisko |
-| B | the bone cube (ritual craft): lists every inscription it knows, CRAFT burns its inputs from your pack — only inside grodzisko; while no inscriptions are admitted it says so honestly ("no inscriptions warm the cube yet") |
+| B | the bone cube (ritual craft): paints the FIVE inscriptions the cube knows (P13), CRAFT burns its inputs from your pack — only inside grodzisko |
 | 1 2 3 4 | drink the belt potion in that slot |
 | R | throw the koldun's first spark at your engaged target |
 | ESC | alive: the GAME MENU (RESUME / SAVE & QUIT) — opens and closes with the key. DEAD: the death menu (authoritative — ESC never opens the game menu over a corpse) |
 | F5 | save — Continue on the main menu picks it up |
 
-## The thirteen rows
+## The sixteen rows
 
 - [ ] **P1 It opens.** Start the game. SEE: title card "BABA YAGA" + "A DARK SLAVIC
       SAGA", three whole buttons — New Game / Continue / Quit — centred, nothing clipped.
@@ -55,9 +65,10 @@ re-run the two build commands — the build-twice law.
 - [ ] **P7 Heal.** Inside grodzisko press T, buy the life potion (it lands in belt slot 1),
       take a hit or two outside, come back, press 1. SEE: Life rises, belt cell empties;
       at FULL life pressing 1 just prints a hint — no crash.
-- [ ] **P8 Hire.** Press T in town, hire the strzelczyni from the captain. SEE: Gold
-      drops by her price (830→730 from a 1000 start), a merc line appears on the HUD,
-      she follows you when you travel.
+- [ ] **P8 Hire.** Press T in town, hire the strzelczyni from the captain — her price is
+      100 gold. SEE: Gold drops by her price (830→730 on a 1000 start after the P7 potion),
+      a Merc line appears on the HUD, she follows you when you travel — and since this kit
+      rev she also walks BESIDE you on screen (see P14).
 - [ ] **P9 Ride stones.** Enter mchy (the stones light on arrival). LEFT-click the lit
       stone marker. SEE: you are instantly in the other area — no walk steps — HUD Area flips.
 - [ ] **P10 Three lines.** Anywhere: SEE Life, Mana AND XP all visible at once in the HUD.
@@ -71,6 +82,38 @@ re-run the two build commands — the build-twice law.
       click SAVE & QUIT: SEE the title card (BABA YAGA) again — and your save is current:
       Continue picks up exactly where you stood. (While DEAD, ESC opens ONLY the death
       menu of P11 — the game menu never appears over a corpse.)
+- [ ] **P13 The bone cube.** Inside grodzisko press B. SEE: a "The Bone Cube" panel with
+      the FIVE inscriptions it knows: **Resin into Stone** (3 × Raw Amber), **Stone upon
+      Stone** (3 × Swamp Garnet), **Amber Heart** (Raw Amber + Swamp Garnet + Fen Peridot),
+      **Three Rings, One Ward** (3 × Pierscien), **The Resin-Coated Blade** (2 × Palica +
+      Raw Amber). Press CRAFT on a row your pack can pay: the inputs burn and the hint
+      reads "the cube cools — <name> lands in your pack" (TAB — the output is in your
+      pack; the magic rows land magic items). Press CRAFT with reagents MISSING: the hint
+      refuses honestly — e.g. "recipe 'smola_w_kamien' found no match — missing 2 × jantar"
+      — and NOTHING burns; a FULL pack is refused BEFORE anything is consumed ("the pack
+      has no cell left"). Outside grodzisko the B key only hints "the bone cube stands in
+      grodzisko". What you CAN feel today, honestly: Palica drops from mchy kills; the
+      three gems DO drop from kills in kopcowisko (walk mchy → widlan → kopcowisko along
+      the map edges — ponuraki and kretowniki roam there) — RNG rolls, never a guaranteed
+      farm. Pierscien drops from NOTHING today and the pedlar sells no rings (her window:
+      Soluga + the two potions), so "Three Rings, One Ward" stays honestly refused until
+      a ring source ships. The cube reads your CARRIED PACK — no cube-grid container yet.
+- [ ] **P14 The follower.** Hire the strzelczyni (P8), then leave town. SEE: she STANDS
+      AND MOVES BESIDE YOU — her sprite holds one free tile next to the hero and steps
+      along as you walk, in every area. Honest by design: she is VISUAL-ONLY so far — she
+      fights nothing and nothing fights her (her combat is a later card). Press T at the
+      captain: her row shows her PORTRAIT plus two real buttons — REVIVE Strzelczyni
+      (bow-kin): brings a dead follower back for a gold cost the engine sets (a dead one
+      stands no sprite until you do), and DISMISS: sends her away for good — sprite gone,
+      HUD Merc line gone. Never hired / dismissed: the captain row is just the HIRE button.
+- [ ] **P15 Art: no more boxes.** Walk out of town and look hard at the sprites. SEE:
+      EVERYTHING blends into the ground — hero, follower and every monster draw with ZERO
+      background box. The grey-boxed sprites (the D7 defect) are CURED: the four worst
+      sheets (kretownik, kikimora, strzyga, widlast) were re-rendered true-alpha on
+      2026-11-03 and every shipped sheet was pixel-checked. The HERO has FOUR-DIRECTION
+      art: walk each way and SEE him TURN to face E / W / S / N as he travels (his
+      4-direction walk frames are committed too; the walk cycle itself is later polish —
+      today he walks on the facing idle frame).
 - [ ] **Continue.** Press F5 (hint: "the stow-hand copies your kit to the save-stone"),
       quit, restart, click Continue. SEE: you load where you saved, and a LEFT-click
       move still works right after loading.
@@ -79,6 +122,12 @@ re-run the two build commands — the build-twice law.
 
 - Monsters STAND still and only counter when you attack (M5 rule); audio is off-device
   untested (dummy driver under CI).
+- The hired follower is VISUAL-ONLY (P14): no follower combat, no follower pathing —
+  she re-paints on the free tile beside you and never lags or overlaps the hero.
+- The cube reads your CARRIED PACK for inputs (the cube-grid container is a later
+  card), and "Three Rings, One Ward" is uncraftable until some source ships Pierscien.
+- The hero's walk cycle still paints the facing idle frame (idle + 4-direction walk
+  sheets are committed; the animation is later polish).
 
 Anything else that misbehaves on your device: note the row letter + what you saw, and
 send it — the fleet will gate it like the rest.
