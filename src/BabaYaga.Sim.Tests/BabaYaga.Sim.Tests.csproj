@@ -116,6 +116,13 @@
          new file under tests/, same link idiom (project file, not a test .cs — the
          MC 11950/11952/11959 precedent). -->
     <Compile Include="..\..\tests\RitualCraftTests.cs" Link="tests\RitualCraftTests.cs" />
+    <!-- RITUAL-CRAFT PANEL (MC 11970): the windowed cube UI's pure core (row-build,
+         empty state, action map, town gate) rides the same link idiom; the test
+         carries the fixture-dir rows, the live CLI replay, the refusal-text rows
+         and the shipped-file scans (project file, not a test .cs — the
+         MC 11950/11952/11959/11969 precedent). -->
+    <Compile Include="..\..\tests\CraftPanelTests.cs" Link="tests\CraftPanelTests.cs" />
+    <Compile Include="..\..\game\scripts\CraftPanelLogic.cs" Link="game\CraftPanelLogic.cs" />
   </ItemGroup>
 
   <ItemGroup>

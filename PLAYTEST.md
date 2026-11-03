@@ -32,6 +32,7 @@ re-run the two build commands — the build-twice law.
 | TAB | inventory panel open / close |
 | T | town panel (pedlar + captain) — only inside grodzisko |
 | C | town chest (stash): store from the pack, take back — only inside grodzisko |
+| B | the bone cube (ritual craft): lists every inscription it knows, CRAFT burns its inputs from your pack — only inside grodzisko; while no inscriptions are admitted it says so honestly ("no inscriptions warm the cube yet") |
 | 1 2 3 4 | drink the belt potion in that slot |
 | R | throw the koldun's first spark at your engaged target |
 | ESC | alive: the GAME MENU (RESUME / SAVE & QUIT) — opens and closes with the key. DEAD: the death menu (authoritative — ESC never opens the game menu over a corpse) |
