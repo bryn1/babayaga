@@ -15,9 +15,9 @@
 
   { "id": "jantarowe_serce", "name": "Amber Heart",
     "inputs": [ { "itemId": "jantar", "count": 1 }, { "itemId": "granat", "count": 1 }, { "itemId": "oliwin", "count": 1 } ],
-    "output": { "itemId": "obereg", "quality": "magic", "fixedMods": [ { "stat": "life", "min": 21, "max": 40 } ], "plvl": 50, "ilvl": 50 },
+    "output": { "itemId": "obereg", "quality": "magic", "fixedMods": [ { "stat": "life", "min": 10, "max": 20 } ], "plvl": 50, "ilvl": 50 },
     "ilvlRule": "dead: half plvl + half input — see output plvl/ilvl", "flags": [],
-    "_witness": "Oracle L8-family (own words, spec §1 R2b/R3): a gem set pressed with the craft answers a FRESH item of the named output base, all inputs consumed — ours presses the three-stone set into an obereg, the world's own ward-amulet base. The level pair: the trinket-press family pins the half-and-half pair the spec §1 R7b cites at 50/50 (shape cite ONLY — the numbers are OUR balance call, spec §2: content card owns them). The recipe-given grant rides the oracle's fixed-mod family (e.g. L75+ pinning a fixed stat range on the output, spec §1 R5b): stat 'life' range 21..40 stands VERBATIM in affixes.json as the bursztynowy (amber) prefix row — no stat row invented; chance absent = 100 (the always-hits default R5b retires the old flags word to)." },
+    "_witness": "Oracle L8-family (own words, spec §1 R2b/R3): a gem set pressed with the craft answers a FRESH item of the named output base, all inputs consumed — ours presses the three-stone set into an obereg, the world's own ward-amulet base. The level pair: the trinket-press family pins the half-and-half pair the spec §1 R7b cites at 50/50 (shape cite ONLY — the numbers are OUR balance call, spec §2: content card owns them). The recipe-given grant rides the oracle's fixed-mod family (e.g. L75+ pinning a fixed stat range on the output, spec §1 R5b): stat 'life' range 10..20 stands VERBATIM in affixes.json as the miodowy prefix row — no stat row invented; chance absent = 100 (the always-hits default R5b retires the old flags word to). MC 11985 audit option A — fixed mod = miodowy verbatim (organic act-1 life ceiling band); early-affix leak class closed." },
 
   { "id": "trzy_kregi", "name": "Three Rings, One Ward",
     "inputs": [ { "itemId": "pierscien", "count": 3 } ],
