@@ -30,6 +30,7 @@ public sealed partial class GameSession
     public AreaGraph Areas { get; }
     public WaypointGraph Waypoints { get; }
     public QuestLog Quests { get; }
+    public CubeRecipeTable CubeRecipes { get; }
 
     public ulong Seed { get; }
     public Character Character { get; }
@@ -92,6 +93,7 @@ public sealed partial class GameSession
         Skills = new SkillTree(SkillData);
         Bases = ItemBaseTable.Load(D("item-bases.json"));
         var affixes = AffixPool.Load(D("affixes.json"));
+        _affixes = affixes; // the ritual-craft door's generation handle (RitualCraft.cs; MC 11969)
         var uniques = UniqueSetTable.Load(D("uniques.json"));
         Monsters = MonsterTable.Load(D("monsters.json"));
         Hirelings = HirelingTable.Load(D("hirelings.json"));
@@ -99,6 +101,11 @@ public sealed partial class GameSession
         Areas = AreaGraph.Load(D("act1-areas.json"));
         Waypoints = WaypointGraph.Load(Areas, D("waypoints.json"));
         Quests = QuestLog.Load(D("act1-quests.json"));
+        // The ritual-craft recipe table (spec §6.8, LEDGER row 48, MC 11969): the
+        // loader draws NO RNG and prints NOTHING — the five shipped PLACEHOLDER
+        // rows skip SILENTLY at every boot (counts ride the read-back properties),
+        // so all three stream words and the anchor story md5 stand untouched.
+        CubeRecipes = CubeRecipeTable.Load(Bases, D("cube-recipes.json"));
         _flow = new KillFlow(Classes, new ItemForge(Bases, affixes, uniques), Drops);
         _gambler = new GambleStore(Bases, uniques, affixes);
         Purse = new Purse(StartGold);

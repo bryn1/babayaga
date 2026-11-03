@@ -17,6 +17,8 @@ namespace BabaYaga.Sim.Cli;
 ///   | give &lt;slot&gt; &lt;x&gt; &lt;y&gt; | strip &lt;slot&gt; (merc gear doors, MC 11903)
 ///   | belt_add &lt;x&gt; &lt;y&gt; | use &lt;slot&gt; | cast &lt;skill&gt; &lt;monster&gt; | respawn (the M5-S3a
 ///   replay-gate twins — belt/cast/death doors, MC 11933) — see EngineDoorVerbs.cs
+///   | craft &lt;recipeId&gt; (the RITUAL CRAFT door twin, MC 11969 — grammar and echo
+///   rows per EngineDoorVerbs.cs; the dispatch layer rolls nothing)
 ///   | read-only debug verbs (no session) — see DebugVerbs.cs
 ///   | live-session beats (payload builders) — see RunningVerbs.cs
 /// A rejected change or unknown command throws — the runner owns the ERROR line.
@@ -96,6 +98,7 @@ public sealed partial class ScriptedSession
             "use" => Use(payload, parts),
             "cast" => Cast(payload, parts),
             "respawn" => Respawn(payload, parts),
+            "craft" => Craft(payload, parts),
             _ => throw new SessionRejectedException($"unknown command '{parts[0]}'"),
         };
 

@@ -215,4 +215,28 @@ public sealed partial class ScriptedSession
         p["AREA"] = S.CurrentArea;
         return p;
     }
+
+    /// craft &lt;recipeId&gt; → CraftRecipe — THE RITUAL CRAFT twin (MC 11969, spec §6.8): a
+    /// THIN call onto the door — every gate (DEAD first, town, recipe-known, the
+    /// deterministic pack-index-order multiset match, the room-for-output proof BEFORE
+    /// consumption) stays the ENGINE'S, and the generation rides the engine's DropRng
+    /// at the commit point only (the Gamble-door idiom — the dispatch layer rolls
+    /// NOTHING, the DA F4 replay law). Echo reads the report rows: RECIPE, CONSUMED
+    /// (the taken items in take order, base@row,col ANCHORS), OUT_BASE/OUT_ITEM with
+    /// the landing anchor, ILVL, AFFIXES (the generation record). A refusal rides the
+    /// named SessionRejectedException into the ERROR line + exit 1, nothing drawn.
+    private Dictionary<string, object?> Craft(Dictionary<string, object?> p, string[] parts)
+    {
+        Arg(parts, 2, "craft <recipeId>");
+        var r = S.CraftRecipe(parts[1]);
+        p["RECIPE"] = r.RecipeId;
+        p["CONSUMED"] = r.Consumed.Select(c => $"{c.Base}@{c.Row},{c.Col}").ToList();
+        p["OUT_BASE"] = r.OutBase;
+        p["OUT_ITEM"] = r.OutName;
+        p["OUT_ROW"] = r.OutRow;
+        p["OUT_COL"] = r.OutCol;
+        p["ILVL"] = r.Ilvl;
+        p["AFFIXES"] = r.AffixIds;
+        return p;
+    }
 }
