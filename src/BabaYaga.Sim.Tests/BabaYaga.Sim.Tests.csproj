@@ -123,6 +123,14 @@
          MC 11950/11952/11959/11969 precedent). -->
     <Compile Include="..\..\tests\CraftPanelTests.cs" Link="tests\CraftPanelTests.cs" />
     <Compile Include="..\..\game\scripts\CraftPanelLogic.cs" Link="game\CraftPanelLogic.cs" />
+    <!-- HIRED FOLLOWER VISUAL (MC 11977): the ShouldDraw/PickCell/art-map laws
+         the windowed FollowerField + captain-row portrait ride are PURE (no
+         Godot types); the test carries the pinned ring order, the never-the-
+         hero-cell sweep, the shipped-art mirror and the FollowerField/TownPanel
+         scans (project file, not a test .cs — the MC 11950/52/58/59/69/70
+         precedent). -->
+    <Compile Include="..\..\tests\FollowerFieldTests.cs" Link="tests\FollowerFieldTests.cs" />
+    <Compile Include="..\..\game\scripts\FollowerFieldLogic.cs" Link="game\FollowerFieldLogic.cs" />
   </ItemGroup>
 
   <ItemGroup>

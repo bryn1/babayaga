@@ -19,6 +19,7 @@ public partial class Act : Node
 {
     private AreaRenderer _renderer = null!;
     private MonsterField _monsters = null!;
+    private FollowerField _followers = null!;
     private HeroController _hero = null!;
     private IsoCamera _camera = null!;
     private Hud _hud = null!;
@@ -33,6 +34,7 @@ public partial class Act : Node
     /// wired objects the windowed game drives, never a second set.</summary>
     public AreaRenderer Tiles => _renderer;
     public MonsterField Monsters => _monsters;
+    public FollowerField Followers => _followers; // the MC 11977 follower-sprite read for the windowed leg
     public HeroController Hero => _hero;
     public Hud HudPanel => _hud; // the level-up leg's HUD read-back (HUD_LEVEL)
 
@@ -49,8 +51,10 @@ public partial class Act : Node
         AddChild(world);
         _renderer = new AreaRenderer { Name = "Area" };
         _monsters = new MonsterField { Name = "MonsterField" };
+        _followers = new FollowerField { Name = "FollowerField" };
         world.AddChild(_renderer);
         world.AddChild(_monsters);
+        world.AddChild(_followers);
 
         _camera = new IsoCamera { Name = "IsoCamera" };
         AddChild(_camera);
@@ -61,6 +65,10 @@ public partial class Act : Node
         world.AddChild(_hero);
         _hero.Wire(_renderer, _monsters, _hud);
         _hero.OnAreaChanged = () => Rebuild(GameContext.Session!.CurrentArea);
+        // MC 11977: the follower field READS the hero cell + the area's
+        // walkable set (pull-only, the MonsterField pattern's sibling) — it
+        // owns a sprite, never a sim state, never a position the sim tracks.
+        _followers.Wire(_hero, _renderer);
 
         // M5-S3 SIM BRIDGE (MC 11934): the ONE SIM-state clock, windowed only —
         // the headless marker legs run inside one _Ready, so its _Process never

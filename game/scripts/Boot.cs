@@ -76,7 +76,10 @@ using Godot;
 /// click-through PASSIVE state reader the xdotool driver reads (same shape),
 /// or when BABA_CUBE_LEG names one, the MC 11970 ritual-craft panel driver
 /// (same shape again — B key + painted-button clicks, optional BABA_CUBE_DATA
-/// fixture dir for the proven-craft half).
+/// fixture dir for the proven-craft half), or when BABA_FOL_LEG names one,
+/// the MC 11977 windowed-follower driver (same shape — painted HIRE button,
+/// the captain-row portrait read back from the PAINT, one world-click step,
+/// the follower-adjacency state read, the painted DISMISS row).
 /// Zero rules
 /// live here (Game → Sim → nothing).
 /// </summary>
@@ -101,6 +104,8 @@ public partial class Boot : Node
             RunHudClickLeg(); // MC 11959 HUD click-through state reader — same gate shape
         else if (System.Environment.GetEnvironmentVariable(CubeLeg.EnvVar) is { Length: > 0 } cubeDir)
             RunCubeLeg(cubeDir); // M5 ritual-craft panel evidence driver (MC 11970) — same gate shape
+        else if (System.Environment.GetEnvironmentVariable(FollowerLeg.EnvVar) is { Length: > 0 } folDir)
+            RunFollowerLeg(folDir); // MC 11977 follower-sprite + captain-portrait evidence driver — same gate shape
         else
             // LEDGER row 86 CURE (MC 11957): a SYNCHRONOUS ChangeSceneToFile from
             // inside _Ready made the engine remove_child the boot scene while the
@@ -225,6 +230,23 @@ public partial class Boot : Node
         var act = InstantiateActSmoke();
         if (act is null) { GetTree().Quit(1); return; }
         AddChild(new CubeLeg { OutDir = legDir, Act = act });
+    }
+
+    /// <summary>M5 WINDOWED FOLLOWER LEG (MC 11977, DoD 2): the same gate
+    /// shape — windowed ONLY, BABA_FOL_LEG-gated, unset = dead code. New
+    /// session at the leg seed, the REAL Act, and the driver that CLICKS THE
+    /// PAINTED HIRE BUTTON on the captain row, reads the PAINTED portrait,
+    /// walks the hero ONE cell with a WORLD click (the MC 11959 HUD click law
+    /// live), reads the follower sprite's standing cell beside the hero, and
+    /// clicks the painted DISMISS row — every state move a synthesized input,
+    /// never a verb (the CubeLeg scan idiom extended: FollowerLeg.cs calls NO
+    /// session door).</summary>
+    private void RunFollowerLeg(string legDir)
+    {
+        GameContext.New(FollowerLeg.LegSeed);
+        var act = InstantiateActSmoke();
+        if (act is null) { GetTree().Quit(1); return; }
+        AddChild(new FollowerLeg { OutDir = legDir, Act = act });
     }
 
     /// <summary>The DoD leg 3/3b gate + the slice journey legs. The legs below
