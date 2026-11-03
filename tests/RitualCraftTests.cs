@@ -122,25 +122,25 @@ public sealed class RitualCraftTests
     // ---- §5 row 17 + §2(ii): the SHIPPED file admits 0, skips 5, refuses by name ----
 
     [Fact]
-    public void Loader_ShippedFile_AdmitsNothingCountsFive_AndCraftRefusesAPlaceholderById()
+    public void Loader_ShippedFile_AdmitsFiveRealRecipes_ZeroSkips_AndCraftRefusesAGonePlaceholderById()
     {
         var s = Town(9); // the shipped data dir — every session boots over these five skips
-        Assert.Equal(0, s.CubeRecipes.Recipes.Count); // read-back, never a print
-        Assert.Equal(5, s.CubeRecipes.SkippedCount);
+        Assert.Equal(5, s.CubeRecipes.Recipes.Count); // read-back, never a print
+        Assert.Equal(0, s.CubeRecipes.SkippedCount);
         var ex = Assert.Throws<SessionRejectedException>(() => s.CraftRecipe("popiol_iskra"));
         Assert.Equal("ritual recipe 'popiol_iskra' is unknown", ex.Message); // the D4 line, verbatim
         Assert.Null(s.CubeRecipes.Find("stara_kosc")); // a skipped row simply does not exist
     }
 
     [Fact]
-    public void Loader_SyntheticRow_Admitted_AndCraftable_AlongsideTheFiveSkips()
+    public void Loader_SyntheticRow_Admitted_AndCraftable_AlongsideTheRealFive()
     {
         var dir = CraftDataDir(new SynthRecipe("r_ember", [("jantar", 3)], "obereg"));
         try
         {
             var s = Town(9, dir);
-            Assert.Equal(1, s.CubeRecipes.Recipes.Count); // admit rides WITH the five skips
-            Assert.Equal(5, s.CubeRecipes.SkippedCount);
+            Assert.Equal(6, s.CubeRecipes.Recipes.Count); // admit rides WITH the five skips
+            Assert.Equal(0, s.CubeRecipes.SkippedCount);
             BuyJantars(s, 3);
             var r = s.CraftRecipe("r_ember");
             Assert.Equal("r_ember", r.RecipeId);

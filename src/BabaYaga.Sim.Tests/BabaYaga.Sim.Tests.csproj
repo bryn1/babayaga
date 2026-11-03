@@ -131,6 +131,13 @@
          precedent). -->
     <Compile Include="..\..\tests\FollowerFieldTests.cs" Link="tests\FollowerFieldTests.cs" />
     <Compile Include="..\..\game\scripts\FollowerFieldLogic.cs" Link="game\FollowerFieldLogic.cs" />
+    <!-- RITUAL-CRAFT CONTENT (MC 11979): the shipped-data proof — the headline flip
+         (the shipped dir admits 5/0, the panel paints real rows), the per-id loader
+         sweep, the _witness/no-placeholder contract, and determinism/refusal/surplus
+         spots on REAL recipes (the MC 11969 engine rows stay where they are); new
+         file under tests/, same link idiom (project file, not a test .cs — the
+         MC 11950/52/58/59/69/70/77 precedent). -->
+    <Compile Include="..\..\tests\RitualCraftContentTests.cs" Link="tests\RitualCraftContentTests.cs" />
   </ItemGroup>
 
   <ItemGroup>

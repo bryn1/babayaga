@@ -1,29 +1,34 @@
 {
- "_comment": "SKELETON (M4 skeleton wave, card/11794): placeholder rows for the ritual-craft recipe engine (LEDGER row 48, NOT-BUILT; the engine owns the real schema and ilvl rules). 5 placeholder recipes with VALID shape: id, name, inputs (itemId x count), output (itemId + quality), ilvlRule, flags. No loader reads this file (NO sim-loader edit in this wave). Original IP only (R2 wall) — the cube UI shape in T0b §7 is INFERRED, the 2x2+transmute frame rides the widgets pass.",
+ "_comment": "ACT-1 RITUAL-CRAFT CONTENT (MC 11978, LEDGER row 48): five oracle-witnessed act-1 recipes — the M4 skeleton wave's placeholder rows are replaced, every id resolves through data/item-bases.json (the admission check the engine's loader runs). The schema is the engine's own (CubeRecipeTable.cs; spec T0b §6.8): id, name, inputs (exact base ids x count >= 1), output (itemId; optional quality magic|rare; optional fixedMods {stat,min,max,chance?}; optional lvl/plvl/ilvl feeding ItemLevels.FromCube). ilvlRule and flags are DEAD keys the loader reads NOTHING from (spec §2 retires the placeholder prose) — they ride because the shipped-file key-set gate (SkeletonDataTests) seals them. Balance is fenced honestly: values ride EXISTING item-bases/vendor costs and EXISTING affixes.json stat rows ONLY — no stat row is invented here. The old resin premise on the bow-base id 'soluga' fails the admission reading (soluga is a BOW row; the belt heal is a base-id law) so the ladder rides jantar — raw amber, this world's resin — instead; named, never faked (row-66 idiom). Every row carries _witness: the oracle line/field modeled, in own words; the loader reads nothing from it.",
  "recipes": [
-  { "id": "popiol_iskra", "name": "Ash to Ember (placeholder)",
-    "inputs": [ { "itemId": "PLACEHOLDER:reagent", "count": 3 } ],
-    "output": { "itemId": "PLACEHOLDER:ember_charm", "quality": "magic" },
-    "ilvlRule": "PLACEHOLDER:input-avg", "flags": [] },
+  { "id": "smola_w_kamien", "name": "Resin into Stone",
+    "inputs": [ { "itemId": "jantar", "count": 3 } ],
+    "output": { "itemId": "granat" },
+    "ilvlRule": "dead: none set — clamps to 1", "flags": [],
+    "_witness": "Oracle family L25-L48 (own words): three identical pressed stones become ONE harder stone; those rows set no level key at all, so the minted output clamps to item level 1 (spec §1 R7b). Our step runs ACROSS stones — raw amber into swamp garnet — because the same-stone rank-up data/gems.json already names for this engine ({count:3,into}) has no admitted output base yet (its nextRank rows carry baseId:null, spec §2) — the ladder stands on the three stone bases item-bases.json admits. Named, never faked. Quality key ABSENT: the plain fixed-mint family (R2b) — a quality stamp on a stone that never quality-rolls would be a lie." },
 
-  { "id": "kredny_krag", "name": "Chalk Circle Reagent (placeholder)",
-    "inputs": [ { "itemId": "PLACEHOLDER:chalk", "count": 1 }, { "itemId": "PLACEHOLDER:iron_filings", "count": 1 } ],
-    "output": { "itemId": "PLACEHOLDER:ward_dust", "quality": "magic" },
-    "ilvlRule": "PLACEHOLDER:input-avg", "flags": [] },
+  { "id": "kamien_na_kamien", "name": "Stone upon Stone",
+    "inputs": [ { "itemId": "granat", "count": 3 } ],
+    "output": { "itemId": "oliwin" },
+    "ilvlRule": "dead: none set — clamps to 1", "flags": [],
+    "_witness": "The oracle's ladder CHAINS one row per step (own words: L25 into L26 into L27 into L28 — each three-of-a-kind step its own row, no level keys, clamp 1). This row is the second step of THIS world's admitted ladder (swamp garnet into fen peridot), same shape and same reason as row smola_w_kamien: the gem-base check the content card owns came out ADMIT for jantar/granat/oliwin but the same-stone nextRank targets stayed baseId:null — so the chain rides across stones. Named, never faked." },
 
-  { "id": "sol_w_doly", "name": "Salt of the Dolina (placeholder)",
-    "inputs": [ { "itemId": "PLACEHOLDER:salt", "count": 5 } ],
-    "output": { "itemId": "PLACEHOLDER:purified_salt", "quality": "magic" },
-    "ilvlRule": "PLACEHOLDER:input-avg", "flags": [] },
+  { "id": "jantarowe_serce", "name": "Amber Heart",
+    "inputs": [ { "itemId": "jantar", "count": 1 }, { "itemId": "granat", "count": 1 }, { "itemId": "oliwin", "count": 1 } ],
+    "output": { "itemId": "obereg", "quality": "magic", "fixedMods": [ { "stat": "life", "min": 21, "max": 40 } ], "plvl": 50, "ilvl": 50 },
+    "ilvlRule": "dead: half plvl + half input — see output plvl/ilvl", "flags": [],
+    "_witness": "Oracle L8-family (own words, spec §1 R2b/R3): a gem set pressed with the craft answers a FRESH item of the named output base, all inputs consumed — ours presses the three-stone set into an obereg, the world's own ward-amulet base. The level pair: the trinket-press family pins the half-and-half pair the spec §1 R7b cites at 50/50 (shape cite ONLY — the numbers are OUR balance call, spec §2: content card owns them). The recipe-given grant rides the oracle's fixed-mod family (e.g. L75+ pinning a fixed stat range on the output, spec §1 R5b): stat 'life' range 21..40 stands VERBATIM in affixes.json as the bursztynowy (amber) prefix row — no stat row invented; chance absent = 100 (the always-hits default R5b retires the old flags word to)." },
 
-  { "id": "stara_kosc", "name": "Old Bone Setting (placeholder)",
-    "inputs": [ { "itemId": "PLACEHOLDER:bone", "count": 2 }, { "itemId": "PLACEHOLDER:base_ring", "count": 1 } ],
-    "output": { "itemId": "PLACEHOLDER:bone_ring", "quality": "rare" },
-    "ilvlRule": "PLACEHOLDER:output-base", "flags": ["PLACEHOLDER:always-hits"] },
+  { "id": "trzy_kregi", "name": "Three Rings, One Ward",
+    "inputs": [ { "itemId": "pierscien", "count": 3 } ],
+    "output": { "itemId": "obereg", "quality": "magic", "plvl": 75 },
+    "ilvlRule": "dead: 75% of character level — see output plvl", "flags": [],
+    "_witness": "Oracle L15-family, the exact-shape twin (own words; spec §1 R7b VERIFIED row): three like rings pressed into ONE FRESH magic amulet — that witness row sets ONLY plvl=75, so the output level is 75 percent of the CHARACTER's level (the character-level example); the oracle's mirror (three amulets into one ring, same plvl) stays future content. The cheap early game-changer the act-1 ladder needs: three vendor rings 3×120 gold answer one amulet base at 150 gold PLUS the forced magic roll — value is destroyed ON PURPOSE, the quality is the prize; every number rides existing vendor costs, no stat row invented." },
 
-  { "id": "wierzba_wolana", "name": "Called Willow (placeholder)",
-    "inputs": [ { "itemId": "PLACEHOLDER:willow_switch", "count": 4 } ],
-    "output": { "itemId": "PLACEHOLDER:willow_wand", "quality": "magic" },
-    "ilvlRule": "PLACEHOLDER:input-avg+2", "flags": [] }
+  { "id": "smolista_szpula", "name": "The Resin-Coated Blade",
+    "inputs": [ { "itemId": "palica", "count": 2 }, { "itemId": "jantar", "count": 1 } ],
+    "output": { "itemId": "szpula", "quality": "magic", "plvl": 50, "ilvl": 50 },
+    "ilvlRule": "dead: half plvl + half input — see output plvl/ilvl", "flags": [],
+    "_witness": "ORIGINAL-DESIGN row (declared in this row's own words; balance-fence idiom: LEDGER row-66 weapon-curve fence + row-48 engine fence — named, never faked). Shape anchor ONLY: the oracle's L13/L14 family (own words) beats two weapons into ONE different third weapon and nothing more — those witness rows take two weapons with NO third reagent, force NO quality, and set NO level key. Here the amber third input, the forced magic quality and the half-and-half level pair are OUR design decisions with NO oracle-law claim; the affix budget rides the shipped pool untouched, no stat row invented (vendor math 2×60+40 gold into a 90-gold base — value burned, quality is the prize, same fence as trzy_kregi)." }
  ]
 }

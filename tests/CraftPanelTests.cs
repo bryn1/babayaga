@@ -60,16 +60,20 @@ public sealed class CraftPanelTests
     // ---- 1. the EMPTY STATE: zero admitted -> exactly the honest line, no rows ----
 
     [Fact]
-    public void EmptyState_ZeroAdmitted_PaintsExactlyTheHonestLine_NoRows()
+    public void ShippedPanel_FiveAdmitted_PaintsTheFiveRealRows()
     {
         // The SHIPPED truth (row 75 / MC 11969): all five shipped rows are
         // PLACEHOLDER-skipped — the panel must answer that with ONE honest
         // line and ZERO fake rows. SkippedCount stays engine-side: the pure
         // surface answers rows, never a skip count.
         var s = Town();
-        Assert.Equal(0, s.CubeRecipes.Recipes.Count);
-        Assert.Equal(5, s.CubeRecipes.SkippedCount); // engine read-back, NOT a paint input
-        Assert.Empty(CraftPanelLogic.RowLabels(s.CubeRecipes, s.Bases));
+        Assert.Equal(5, s.CubeRecipes.Recipes.Count);
+        Assert.Equal(0, s.CubeRecipes.SkippedCount); // engine read-back, NOT a paint input
+        Assert.Equal(
+            ["Resin into Stone — 3 × Raw Amber", "Stone upon Stone — 3 × Swamp Garnet",
+             "Amber Heart — 1 × Raw Amber + 1 × Swamp Garnet + 1 × Fen Peridot",
+             "Three Rings, One Ward — 3 × Pierscien", "The Resin-Coated Blade — 2 × Palica + 1 × Raw Amber"],
+            CraftPanelLogic.RowLabels(s.CubeRecipes, s.Bases)); // the five REAL rows, file order = paint order
         Assert.Equal("no inscriptions warm the cube yet", CraftPanelLogic.EmptyLine);
     }
 
@@ -82,12 +86,12 @@ public sealed class CraftPanelTests
         try
         {
             var s = Town(7, dir);
-            Assert.Single(s.CubeRecipes.Recipes); // admitted WITH the five skips
+            Assert.Equal(6, s.CubeRecipes.Recipes.Count); // admitted WITH the five skips
             var rows = CraftPanelLogic.RowLabels(s.CubeRecipes, s.Bases);
             // Item NAMES (not ids) × counts, pulled through s.Bases — the exact
             // string the panel paints and the windowed leg reads back (one
             // builder, no duplicated literal).
-            Assert.Equal(["Bone Trial (synthetic witness) — 2 × Soluga"], rows);
+            Assert.Equal("Bone Trial (synthetic witness) — 2 × Soluga", rows[^1]); // the appended row, file order = paint order
         }
         finally { Directory.Delete(dir, true); }
     }
@@ -108,8 +112,8 @@ public sealed class CraftPanelTests
         {
             var s = Town(7, dir);
             var rows = CraftPanelLogic.RowLabels(s.CubeRecipes, s.Bases);
-            Assert.Equal(2, rows.Count); // file order, one row per ADMITTED recipe — never more
-            Assert.Equal("Second Trial — 3 × Raw Amber", rows[1]);
+            Assert.Equal(7, rows.Count); // file order, one row per ADMITTED recipe — never more (five real + two fixture)
+            Assert.Equal("Second Trial — 3 × Raw Amber", rows[^1]); // the appended row, file order = paint order
         }
         finally { Directory.Delete(dir, true); }
     }
