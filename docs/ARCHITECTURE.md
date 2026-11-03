@@ -439,6 +439,7 @@ hero walks and strikes one monster row, the HUD binds live session state, the he
 green. The tree block below is `out/M4-placement.md` rev4 §1 VERBATIM — byte-diff of the two fenced
 blocks is EMPTY (proof row in the card RESULT); its inline §-refs resolve inside M4-placement.md,
 where the bridge table and ART SPEC live. It is the contract the slice builder follows.
+AMENDED (MC 11981): twin original = placement §1 rev5 onward; v13 drift cured; history blocks intact
 
 ```
 game/
