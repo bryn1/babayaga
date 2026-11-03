@@ -112,6 +112,10 @@
          Godot shell, the overlays and the state-reader leg to it (project
          file, not a test .cs — the MC 11950/11952 precedent). -->
     <Compile Include="..\..\tests\HudMouseFilterTests.cs" Link="tests\HudMouseFilterTests.cs" />
+    <!-- RITUAL CRAFT ENGINE (MC 11969): the loader-admission, door and CLI-twin rows —
+         new file under tests/, same link idiom (project file, not a test .cs — the
+         MC 11950/11952/11959 precedent). -->
+    <Compile Include="..\..\tests\RitualCraftTests.cs" Link="tests\RitualCraftTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
