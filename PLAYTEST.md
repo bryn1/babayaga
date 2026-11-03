@@ -127,7 +127,9 @@ re-run the two build commands — the build-twice law.
 - The hired follower is VISUAL-ONLY (P14): no follower combat, no follower pathing —
   she re-paints on the free tile beside you and never lags or overlaps the hero.
 - The cube reads your CARRIED PACK for inputs (the cube-grid container is a later
-  card), and "Three Rings, One Ward" is uncraftable until some source ships Pierscien.
+  card), and "Three Rings, One Ward" waits on luck: Pierscien surfaces only as a
+  face-down GAMBLE buy at Vesna's — the ring rides the gamble Stock, RNG rolls,
+  never a guaranteed farm.
 - The hero's walk cycle still paints the facing idle frame (idle + 4-direction walk
   sheets are committed; the animation is later polish).
 
