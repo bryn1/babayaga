@@ -2,6 +2,7 @@
 
 kit 2026-11-03 (rev2): + cube, + follower, art fully alpha
 kit 2026-11-03 (rev3): run block gains `bash assets/import.sh` — a fresh checkout paints PLACEHOLDER art without it (MC 11991 finding)
+kit 2026-11-03 (rev4): run block names Pillow — import.sh slices art via `tools/slice_sheet.py`; clean checkouts without it fail `ModuleNotFoundError` (MC 12019 fresh-clone finding)
 
 The venue for YOUR run of the windowed game. Sixteen rows: fifteen play rows
 (P1–P15) plus Continue. Each row: what you do, what you should SEE, a tick box.
@@ -22,7 +23,7 @@ first discovery.
 ## Run it
 
 ```bash
-# one-time, from the repo root (needs dotnet SDK 8):
+# one-time, from the repo root (needs dotnet SDK 8, python3 with Pillow — pip install pillow):
 dotnet build game/Game.csproj && dotnet build game/Game.csproj   # build twice, both "0 Error(s)"
 bash assets/import.sh                                            # one-time per clone: the painted art
      # lives in assets/raw/ (git truth); game/assets/ is its one-way copy and is NOT in git —
