@@ -73,7 +73,10 @@ using Godot;
 /// BABA_S6_LEG names one, the M5-S6 town-panel driver (MC 11940, same shape),
 /// or when BABA_MENU_LEG names one, the MC 11957 game-menu/interlock driver
 /// (same shape again), or when BABA_HUD_LEG names one, the MC 11959 HUD
-/// click-through PASSIVE state reader the xdotool driver reads (same shape).
+/// click-through PASSIVE state reader the xdotool driver reads (same shape),
+/// or when BABA_CUBE_LEG names one, the MC 11970 ritual-craft panel driver
+/// (same shape again — B key + painted-button clicks, optional BABA_CUBE_DATA
+/// fixture dir for the proven-craft half).
 /// Zero rules
 /// live here (Game → Sim → nothing).
 /// </summary>
@@ -96,6 +99,8 @@ public partial class Boot : Node
             RunGameMenuLeg(gmDir); // MC 11957 game-menu evidence driver — same gate shape
         else if (System.Environment.GetEnvironmentVariable(HudClickLeg.EnvVar) is { Length: > 0 })
             RunHudClickLeg(); // MC 11959 HUD click-through state reader — same gate shape
+        else if (System.Environment.GetEnvironmentVariable(CubeLeg.EnvVar) is { Length: > 0 } cubeDir)
+            RunCubeLeg(cubeDir); // M5 ritual-craft panel evidence driver (MC 11970) — same gate shape
         else
             // LEDGER row 86 CURE (MC 11957): a SYNCHRONOUS ChangeSceneToFile from
             // inside _Ready made the engine remove_child the boot scene while the
@@ -196,6 +201,30 @@ public partial class Boot : Node
         var act = InstantiateActSmoke();
         if (act is null) { GetTree().Quit(1); return; }
         AddChild(new HudClickLeg { Act = act });
+    }
+
+    /// <summary>M5 RITUAL-CRAFT PANEL LEG (MC 11970, DoD 2): the same gate
+    /// shape — windowed ONLY, BABA_CUBE_LEG-gated, unset = dead code. New
+    /// session at the leg seed, the REAL Act, and the driver that OPENS THE
+    /// CUBE WITH THE B KEY and CLICKS THE PAINTED BUTTONS (the empty-state leg
+    /// presses nothing else — the shipped zero-admit data paints the honest
+    /// line; the fixture leg first buys the recipe's inputs at the pedlar's
+    /// painted BUY buttons, then clicks CRAFT) — every state move a synthesized
+    /// input, never a verb. When BABA_CUBE_DATA names a dir (the empty-state
+    /// leg leaves it UNSET), it becomes GameContext's dataDir for THIS process
+    /// only: the runtime temp COPY of the repo data/ with one admitted recipe
+    /// (RangedDataDir convention — a windowed game reads the TRACKED
+    /// res://data, so the per-process override is the smallest honest
+    /// mechanism; state it, never fake it). The engine's own admission is the
+    /// validity proof: a row that skips paints the empty state and the leg
+    /// fails its own marker.</summary>
+    private void RunCubeLeg(string legDir)
+    {
+        GameContext.DataDirOverride = System.Environment.GetEnvironmentVariable(CubeLeg.DataEnvVar);
+        GameContext.New(CubeLeg.LegSeed);
+        var act = InstantiateActSmoke();
+        if (act is null) { GetTree().Quit(1); return; }
+        AddChild(new CubeLeg { OutDir = legDir, Act = act });
     }
 
     /// <summary>The DoD leg 3/3b gate + the slice journey legs. The legs below

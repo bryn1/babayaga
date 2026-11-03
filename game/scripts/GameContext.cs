@@ -12,8 +12,19 @@ public static class GameContext
     /// <summary>The live session, or null before New/Load ran.</summary>
     public static GameSession? Session { get; private set; }
 
-    /// <summary>GameSession dataDir: the one-way copy of repo data/*.json.</summary>
-    public static string DataDir() => ProjectSettings.GlobalizePath("res://data");
+    /// <summary>GameSession dataDir: the one-way copy of repo data/*.json —
+    /// or the MC 11970 cube-leg fixture override below, leg processes only.</summary>
+    public static string DataDir() => DataDirOverride ?? ProjectSettings.GlobalizePath("res://data");
+
+    /// <summary>The cube-leg fixture dataDir (MC 11970, BABA_CUBE_DATA): set
+    /// ONLY inside Boot's BABA_CUBE_LEG branch, from a runtime temp COPY of the
+    /// repo data/ with one admitted cube-recipes.json row (the RangedDataDir
+    /// convention — never a committed fixture, never a data/** edit; the
+    /// windowed game's own res://data copy is TRACKED, so the smallest honest
+    /// mechanism is this per-process override — stated in the brief's ask).
+    /// Unset — every normal boot, headless anchor and windowed play — DataDir()
+    /// answers res://data exactly as before.</summary>
+    public static string? DataDirOverride;
 
     /// <summary>Globalized user://save — the Continue path's save file.</summary>
     public static string SavePath() => ProjectSettings.GlobalizePath("user://save");

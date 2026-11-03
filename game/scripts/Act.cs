@@ -6,7 +6,8 @@ using Godot;
 /// HeroController + Hud around the ONE GameContext session (never a 2nd session).
 /// Tab toggles the Inventory.tscn panel OVER this scene; T opens the
 /// TownPanel.tscn vendor+captain overlay IN TOWN (M5-S6, MC 11940); C opens the
-/// StashPanel.tscn town chest IN TOWN (M5, MC 11953); F5 saves; Esc opens the
+/// StashPanel.tscn town chest IN TOWN (M5, MC 11953); B opens the
+/// CraftPanel.tscn ritual-craft overlay IN TOWN (M5, MC 11970); F5 saves; Esc opens the
 /// game menu for the LIVING (MC 11957 — the D2 truth: Escape opens the game
 /// menu; GameMenu.tscn, two real actions) and the DeathMenu.tscn RESPAWN door
 /// FOR THE DEAD (P11, plan-c2 FIX-DA5 8 — the two are an EXCLUSIVE branch,
@@ -25,6 +26,7 @@ public partial class Act : Node
     private DeathMenu? _deathMenu;
     private TownPanel? _townPanel;
     private StashPanel? _stashPanel;
+    private CraftPanel? _craftPanel;
     private GameMenu? _gameMenu;
 
     /// <summary>Read accessors for the headless journey leg (Boot) — the same
@@ -126,6 +128,21 @@ public partial class Act : Node
             var u = GameContext.Session;
             if (u is not null && StashPanelLogic.OpensFor(u.CurrentArea, u.Areas.TownKey)) ToggleStashPanel();
             else _hud.Hint("the town chest stands in grodzisko");
+        }
+        else if (@event.IsActionPressed("craft_panel"))
+        {
+            // M5 RITUAL CRAFT (MC 11970, row-75 cube half): the B key — the
+            // SAME town-interaction path as the chest (the declared reading: no
+            // cube SPRITE stands in the world yet, so the key IS the
+            // interaction, the stash_panel idiom above). TOWN-ONLY on the
+            // PULLED town key (CraftPanelLogic.OpensFor, xunit-pinned); outside
+            // grodzisko the key stays inert with the pinned hint — and the
+            // ENGINE's own DEAD→town→known→match→room gates on CraftRecipe
+            // stay the authority behind the widget (GameSession.RitualCraft.cs),
+            // never re-implemented here.
+            var v = GameContext.Session;
+            if (v is not null && CraftPanelLogic.OpensFor(v.CurrentArea, v.Areas.TownKey)) ToggleCraftPanel();
+            else _hud.Hint(CraftPanelLogic.OutsideHint);
         }
         else if (@event.IsActionPressed("game_menu"))
         {
@@ -249,6 +266,32 @@ public partial class Act : Node
             return; // fresh-instantiated Control is already visible — the OPEN is done
         }
         _stashPanel.Visible = !_stashPanel.Visible;
+    }
+
+    /// <summary>CraftPanel.tscn follows the SAME instantiate-once idiom (MC
+    /// 11970, the ToggleStashPanel twin) and rides a CanvasLayer of its own —
+    /// a Control under the Node2D world would pan with the camera and dodge
+    /// the GUI clicks (the XVFB lesson). Layer 23 = the chest's number, the
+    /// stated reading: both are town furniture that never claims to paint over
+    /// the other, while the game menu's 24 stays above EVERY overlay
+    /// (GameMenuLogic.Layer, the z-order law). It reads GameContext.Session,
+    /// never builds its own; OnHint paints the engine's refusal text AND the
+    /// success hint (rejection→hint and success→hint, the brief's pair).</summary>
+    private void ToggleCraftPanel()
+    {
+        if (_craftPanel is null)
+        {
+            var packed = GD.Load<PackedScene>("res://scenes/CraftPanel.tscn");
+            if (packed is null) { GD.PushError("missing res://scenes/CraftPanel.tscn"); return; }
+            if (packed.Instantiate() is not CraftPanel panel)
+            { GD.PushError("CraftPanel.tscn root is not a CraftPanel"); return; }
+            panel.OnHint = msg => _hud.Hint(msg);
+            AddChild(new CanvasLayer { Name = "CraftPanelLayer", Layer = 23 }); // the chest's number — see the stated reading above
+            _craftPanel = panel;
+            GetNode<CanvasLayer>("CraftPanelLayer").AddChild(_craftPanel);
+            return; // fresh-instantiated Control is already visible — the OPEN is done
+        }
+        _craftPanel.Visible = !_craftPanel.Visible;
     }
 
     /// <summary>GameMenu.tscn follows the SAME instantiate-once idiom (the
