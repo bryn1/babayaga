@@ -590,8 +590,12 @@ nothing accumulates and nothing flushes — RestTick's RaiseIfDead-first would o
 so dead time is never owed as regen). The only live driver is `SessionClockNode._Process`,
 created by Act ONLY when `DisplayServer.GetName() != "headless"` (Act.cs:64-70) — the headless
 story legs run inside ONE `_Ready`, so no `_Process` frame ever pumps them: the headless story
-anchors are byte-safe BY CONSTRUCTION (md5 52af3988… unchanged; re-measured at the M5 re-gate
-AND again by this doc-sync pass). `SessionClock.Pump` is the ONE feed the windowed glue and
+anchors are byte-safe BY CONSTRUCTION (md5 52af39886c0110a6d038068eb78a9429 unchanged through the
+M5 re-gate AND the doc-sync passes that cited it — historically scoped, true as measured then; czelusc's
+DEFENDERS data beat (MC 11954, LEDGER row 87) moved the anchor LEGITIMATELY — its spawn rows retired
+the rowless-lair NONE line, the data-gated guard falling silent, a single-hunk czelusc-only story diff —
+re-pinned md5 40c1e0a2e23501efa32906b9d894942d ×2 byte-identical: the current truth, re-measured ×2 by
+this hygiene pass). `SessionClock.Pump` is the ONE feed the windowed glue and
 the headless bridge leg call verbatim — the tested path is the shipped path.
 
 REPLAY CONTRACT (v13 — the M5-S3 law, the round-2 verdict closing the continue gap): a

@@ -59,8 +59,9 @@ using Godot;
 /// HIRE_OK) →
 /// the M4-S12 TOWN STASH BEAT (StashQuestLeg: glowa's StashTab reward opens
 /// tab 2 LIVE (row 74) — the rite accepted in town, kopcowisko ridden, its
-/// data row's kill taken on the road, czelusc WALKED in dark (the lair's
-/// missing area-monsters row printed honestly), the step on the goal ground,
+/// data row's kill taken on the road, czelusc WALKED in dark (the lair stands
+/// GUARDED since MC 11954 — the leg's NONE line is the empty-field guard
+/// only, silent on this lair), the step on the goal ground,
 /// NEW_TAB before/after around the payment + the pay-once QUEST4_REFUSED —
 /// then the town chest: store into tab 2 and take back, every position read
 /// from the session's own reports — STASH_OK) →
