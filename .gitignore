@@ -16,3 +16,6 @@ obj/
 # python tests cache
 __pycache__/
 .pytest_cache/
+
+# release export output (MC 12069 Windows build) — never a git path
+dist/
