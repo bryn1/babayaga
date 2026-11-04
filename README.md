@@ -18,7 +18,7 @@ f01bcde2, 445 tests at that gate, parity 10/10) — the game is windowed-playabl
 PLAY). v0.5.0 is PRE-STAGED: its release-notes body exists as a committed artifact
 (`docs/RELEASE-v0.5.0.md` — shipped + known limits + promised-not-shipped) and the doc-sync
 sweep ran clean (MC 11991); **the tag flips in the SAME commit as the owner's green
-PLAYTEST.md run** (LEDGER row 76 is the one open row; kit rev2, the owner has not played it).
+PLAYTEST.md run** (row 76 flipped LIVE 2026-11-04 via owner release order; kit rev4 remains available; v0.5.0 ships a self-contained Windows BabaYaga.exe).
 
 What is LIVE (each item cites its LEDGER.md row; laws in docs/MECHANICS.md):
 

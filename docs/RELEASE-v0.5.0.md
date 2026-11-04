@@ -104,9 +104,15 @@ this docs-only pass — treat 10/10 at THIS commit as UNVERIFIED-this-pass.
 
 ## PLAYTEST row (the tag gate)
 
-owner playtest: **PENDING GREEN (PLAYTEST.md kit rev2)** — the owner has NOT played rev2
-(15+1 rows: + cube P13, + follower P14, + alpha-art P15) on his device; LEDGER row 76 stays
-OPEN until he does.
+owner playtest: **RELEASE VIA OWNER ORDER 2026-11-04** (verbatim ruling: "make the
+release and make sure it contains a .exe file for windows") — the kit (rev4) was NOT played;
+the owner chose release; LEDGER row 76 flipped LIVE on that order and PLAYTEST.md remains
+available for him any time.
+
+WINDOWS SHIPPED: self-contained BabaYaga.exe (109 MB, no .NET install needed) exported per
+owner order; RUNS AND PAINTS the title screen on real Windows (vm120, sha-matched transfer,
+screenshot proof out/evidence/vm120/ in the audit run dir); gameplay beyond title on Windows
+is UNVERIFIED (input tooling on that box) — Linux-side runtime remains fully anchored.
 
 **Flip instruction (exact, for the owner's green run):** in ONE commit — tag `v0.5.0` on the
 green-run tree + flip LEDGER row 76 (OPEN → owner-run green, dated, with the run's evidence
