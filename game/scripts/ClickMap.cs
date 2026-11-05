@@ -5,8 +5,9 @@ using System.Collections.Generic;
 /// M5-S4 RENDER + INPUT, the CLICK DECISION MAP (MC 11937, plan-c2 S4 row,
 /// FIX-DA5 4): the pure table every mouse click rides before any engine call —
 /// screen→cell (the ONE iso math, which IsoCamera.ScreenToGrid DELEGATES to,
-/// never a fork), the LMB verdict (lit stone marker &gt; walkable ground &gt;
-/// refusal — out-of-range clicks refuse, no path is ever planned to them), the
+/// never a fork), the LMB verdict (monster under the cursor strikes &gt; lit stone
+/// marker &gt; walkable ground &gt; refusal — out-of-range clicks refuse, no path is
+/// ever planned to them), the
 /// RMB verdict (strike only what stands under the cursor), and the RIDE GATE:
 /// the door's CanRide half (WaypointGraph) read BEFORE the click so the drawn
 /// marker and the allowed destination agree. In-area walking stays what the
@@ -19,6 +20,8 @@ public static class ClickMap
     /// <summary>The LMB click verdicts — in-table priority top to bottom.</summary>
     public enum Left
     {
+        Attack, // MC 12136 (D2 idiom): a monster stands under the cursor — it rides the SAME
+                // attack door RMB uses; a hostile under the click outranks everything below it
         Move,   // walkable interior ground: A* plans, no sim call
         Ride,   // the lit standing-stone marker under the cursor: TravelTo the gate's target
         Refuse, // out of grid, or blocked ground: nothing happens, no path, no verb
@@ -36,12 +39,16 @@ public static class ClickMap
             (int)Math.Round((b - a) * 0.5, MidpointRounding.ToEven));
     }
 
-    /// <summary>The LMB decision table: the lit stone marker outranks a walk
-    /// plan (P9 ride), walkable ground moves, everything else refuses — an
-    /// out-of-range cell refuses even with the stone flag set.</summary>
+    /// <summary>The LMB decision table: a monster under the cursor STRIKES (MC 12136 —
+    /// the owner's dead core loop: LMB never attacked, everything below only RMB rode),
+    /// the lit stone marker outranks a walk plan (P9 ride), walkable ground moves,
+    /// everything else refuses — an out-of-range cell refuses even with the stone flag
+    /// set. onMonster is the caller's MonsterAt read (the drawn-body hit-test — cells
+    /// never decide it, px do); the default false keeps every pre-12136 call pinned.</summary>
     public static Left DecideLeft(int cellX, int cellY, int gridW, int gridH,
-        bool walkable, bool stoneCellLit)
+        bool walkable, bool stoneCellLit, bool onMonster = false)
     {
+        if (onMonster) return Left.Attack;
         bool inside = cellX >= 0 && cellY >= 0 && cellX < gridW && cellY < gridH;
         if (!inside) return Left.Refuse;
         if (stoneCellLit) return Left.Ride;

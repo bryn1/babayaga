@@ -17,10 +17,24 @@ using Godot;
 /// walkable cells; bad rows warn once per build and are skipped, never crash.
 /// Rows build in file order; spawner seed = Fnv.Hash(area + ":mon") — Fnv.Hash(s)
 /// ONLY. Spawner keys are the monsters.json keys (Sim Attack looks them up there).
+/// MC 12136 (owner-feel): the hit-test circles the DRAWN body (torso), not the
+/// feet anchor, and a KILLED CELL STAYS DEAD for the session — Despawn records
+/// the freed cell (the same kill event that moves the Kills counter the
+/// M5_S4_DESPAWN_OK marker reads; no second ledger, the Sim's fresh-per-kill MATH
+/// untouched) and Build skips recorded cells, so an area rebuild/re-entry never
+/// re-materializes a killed monster.
 /// </summary>
 public partial class MonsterField : Node2D
 {
-    private const float HitRadius = 60f;
+    // MC 12136 §6(b): the sprite draws 160×160 CENTERED 80 px ABOVE its Position
+    // (Offset (0,-80)) — the old r=60 circle at the FEET anchor made every
+    // torso/head click (distance ≥ 96) a silent miss. The circle now sits at the
+    // DRAWN centre: r=90 covers the visible 160 px body, lands the feet anchor the
+    // S4 leg clicks with margin (80 < 90, never a boundary float), and a ground
+    // click BELOW the feet misses (the nearest south-cell centre is 32 px past the
+    // anchor → 112 away): no double-hit of the click that means the ground.
+    private const float BodyRise = 80f;  // the drawn body's centre, px above the feet anchor
+    private const float HitRadius = 90f; // the visible body + 10 px click slack, centred at BodyRise
     private const int NearMax = 3;   // near-spawn band, Chebyshev from arrival cell
     private const int DeepMin = 5;   // deep band; the 4-ring between may stay empty
 
@@ -33,8 +47,20 @@ public partial class MonsterField : Node2D
 
     private readonly SpriteRoster<Sprite2D> _roster = new();
     private Node2D? _row;
+    private string _areaKey = "";
+    // MC 12136 KILLS-STAY-DEAD: every cell freed by Despawn, keyed by area. The
+    // ONE kill event this field has (Despawn — gated by the Sim's AttackReport
+    // .Kills in HeroController, the same event the Kills counter / the
+    // M5_S4_DESPAWN_OK marker ride) records it here; Build skips it for the rest
+    // of the session, so an area rebuild/re-entry never re-materializes a killed
+    // monster. Presentation-side by necessity: the Sim stores NO cells (§2) —
+    // this is not a second ledger, it is that kill truth written where cells live.
+    private readonly HashSet<(string Area, int X, int Y)> _killed = [];
 
-    // M5-S7 FIX-DA5 10 count-marker state (the S7 row of plan-c2).
+    // M5-S7 FIX-DA5 10 count-marker state (the S7 row of plan-c2). Since MC 12136
+    // the row stands at (data row − kills taken this session): Build counts every
+    // sprite it stands, Despawn subtracts, the drift marker compares live nodes
+    // against THAT expectation (a ghost free still moves the node count).
     private int _spawnRow;
     private bool _pendingCountMarker;
     private string _pendingPhase = "";
@@ -46,6 +72,7 @@ public partial class MonsterField : Node2D
         _roster.Clear();
         _row = new Node2D { Name = "Monsters" };
         AddChild(_row);
+        _areaKey = areaKey;
         _spawnRow = 0;
         _pendingCountMarker = false;
         var phase = _sessionStarted ? $"area-build:{areaKey}" : $"session-start:{areaKey}";
@@ -59,11 +86,15 @@ public partial class MonsterField : Node2D
         var rng = new Random((int)Fnv.Hash(areaKey + ":mon"));
         foreach (var row in rows)
         {
-            _spawnRow += row.Count; // the data row commands this many standing sprites
             var band = Band(walkable, arrivalCell, row.Placement);
             for (int i = 0; i < row.Count; i++)
             {
                 var cell = band[rng.Next(band.Count)];
+                // MC 12136: the rng draw is consumed either way — the SAME seed keeps
+                // every SURVIVING monster on the SAME cell across rebuilds; only the
+                // killed cells drop out of the standing row.
+                if (_killed.Contains((areaKey, cell.X, cell.Y))) continue; // KILLS STAY DEAD
+                _spawnRow++; // the data row commands this many STANDING sprites (kills subtract)
                 var sprite = new Sprite2D
                 {
                     Texture = MonsterTexture(row.Kind),
@@ -86,7 +117,10 @@ public partial class MonsterField : Node2D
     /// sprites STANDING in the field (the nodes, not roster bookkeeping — a
     /// suppressed free stands as a ghost and moves the node count) vs the spawn
     /// rows data/area-monsters.json commands for this area. GREEN prints the plan's
-    /// literal '==' line; drift prints '!=' + PRESENTATION-DRIFT. WINDOWED ONLY —
+    /// literal '==' line; drift prints '!=' + PRESENTATION-DRIFT. The spawn-row
+    /// side is the STANDING row — the data/area-monsters.json rows for this area
+    /// as they stand (since MC 12136: minus the kills this session took there;
+    /// kills staying dead is truth, not drift). WINDOWED ONLY —
     /// the headless story anchors' bytes are untouched (the exact headless check
     /// Boot.cs uses).</summary>
     private void PrintSpriteMarker(string phase)
@@ -112,15 +146,16 @@ public partial class MonsterField : Node2D
         PrintSpriteMarker(_pendingPhase);
     }
 
-    /// <summary>M5-S4 kill-despawn (plan FIX-DA5 5, the S4-owned row): the killed
-    /// row's sprite is FREED (QueueFree) and, because the Sim's own rule is a
-    /// FRESH monster per kill (Combat.cs header — the row never thins; a headless
-    /// leg strikes one row ≈550 times), the field answers with a FRESH instance
-    /// of the same row on the same cell. A permanently shrinking field would
-    /// contradict the Sim's truth (mchy is still full of monsters after a kill)
-    /// and would starve every click-attack target. The despawn is proven per
-    /// INSTANCE, not per count: Kills counts kills, LastKilledFreed says the
-    /// killed sprite object is DEAD, and the roster order swaps at the cell.
+    /// <summary>M5-S4 kill-despawn (plan FIX-DA5 5) as CURED by MC 12136 (owner
+    /// complaint "i can't kill enemies…" / verdict §4: the kill was invisible — the
+    /// freed sprite's cell re-materialized a FRESH instance the SAME frame, so the
+    /// player who killed saw no change). The killed row's sprite is FREED (QueueFree)
+    /// and the cell RECORDS its kill: it stays empty for the session — through
+    /// rebuilds and re-entry (Build skips it). The Sim's own rule (a fresh monster
+    /// per STRIKE volley — Combat.cs, the row never thins) stays the Sim's math,
+    /// byte-identical; the presentation mirror simply stops lying about what the
+    /// player killed. Kills counts kills, LastKilledFreed says the killed sprite
+    /// object is DEAD, and the despawn is proven per INSTANCE.
     /// One kill takes exactly one sprite (the SpriteRoster rule, xunit-pinned).</summary>
     public void Despawn(string key)
     {
@@ -129,19 +164,11 @@ public partial class MonsterField : Node2D
         foreach (var e in _roster.Entries)
             if (e.Key == key) { killed = e.Sprite; cell = e.Cell; break; }
         if (killed is null || _roster.DespawnOne(key) is null) return;
-        var tex = killed.Texture; // read BEFORE the free — a freed object answers nothing
         killed.QueueFree();
         _lastKilled = killed;
         Kills++;
-        var fresh = new Sprite2D
-        {
-            Texture = tex,
-            Centered = true,
-            Offset = new Vector2(0, -80f),
-            Position = IsoCamera.GridToScreen(new Vector2I(cell.X, cell.Y)),
-        };
-        _row?.AddChild(fresh);
-        _roster.Add(key, cell.X, cell.Y, fresh);
+        _killed.Add((_areaKey, cell.X, cell.Y)); // THE kill truth, recorded where cells live
+        _spawnRow--; // the standing row is one thinner — the drift marker's expectation moves with it
         _pendingCountMarker = true; // M5-S7: the marker rides the frame after the free
         _pendingPhase = $"post-kill:{key}";
     }
@@ -167,13 +194,18 @@ public partial class MonsterField : Node2D
         return row;
     }
 
-    /// <summary>The monster key under a world point, or null (click hit-test).</summary>
+    /// <summary>The monster key under a world point, or null (click hit-test).
+    /// MC 12136: the circle rides the DRAWN body (centre at BodyRise above the
+    /// feet anchor, r=HitRadius) — torso and head clicks land; ground below the
+    /// feet does not. Roster order answers, so one click takes one key.</summary>
     public string? MonsterAt(Vector2 world)
     {
         foreach (var e in _roster.Entries)
-            if (e.Sprite.Position.DistanceTo(world) <= HitRadius
-                && Math.Abs(e.Sprite.Position.Y - world.Y) <= 120f)
+        {
+            var p = e.Sprite.Position;
+            if (new Vector2(p.X, p.Y - BodyRise).DistanceTo(world) <= HitRadius)
                 return e.Key;
+        }
         return null;
     }
 
