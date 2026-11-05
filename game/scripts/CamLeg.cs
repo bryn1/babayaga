@@ -80,7 +80,12 @@ public partial class CamLeg : Node
                 break;
             case Step.Walk:
                 if (Act.Hero.Cell != _target) { DebugMove(); return; } // committed cell read, not pixels
-                if (Act.Hero.IsWalking) return; // path spent AND landed — the step-end hook has fired
+                // MC 12149 arrival gate (the ONLY edit to this file): the path is
+                // spent AND the hero's glide has landed — the follow assert then
+                // reads the settled camera (mid-glide the camera LEGITIMATELY
+                // trails the committed cell by up to a step, so asserting before
+                // landing would test the wrong thing; the ε below is UNCHANGED).
+                if (Act.Hero.IsWalking || Act.Hero.IsGliding) return;
                 Enter(Step.Arrive, 4.0);
                 break;
             case Step.Arrive:
