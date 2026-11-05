@@ -81,8 +81,12 @@ public partial class AreaRenderer : Node2D
         // out/.tmp/ownerfeel/probe/). The explicit-atlas-coords form stores and
         // paints; the BABA_GROUND_LEG gate (Boot) asserts the used-cells count
         // every boot so this can never regress silently again.
-        foreach (var cell in _walkable) _layer.SetCell(cell, 0, Vector2I.Zero, 0);
-        foreach (var cell in _blocked) _layer.SetCell(cell, 1, Vector2I.Zero, 0);
+        // MC 12140 (the offset-floor fix): every cell is stored at Lattice(cell)
+        // — the exact re-address that lands tile (col,row) on the ENTITY lattice
+        // (IsoCamera.GridToScreen), which is what the FLOOR COMES TO THE ENTITIES
+        // ruling asked for; the BABA_GROUND_LEG ALIGNMENT assertion gates it.
+        foreach (var cell in _walkable) _layer.SetCell(Lattice(cell), 0, Vector2I.Zero, 0);
+        foreach (var cell in _blocked) _layer.SetCell(Lattice(cell), 1, Vector2I.Zero, 0);
 
         // The stone stands at a DETERMINISTIC cell of every area (no RNG ever
         // touches layout truth): the first walkable cell at Chebyshev exactly 2
@@ -158,9 +162,12 @@ public partial class AreaRenderer : Node2D
         var blockTex = ScaledToCell(ArtOrNull(isTown ? TownEdgeArt : FieldEdgeArt),
             isTown ? Wall : Water);
         // MC 12135: the iso shape MATCHES the 256×128 diamond-cornered art and
-        // Godot's iso cell placement — ((x−y)·w/2, (x+y)·h/2) — the exact
-        // IsoCamera.GridToScreen formula, so the painted floor sits UNDER the
-        // entities. A square-shaped TileSet draws the diamonds checker-gapped.
+        // keeps the diamond tiling gap-free. MC 12140 corrected the claim this
+        // comment used to make: the iso shape does NOT place cells by the
+        // GridToScreen formula — it lays rows SERPENTINE (see Lattice below);
+        // the alignment is the Lattice re-address at the SetCell sites, not a
+        // TileSet property (no re-basing property exists on 4.7.2 — measured).
+        // A square-shaped TileSet draws the diamonds checker-gapped.
         var ts = new TileSet
         {
             TileSize = new Vector2I(IsoCamera.TileW, IsoCamera.TileH),
@@ -175,6 +182,28 @@ public partial class AreaRenderer : Node2D
     private const string FieldEdgeArt = "res://assets/tiles/tile-water.png";
     private const string TownArt = "res://assets/tiles/tile-stone.png";
     private const string TownEdgeArt = "res://assets/tiles/tile-wall.png";
+
+    /// <summary>MC 12140 LATTICE RE-PROJECTION — the floor comes to the entities.
+    /// Probe-measured on Godot 4.7.2-mono (out/.tmp/align/probe/): the iso
+    /// TileSet lays its rows SERPENTINE — cell (col,row) renders centred at
+    /// (64·(2·col + (row mod 2) + 1), 32·(row+1)): rows step +32px down and
+    /// alternate the half-tile offset. NO TileSet property on this build
+    /// re-bases it (all 54 shape×tile_layout×tile_offset_axis combos keep the
+    /// x-step at (±128,0) — sweep dump beside this file's probe log). The
+    /// engine's point set is the SAME lattice the entities live on (GridToScreen
+    /// covers exactly the 64-px points whose x/64 and y/32 share parity) — the
+    /// cells are only ADDRESSED differently, so the fix is the exact integer
+    /// inverse of the serpentine map: solving engine(col,row)=GridToScreen(x,y)
+    /// gives (col,row)=((x−y−1−((x+y−1) mod 2))/2, x+y−1). Verified exhaustively
+    /// against the engine: MapToLocal(Lattice(c)) == GridToScreen(c) for all 256
+    /// area cells (PROBE_FULL fail=0). Tile (col,row) now renders EXACTLY at
+    /// GridToScreen(col,row): hero, stones, monsters and clicks — all SEALED
+    /// entity math — stand ON their painted diamonds.</summary>
+    private static Vector2I Lattice(Vector2I c)
+    {
+        int row = c.X + c.Y - 1;
+        return new Vector2I((c.X - c.Y - 1 - (row & 1)) / 2, row);
+    }
 
     private static TileSetAtlasSource MakeSource(Texture2D tex)
     {
