@@ -65,6 +65,11 @@ public partial class Act : Node
         world.AddChild(_hero);
         _hero.Wire(_renderer, _monsters, _hud);
         _hero.OnAreaChanged = () => Rebuild(GameContext.Session!.CurrentArea);
+        // MC 12144 D2 LOCK-ON (owner report: "the camera fixed on the hero
+        // character and moves the same way the hero moves"): every committed
+        // step rides the camera — the same ClampToGrid extents Rebuild's
+        // FocusOn stashed, so the hero stays dead-center except at the edges.
+        _hero.OnStepComplete = () => _camera.Follow(_hero.Cell);
         // MC 11977: the follower field READS the hero cell + the area's
         // walkable set (pull-only, the MonsterField pattern's sibling) — it
         // owns a sprite, never a sim state, never a position the sim tracks.
