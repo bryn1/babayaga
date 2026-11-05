@@ -3,6 +3,7 @@
 kit 2026-11-03 (rev2): + cube, + follower, art fully alpha
 kit 2026-11-03 (rev3): run block gains `bash assets/import.sh` — a fresh checkout paints PLACEHOLDER art without it (MC 11991 finding)
 kit 2026-11-03 (rev4): run block names Pillow — import.sh slices art via `tools/slice_sheet.py`; clean checkouts without it fail `ModuleNotFoundError` (MC 12019 fresh-clone finding)
+kit 2026-11-05 (rev5): MC 12136 owner-feel — **LMB now ATTACKS** a monster standing under the cursor (the same kill RMB always rode; LMB on empty ground still walks); a killed monster **STAYS DEAD** for the session (no same-cell re-pop, none on area re-entry either); the hit-box matches the **drawn** sprite (torso/body clicks land — the old test-only feet-point click still works); and the **controls line** `LMB: attack / move · RMB: attack · keys per help` rides the HUD from the first screen — you never need this file to fight.
 
 The venue for YOUR run of the windowed game. Sixteen rows: fifteen play rows
 (P1–P15) plus Continue. Each row: what you do, what you should SEE, a tick box.
@@ -45,8 +46,8 @@ re-run the two build commands — the build-twice law.
 
 | key / button | what it does |
 |---|---|
-| LEFT mouse | walk there / click a LIT stone to ride it |
-| RIGHT mouse | attack (stationary monsters, they counter back) |
+| LEFT mouse | attack the monster under the cursor / walk on empty ground / click a LIT stone to ride it (rev5) |
+| RIGHT mouse | attack too (stationary monsters, they counter back) |
 | TAB | inventory panel open / close |
 | T | town panel (pedlar + captain) — only inside grodzisko |
 | C | town chest (stash): store from the pack, take back — only inside grodzisko |
@@ -61,13 +62,18 @@ re-run the two build commands — the build-twice law.
 - [ ] **P1 It opens.** Start the game. SEE: title card "BABA YAGA" + "A DARK SLAVIC
       SAGA", three whole buttons — New Game / Continue / Quit — centred, nothing clipped.
 - [ ] **P2 Into town.** Click New Game. SEE: isometric town tiles, your hero standing
-      in grodzisko, and the HUD lines Life 50/50 · Mana 30/30 · XP 0/500 · Gold 1000.
+      in grodzisko, the HUD lines Life 50/50 · Mana 30/30 · XP 0/500 · Gold 1000, and
+      (rev5) the HUD controls line bottom-left: "LMB: attack / move · RMB: attack ·
+      keys per help".
 - [ ] **P3 Walk.** LEFT-click far walkable ground. SEE: the hero walks there step by step.
 - [ ] **P4 Out of town.** Walk onto the edge of the map. SEE: a hint reading exactly
       "the stone carries you to mchy", then the mchy area with pokrzywnik sprites standing
       around, HUD Area line reads `mchy`.
-- [ ] **P5 Kill.** RIGHT-click a monster until it dies. SEE: its sprite DISAPPEARS and
-      the XP line jumps (a pokrzywnik pays 40 XP). Careful — every survivor hits back.
+- [ ] **P5 Kill.** LEFT- or RIGHT-click a monster ON ITS BODY until it dies (rev5: LMB
+      attacks too, and the body actually answers the click — the old torso-click miss
+      zone is gone). SEE: its sprite DISAPPEARS and STAYS gone — walk out and ride back
+      later and that cell is EMPTY (rev5: kills stay dead for the session). The XP line
+      jumps (a pokrzywnik pays 40 XP). Careful — every survivor hits back.
 - [ ] **P6 Loot.** A kill auto-collects the gold + any drop. SEE: Gold line rises; press
       TAB — the panel shows the picked-up item as a named row (e.g. "Oczep (Normal) 2×2").
 - [ ] **P7 Heal.** Inside grodzisko press T, buy the life potion (it lands in belt slot 1),
@@ -134,6 +140,10 @@ re-run the two build commands — the build-twice law.
 
 - Monsters STAND still and only counter when you attack (M5 rule); audio is off-device
   untested (dummy driver under CI).
+- Kills stay dead FOR THE SESSION (rev5): quitting and Continue (or a reload) walks the
+  data rows again — the killed cells empty at session start, persistent world-state is
+  a later card. Delayed respawn (a fresh monster walking in at the edge) is that same
+  later card: until it, an emptied area simply stays thinned.
 - The hired follower is VISUAL-ONLY (P14): no follower combat, no follower pathing —
   she re-paints on the free tile beside you and never lags or overlaps the hero.
 - The cube reads your CARRIED PACK for inputs (the cube-grid container is a later

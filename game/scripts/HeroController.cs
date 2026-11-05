@@ -4,8 +4,10 @@ using BabaYaga.Sim;
 using Godot;
 
 /// <summary>
-/// Click-to-move hero — consumes [input] actions ONLY (move_to LMB, attack RMB),
-/// no polling. Hero grid/world position lives HERE ALONE (the Sim stores none and
+/// Click-to-move hero — consumes [input] actions ONLY (move_to LMB — since
+/// MC 12136 an LMB ON A MONSTER rides the attack door first, the D2 idiom the
+/// owner expects — attack RMB), no polling. Hero grid/world position lives
+/// HERE ALONE (the Sim stores none and
 /// the bridge does not widen — the ARCH-declared row plan-c2 §0 re-verifies).
 /// Path = A* over AreaRenderer's walkable cells (WORLD-LOCAL), Chebyshev steps;
 /// distance reads reuse WorldPos.DistanceTo. In-area walking is DECLARED
@@ -44,6 +46,38 @@ public partial class HeroController : Node2D
         _tiles = tiles;
         _monsters = monsters;
         _hud = hud;
+        AddControlsLine(hud); // MC 12136: the controls ride the HUD, never only the README
+    }
+
+    /// <summary>MC 12136 CONTROLS-ON-HUD (the owner-feel fix: RMB-attack had ZERO
+    /// in-game exposure — "not in MainMenu, not in any HUD line, no hint ever",
+    /// TEST-verdict-ownerfeel-m5 §6): ONE persistent small line, bottom-left, on the
+    /// HUD's own CanvasLayer so it never pans with the camera — present on the FIRST
+    /// game screen (town) and every area after. It rides a PanelContainer so
+    /// S4InputLeg.HintText (which reads Hud's first direct Label child) keeps reading
+    /// the hint alone, and MouseFilterLaw keeps the HUD CLICK LAW: world clicks pass
+    /// THROUGH this part. HeroController wires it here because this class owns the
+    /// input map the line describes (the S4 row's owner).</summary>
+    private static void AddControlsLine(Hud hud)
+    {
+        var panel = new PanelContainer
+        {
+            Name = "ControlsLine",
+            MouseFilter = MouseFilterLaw.For("hud.panel"), // the click law: Ignore — clicks pass through
+            Modulate = new Color(1f, 1f, 1f, 0.88f),
+        };
+        // The bottom-left corner it rides — the METHOD, not the editor property: a
+        // code-built PanelContainer ignores the AnchorsPreset PROPERTY (probe of the
+        // proof run: pos (8,-44), the anchors stayed (0,0) — the line painted over
+        // the HUD's Life row / vanished). SetAnchorsPreset then explicit offsets.
+        panel.SetAnchorsPreset(Control.LayoutPreset.BottomLeft);
+        panel.OffsetLeft = 8; panel.OffsetTop = -44; panel.OffsetRight = 8; panel.OffsetBottom = -10;
+        panel.AddChild(new Label
+        {
+            Text = "LMB: attack / move · RMB: attack · keys per help",
+            MouseFilter = MouseFilterLaw.For("hud.panel"),
+        });
+        hud.AddChild(panel);
     }
 
     /// <summary>Arrival placement (New Game / after a stone-carries-you travel).</summary>
@@ -114,27 +148,37 @@ public partial class HeroController : Node2D
         if (!mb.IsActionPressed("move_to")) return;
 
         var cell = IsoCamera.ScreenToGrid(world);
-        // The M5-S4 decision table (ClickMap, xunit-pinned): the LIT standing-stone
-        // marker rides, walkable ground walks (presentation A*, NO sim call —
-        // plan-c2 S4 row 1; the Sim stores no positions, the ARCH-declared row
-        // the hero cell here rests on), everything else refuses — out-of-range
-        // included: no path is ever planned to an off-grid click.
+        // The M5-S4 decision table (ClickMap, xunit-pinned): MC 12136 (the owner's
+        // DEAD core loop — LMB on a monster only ever walked) puts the monster read
+        // FIRST: an LMB on a standing monster rides the SAME TryAttack door RMB uses
+        // (the verdict is the table's, the px hit-test is MonsterAt's — the drawn
+        // body, not the cell). The LIT standing-stone marker still rides, walkable
+        // ground still walks (presentation A*, NO sim call — plan-c2 S4 row 1; the
+        // Sim stores no positions, the ARCH-declared row the hero cell here rests
+        // on), everything else refuses — out-of-range included: no path is ever
+        // planned to an off-grid click.
         switch (ClickMap.DecideLeft(cell.X, cell.Y, AreaRenderer.W, AreaRenderer.H,
-                     _tiles.IsWalkable(cell), _tiles.IsLitStone(cell)))
+                     _tiles.IsWalkable(cell), _tiles.IsLitStone(cell),
+                     onMonster: _monsters.MonsterAt(world) is not null))
         {
+            case ClickMap.Left.Attack: TryAttack(s, world); break; // LMB strikes (D2 idiom)
             case ClickMap.Left.Ride: RideStone(s); break;
             case ClickMap.Left.Move: PlanPath(new WorldPos(cell.X, cell.Y)); break;
             default: break; // refuse: blocked ground or off-grid
         }
     }
 
-    /// <summary>RMB: strike the monster under the cursor; pending loot is taken in
+    /// <summary>The attack door BOTH mouse buttons ride (RMB always; LMB since
+    /// MC 12136 on a monster's drawn body): strike the monster under the cursor;
+    /// pending loot is taken in
     /// the same click (Loot key → Loot(1)). M5-S3 (MC 11934): both doors ride the
     /// CommandLog.Call wrapper — with the bridge OFF it is the plain call, with it
     /// ON each lands as one CLI-grammar line (a rejection as its comment), and the
     /// hint catch below is untouched. M5-S4 (FIX-DA5 5): a kill despawns one
-    /// sprite of the attacked row — the Sim spawns a fresh monster per kill, so
-    /// the sprite roster is presentation truth this class alone maintains.</summary>
+    /// sprite of the attacked row; since MC 12136 the freed cell STAYS dead for the
+    /// session (MonsterField.Despawn records it) — the Sim's fresh-monster rule
+    /// stays the Sim's own math (the replay contract is untouched), the sprite
+    /// roster is presentation truth this class alone maintains.</summary>
     private void TryAttack(GameSession s, Vector2 world)
     {
         var key = _monsters.MonsterAt(world);

@@ -103,7 +103,9 @@ GODOT_BIN=/home/claudecode/Games/.tools/godot/Godot_v4.7.2-stable_mono_linux_x86
 ```
 
 Controls (each wired in `game/project.godot` [input] and consumed in `game/scripts/`):
-LMB walk / click lit stone to ride (HeroController), RMB attack (HeroController), TAB
+LMB attack the monster under the cursor / walk on empty ground / click lit stone to ride (HeroController —
+MC 12136: LMB attacks too, the D2 idiom; kills STAY DEAD for the session; the hit-box is the DRAWN sprite;
+the controls line rides the HUD), RMB attack also (HeroController), TAB
 inventory (Act), T town panel in grodzisko (Act), C town chest (stash) in grodzisko
 (Act), B bone-cube ritual-craft panel in grodzisko (Act — lists admitted recipes only,
 zero admitted paints the honest empty line), 1–4 belt potions + R first spark (Hud),
