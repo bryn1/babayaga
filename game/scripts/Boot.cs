@@ -1,7 +1,10 @@
 using Godot;
 
 /// <summary>
-/// Entry scene script (res://Main.tscn root). Headless → the pinned M4 marker leg:
+/// reason (file-hygiene, MC 12144): the ONE boot entry carrying every env-gated
+/// leg branch — splitting it would scatter the gate ladder that keeps the story
+/// anchors byte-exact. Entry scene script (res://Main.tscn root). Headless → the
+/// pinned M4 marker leg:
 /// a scripted GameSession (seed 42, "koldun", res://data) + three REAL gold-moving
 /// verbs (Buy / SellLast / Gamble), one SIM_TICK line per verb read FROM THE SESSION
 /// OBJECT EVERY TICK; then ONE scenes/Act.tscn instantiate through the placeholder
@@ -121,6 +124,8 @@ public partial class Boot : Node
             RunInvTruthLeg(invDir); // MC 11995 inventory dump-truth evidence driver — same gate shape
         else if (System.Environment.GetEnvironmentVariable(GroundLeg.EnvVar) is { Length: > 0 } grDir)
             RunGroundPaintLeg(grDir); // MC 12135 ground-paints evidence driver — same gate shape
+        else if (System.Environment.GetEnvironmentVariable(CamLeg.EnvVar) is { Length: > 0 } camDir)
+            RunCamLeg(camDir); // MC 12144 camera follow+zoom driver (BABA_CAM_LEG-gated) — same gate shape
         else
             // LEDGER row 86 CURE (MC 11957): a SYNCHRONOUS ChangeSceneToFile from
             // inside _Ready made the engine remove_child the boot scene while the
@@ -310,6 +315,19 @@ public partial class Boot : Node
         var act = InstantiateActSmoke();
         if (act is null) { GetTree().Quit(1); return; }
         AddChild(new GroundLeg { OutDir = legDir, Act = act });
+    }
+
+    /// <summary>MC 12144 CAMERA FOLLOW+ZOOM EVIDENCE LEG (owner D2 report): the
+    /// same gate shape — windowed ONLY, BABA_CAM_LEG-gated, unset = dead code.
+    /// New session at the leg seed, the REAL Act; the driver in CamLeg.cs
+    /// settles the start frame, plays ONE synthesized LMB move-click and
+    /// gates its exit on follow + centering + the ZOOM-COUNT floor.</summary>
+    private void RunCamLeg(string legDir)
+    {
+        GameContext.New(CamLeg.LegSeed);
+        var act = InstantiateActSmoke();
+        if (act is null) { GetTree().Quit(1); return; }
+        AddChild(new CamLeg { OutDir = legDir, Act = act });
     }
 
     /// <summary>The DoD leg 3/3b gate + the slice journey legs. The legs below

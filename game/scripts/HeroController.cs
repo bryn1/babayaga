@@ -41,6 +41,11 @@ public partial class HeroController : Node2D
     /// path and the headless journey leg share this ONE rebuild entry.</summary>
     public Action? OnAreaChanged;
 
+    /// <summary>MC 12144 STEP-END HOOK (the D2 camera lock's seam): fired after
+    /// each COMMITTED step in StepNext — Act wires the camera follow here;
+    /// presentation-only, the hook line is the only change in this file.</summary>
+    public Action? OnStepComplete;
+
     public void Wire(AreaRenderer tiles, MonsterField monsters, Hud hud)
     {
         _tiles = tiles;
@@ -114,6 +119,7 @@ public partial class HeroController : Node2D
         _pos = next; // discrete Chebyshev step (easing joins with the real frames)
         if (_sprite is not null)
             _sprite.Position = IsoCamera.GridToScreen(new Vector2I(_pos.X, _pos.Y));
+        OnStepComplete?.Invoke(); // MC 12144: the step-end camera hook — the ONE hook line (D2 lock-on)
         return true;
     }
 
