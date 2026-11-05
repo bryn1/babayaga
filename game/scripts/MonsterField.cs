@@ -17,6 +17,10 @@ using Godot;
 /// walkable cells; bad rows warn once per build and are skipped, never crash.
 /// Rows build in file order; spawner seed = Fnv.Hash(area + ":mon") — Fnv.Hash(s)
 /// ONLY. Spawner keys are the monsters.json keys (Sim Attack looks them up there).
+/// Since MC 12153 the standing sprites PLAY their shipped two-frame idle cycle
+/// (windowed; HeroController.AnimOffVar freezes it) and answer a strike with a red
+/// flash + a 0.3 s death-ghost fade outside the counted row — presentation only,
+/// the spawn law below is untouched.
 /// MC 12136 (owner-feel): the hit-test circles the DRAWN body (torso), not the
 /// feet anchor, and a KILLED CELL STAYS DEAD for the session — Despawn records
 /// the freed cell (the same kill event that moves the Kills counter the
@@ -37,6 +41,31 @@ public partial class MonsterField : Node2D
     private const float HitRadius = 90f; // the visible body + 10 px click slack, centred at BodyRise
     private const int NearMax = 3;   // near-spawn band, Chebyshev from arrival cell
     private const int DeepMin = 5;   // deep band; the 4-ring between may stay empty
+
+    // MC 12153 PRESENTATION ANIMATION (owner complaint "no attack motions or
+    // animations"): the 320×160 sheets ship TWO REAL idle frames per monster
+    // (measured: 8.8k–15.7k pixels differ between the halves — the census lives
+    // in out/leg-anim/EVIDENCE.md); they CYCLE now, phase-staggered per sprite.
+    // A kill fades a look-alike GHOST (modulate alpha) in a container OUTSIDE the
+    // counted _row: the roster, the killed-cell record, the freed real node and
+    // the S7 drift marker all move on the SAME tick — the kills-stay-dead law of
+    // MC 12136 is untouched, only the LOOK lingers 0.3 s. A struck monster flashes
+    // red (HeroController.FlashAttack is the caller). Windowed-only + the shared
+    // HeroController.AnimOffVar lever: the story anchors never animate by
+    // construction, the ANIM LEG's RED run freezes the hero half (asserted there).
+    private const float IdlePeriod = 0.45f;  // seconds per idle frame (the two-frame cycle)
+    private const float HitFlashDur = 0.13f; // red hit-flash, matches the hero's white burst
+    private const float FadeDur = 0.3f;      // death-ghost fade before its node frees
+    private static readonly bool AnimOff =
+        System.Environment.GetEnvironmentVariable(HeroController.AnimOffVar) is { Length: > 0 };
+    private readonly bool _visual = DisplayServer.GetName() != "headless"; // the exact check Boot uses
+    private Node2D? _ghostRow; // fades ride HERE, never in _row (S7 counts _row alone)
+    private readonly List<(Sprite2D Spr, float T)> _hitFlash = [];
+    private readonly List<(Sprite2D Spr, float T)> _ghosts = [];
+
+    /// <summary>MC 12153: true while a struck sprite still wears the red flash —
+    /// the AnimLeg's monster-side attack read.</summary>
+    public bool AnyHitFlash => _hitFlash.Count > 0;
 
     /// <summary>One data-table spawn row, validated at load.</summary>
     private sealed record SpawnRow(string Kind, int Count, string Placement);
@@ -69,9 +98,14 @@ public partial class MonsterField : Node2D
     public void Build(string areaKey, bool isTown, IReadOnlyList<Vector2I> walkable, Vector2I arrivalCell)
     {
         _row?.QueueFree();
+        _ghostRow?.QueueFree(); // MC 12153: an area CUT ends every fade mid-flight
         _roster.Clear();
+        _hitFlash.Clear();
+        _ghosts.Clear();
         _row = new Node2D { Name = "Monsters" };
         AddChild(_row);
+        _ghostRow = new Node2D { Name = "Ghosts" }; // MC 12153 — deliberately NOT under _row
+        AddChild(_ghostRow);
         _areaKey = areaKey;
         _spawnRow = 0;
         _pendingCountMarker = false;
@@ -141,9 +175,84 @@ public partial class MonsterField : Node2D
     /// stands — the ghost class this marker exists to catch.</summary>
     public override void _Process(double delta)
     {
-        if (!_pendingCountMarker) return;
-        _pendingCountMarker = false;
-        PrintSpriteMarker(_pendingPhase);
+        if (_pendingCountMarker)
+        {
+            _pendingCountMarker = false;
+            PrintSpriteMarker(_pendingPhase);
+        }
+        if (!_visual || AnimOff) return; // MC 12153: headless never animates (the exact Boot check)
+        float dt = (float)delta;
+        TickIdle();
+        TickHitFlash(dt);
+        TickGhosts(dt);
+    }
+
+    /// <summary>MC 12153 idle micro-animation: BOTH shipped frames of the 320×160
+    /// contract play (frame 0 region (0,0), frame 1 region (160,0)), staggered by
+    /// roster index so the field breathes out of lockstep. Placeholder diamonds
+    /// carry no AtlasTexture and stand still — honestly.</summary>
+    private void TickIdle()
+    {
+        if (_row is null) return;
+        int clock = (int)(Time.GetTicksMsec() / 1000.0 / IdlePeriod);
+        int i = 0;
+        foreach (var c in _row.GetChildren())
+        {
+            if (c is Sprite2D { Texture: AtlasTexture at } && GodotObject.IsInstanceValid(c))
+            {
+                int fx = (clock + i) & 1;
+                if ((int)at.Region.Position.X != fx * 160) at.Region = new Rect2(fx * 160, 0, 160, 160);
+            }
+            i++;
+        }
+    }
+
+    /// <summary>MC 12153: the red hit-flash decays to plain white (50 ms/steps —
+    /// a slow Xvfb frame must not eat the burst before it paints).</summary>
+    private void TickHitFlash(float dt)
+    {
+        for (int n = _hitFlash.Count - 1; n >= 0; n--)
+        {
+            var (spr, t) = _hitFlash[n];
+            if (!GodotObject.IsInstanceValid(spr)) { _hitFlash.RemoveAt(n); continue; }
+            t -= Mathf.Min(dt, 0.05f);
+            if (t <= 0f) { spr.Modulate = Colors.White; _hitFlash.RemoveAt(n); continue; }
+            float f = t / HitFlashDur;
+            spr.Modulate = new Color(1f + 0.1f * f, 1f - 0.65f * f, 1f - 0.65f * f);
+            _hitFlash[n] = (spr, t);
+        }
+    }
+
+    /// <summary>MC 12153: the death ghost's modulate-alpha fade — a PRESENTATION
+    /// tail only; the real sprite was freed on the sim's tick (kills-stay-dead).</summary>
+    private void TickGhosts(float dt)
+    {
+        for (int n = _ghosts.Count - 1; n >= 0; n--)
+        {
+            var (spr, t) = _ghosts[n];
+            if (!GodotObject.IsInstanceValid(spr)) { _ghosts.RemoveAt(n); continue; }
+            t -= Mathf.Min(dt, 0.06f);
+            if (t <= 0f) { spr.QueueFree(); _ghosts.RemoveAt(n); continue; }
+            spr.Modulate = spr.Modulate with { A = Mathf.Clamp(t / FadeDur, 0f, 1f) };
+            _ghosts[n] = (spr, t);
+        }
+    }
+
+    /// <summary>MC 12153 hit feedback (HeroController.FlashAttack's twin door): the
+    /// struck sprite flashes red and decays back to white. No attack/hit FRAMES
+    /// exist in any shipped sheet (census: EVIDENCE) — the flash is the honest
+    /// stand-in and the missing sheet is the recorded ART ORDER, never a fake.</summary>
+    public void FlashHit(string key)
+    {
+        if (!_visual || AnimOff) return;
+        foreach (var e in _roster.Entries)
+        {
+            if (e.Key != key) continue;
+            _hitFlash.RemoveAll(h => ReferenceEquals(h.Spr, e.Sprite)); // re-strike restarts one burst
+            _hitFlash.Add((e.Sprite, HitFlashDur));
+            e.Sprite.Modulate = new Color(1.1f, 0.35f, 0.35f);
+            return;
+        }
     }
 
     /// <summary>M5-S4 kill-despawn (plan FIX-DA5 5) as CURED by MC 12136 (owner
@@ -164,7 +273,23 @@ public partial class MonsterField : Node2D
         foreach (var e in _roster.Entries)
             if (e.Key == key) { killed = e.Sprite; cell = e.Cell; break; }
         if (killed is null || _roster.DespawnOne(key) is null) return;
+        // MC 12153: the fade INPUTS are captured BEFORE the free; the ghost rides
+        // _ghostRow, NOT _row — the roster entry, the killed-cell record, the real
+        // node's free and the S7 count all move on THIS tick (the kills-stay-dead
+        // law of MC 12136 byte-for-byte; only the LOOK lingers a breath).
+        var gTex = killed.Texture;
+        var gPos = killed.Position;
+        var gOff = killed.Offset;
         killed.QueueFree();
+        if (_visual && !AnimOff && gTex is not null && _ghostRow is not null)
+        {
+            var ghost = new Sprite2D
+            {
+                Texture = gTex, Centered = true, Offset = gOff, Position = gPos, YSortEnabled = true,
+            };
+            _ghostRow.AddChild(ghost);
+            _ghosts.Add((ghost, FadeDur));
+        }
         _lastKilled = killed;
         Kills++;
         _killed.Add((_areaKey, cell.X, cell.Y)); // THE kill truth, recorded where cells live
