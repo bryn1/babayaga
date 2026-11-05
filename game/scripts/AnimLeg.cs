@@ -15,9 +15,12 @@ using Godot;
 /// is on screen mid-glide), (b) the idle pose RETURNING at rest, (c) ≥2 distinct
 /// textures across the glide, then walks out to mchy and LMB-strikes a standing
 /// monster and gates (d) the attack trigger: the hero sprite's Modulate deviates
-/// from plain white AND the monster field reports the red hit-flash. NO attack
-/// art ships (the census lives in out/leg-anim/EVIDENCE.md) — the flash IS the
-/// tested feedback, the sheet is the recorded art order.
+/// from plain white AND the monster field reports the red hit-flash, and —
+/// MC 12162 growing the SAME gate — (d2) during the ~200 ms attack window the
+/// sprite's TEXTURE RESOURCE PATH contains "hero-attack" (the 12154 sheet stands
+/// on screen) AND after the window the path is back to hero-idle/hero-walk.
+/// (d2) RED lever: BABA_NO_ATTACK_POSE (HeroController.NoAttackPoseVar) keeps
+/// walk + flash alive and drops ONLY the sheet — the pose assertion alone goes red.
 /// SHOTS: the world is PAUSED at the predicate frame (leg ProcessMode=Always) and
 /// the shot taken after the present-queue drains — a frozen frame is an HONEST
 /// read-back even under llvmpipe present-lag (S4's lesson: state moves seconds
@@ -38,7 +41,7 @@ public partial class AnimLeg : Node
     public Act Act = null!;
 
     private enum Step { Settle, WalkClick, WalkWatch, WalkVerdict, DoorClick, WalkOut,
-        MchySettle, AttackClick, AttackWatch, KillGrind, Finish }
+        MchySettle, AttackClick, AttackWatch, PoseResume, KillGrind, Finish }
 
     private Step _step = Step.Settle;
     private int _frames, _settleFrames;
@@ -46,6 +49,8 @@ public partial class AnimLeg : Node
     private Vector2I _door;
     private readonly HashSet<ulong> _glideFrames = [];
     private bool _sawWalk, _sawReturn, _idleAtRest, _midShot, _attackSeen, _monsterFlashSeen;
+    private bool _attackPoseSeen;      // MC 12162: the hero-attack sheet STOOD on the sprite
+    private string _attackPosePath = ""; // the texture path read at the attack-window frame
     private Color _attackModulate = Colors.White;
 
     // The freeze-shot carry-over (S4's present-lag law, the pause version).
@@ -83,7 +88,8 @@ public partial class AnimLeg : Node
                 if (hero.VisualPos != IsoCamera.GridToScreen(hero.Cell))
                 { Fail("Settle", "start frame not settled"); return; }
                 GD.Print($"BABA_ANIM_LEG_START cell={hero.Cell} walk_pose={hero.ShowingWalkFrame} " +
-                         $"modulate={hero.HeroSpriteModulate} anim_off={System.Environment.GetEnvironmentVariable(HeroController.AnimOffVar) is { Length: > 0 }}");
+                         $"modulate={hero.HeroSpriteModulate} anim_off={System.Environment.GetEnvironmentVariable(HeroController.AnimOffVar) is { Length: > 0 }} " +
+                         $"no_attack_pose={System.Environment.GetEnvironmentVariable(HeroController.NoAttackPoseVar) is { Length: > 0 }}");
                 Enter(Step.WalkClick, 5.0);
                 break;
             case Step.WalkClick:
@@ -158,7 +164,11 @@ public partial class AnimLeg : Node
                     _attackSeen = true;
                     _attackModulate = hero.HeroSpriteModulate;
                     _monsterFlashSeen = Act.Monsters.AnyHitFlash;
-                    FreezeShot("02-attack.png", () => Enter(Step.AttackWatch, _deadline - Time.GetTicksMsec() / 1000.0 + 3.0));
+                    // MC 12162: the SAME strike frame carries the pose read — the
+                    // texture path names WHICH sheet stands (attack sheet vs plain).
+                    _attackPosePath = hero.CurrentHeroFramePath;
+                    _attackPoseSeen = _attackPosePath.Contains("hero-attack");
+                    FreezeShot("01-attack-pose.png", () => Enter(Step.AttackWatch, _deadline - Time.GetTicksMsec() / 1000.0 + 3.0));
                     return;
                 }
                 if (_attackSeen)
@@ -166,7 +176,7 @@ public partial class AnimLeg : Node
                     GD.Print($"BABA_ANIM_LEG ATTACK modulate={_attackModulate} off_white=yes monster_flash={_monsterFlashSeen}");
                     if (!_monsterFlashSeen) { Fail("AttackWatch", "the struck monster never wore the red hit-flash"); return; }
                     _frames = 0;
-                    Enter(Step.KillGrind, 45.0); // strike the SAME beast down: the death fade + the count law ride a real kill
+                    Enter(Step.PoseResume, 5.0); // MC 12162: the pose window must EXPIRE back to idle/walk
                 }
                 else
                 {
@@ -174,6 +184,26 @@ public partial class AnimLeg : Node
                     if (now >= _nextClick) { _nextClick = now + 0.6; if (FirstMonsterCell() is { } m) Click(Act.Hero.CellToScreen(m.Cell)); }
                 }
                 break;
+            case Step.PoseResume:
+            {
+                // MC 12162 (d2): the ~200 ms attack window must CLOSE — while the
+                // path still says hero-attack the window rides; the 5 s deadline
+                // is the honest fail for a window that never expires. Then the two
+                // gates: the sheet STOOD during the window, and the path is back
+                // to a hero-idle/hero-walk sheet after it. Under BABA_NO_ATTACK_POSE
+                // the first gate goes red while every older assertion stays green.
+                var path = hero.CurrentHeroFramePath;
+                if (path.Contains("hero-attack")) return;
+                bool resumed = path.Contains("hero-idle") || path.Contains("hero-walk");
+                GD.Print($"BABA_ANIM_LEG ATTACKPOSE pose_on_screen={_attackPoseSeen} pose_path={_attackPosePath} " +
+                         $"resumed_to_idle_walk={resumed} resumed_path={path} " +
+                         $"flash_returned_white={hero.HeroSpriteModulate == Colors.White}");
+                if (!_attackPoseSeen) { Fail("PoseResume", $"the hero-attack sheet never stood on the sprite during an attack (path at the strike: {_attackPosePath}) — BABA_NO_ATTACK_POSE?"); return; }
+                if (!resumed) { Fail("PoseResume", $"after the attack window the sprite did not return to idle/walk (path={path})"); return; }
+                _frames = 0;
+                Enter(Step.KillGrind, 45.0); // strike the SAME beast down: the death fade + the count law ride a real kill
+                break;
+            }
             case Step.KillGrind:
                 // S4's human-tempo grind: LMB stays the attack door (MC 12136); the
                 // sim is seed-pinned, the pokrzywnik (life 14, defense 10) falls in a
@@ -191,8 +221,8 @@ public partial class AnimLeg : Node
                 GD.Print($"BABA_ANIM_LEG KILL kills={Act.Monsters.Kills} real_freed=yes death_ghost=rides-Ghosts-row-fading " +
                          "(the S7 [post-kill] M5_SPRITE_COUNT above stayed == spawn-row WITH the fade alive — the count law holds)");
                 GD.Print($"BABA_ANIM_LEG OK frames_distinct={_glideFrames.Count} walk_pose=mid_glide idle_at_rest=yes " +
-                         $"attack=hero_white_flash+monster_red_flash (no attack art ships — ART ORDER in EVIDENCE) " +
-                         $"shots=01-midwalk.png,02-attack.png max_dt={_maxDelta:F4}s");
+                         $"attack=hero-attack pose ~200ms (12154 sheet, resumed to idle/walk) + hero_white_flash + monster_red_flash " +
+                         $"shots=01-midwalk.png,01-attack-pose.png max_dt={_maxDelta:F4}s");
                 Enter(Step.Finish, 0.3);
                 break;
             case Step.Finish:
