@@ -93,7 +93,11 @@ using Godot;
 /// BABA_GROUND_LEG names a dir, the MC 12135 ground-paints evidence driver
 /// (settled frame + cells/pixel gate; headless half asserts in RunMarkerLeg),
 /// or when BABA_SMOOTH_LEG names one, the MC 12149 movement-smoothing driver
-/// (same shape — the hero node must sit STRICTLY between two cells mid-step).
+/// (same shape — the hero node must sit STRICTLY between two cells mid-step),
+/// or when BABA_ANIM_LEG names one, the MC 12153 animation-play driver (same
+/// shape — the shipped hero walk/idle poses must CYCLE across a glide, the idle
+/// pose return at rest, and a struck monster's attack flash must deviate the
+/// hero sprite's Modulate; BABA_ANIM_OFF is its RED lever).
 /// Zero rules
 /// live here (Game → Sim → nothing).
 /// </summary>
@@ -130,6 +134,8 @@ public partial class Boot : Node
             RunCamLeg(camDir); // MC 12144 camera follow+zoom driver (BABA_CAM_LEG-gated) — same gate shape
         else if (System.Environment.GetEnvironmentVariable(SmoothLeg.EnvVar) is { Length: > 0 } smDir)
             RunSmoothLeg(smDir); // MC 12149 glide driver (BABA_SMOOTH_LEG-gated) — same gate shape
+        else if (System.Environment.GetEnvironmentVariable(AnimLeg.EnvVar) is { Length: > 0 } anDir)
+            RunAnimLeg(anDir); // MC 12153 animation-play driver (BABA_ANIM_LEG-gated) — same gate shape
         else
             // LEDGER row 86 CURE (MC 11957): a SYNCHRONOUS ChangeSceneToFile from
             // inside _Ready made the engine remove_child the boot scene while the
@@ -348,6 +354,22 @@ public partial class Boot : Node
         var act = InstantiateActSmoke();
         if (act is null) { GetTree().Quit(1); return; }
         AddChild(new SmoothLeg { OutDir = legDir, Act = act });
+    }
+
+    /// <summary>MC 12153 ANIMATION-PLAY EVIDENCE LEG (owner complaint "no attack
+    /// motions or animations"): the same gate shape — windowed ONLY,
+    /// BABA_ANIM_LEG-gated, unset = dead code. New session at the leg seed, the
+    /// REAL Act; the driver in AnimLeg.cs walks the hero (asserts the shipped
+    /// walk/idle poses cycle during the 12149 glide + idle returns at rest), then
+    /// walks out to mchy and strikes a monster (asserts the attack flash fires).
+    /// RED lever: BABA_ANIM_OFF (HeroController.AnimOffVar) freezes the frame and
+    /// the flash — the frame + attack assertions go red.</summary>
+    private void RunAnimLeg(string legDir)
+    {
+        GameContext.New(AnimLeg.LegSeed);
+        var act = InstantiateActSmoke();
+        if (act is null) { GetTree().Quit(1); return; }
+        AddChild(new AnimLeg { OutDir = legDir, Act = act });
     }
 
     /// <summary>The DoD leg 3/3b gate + the slice journey legs. The legs below
