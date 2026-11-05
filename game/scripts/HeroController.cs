@@ -25,6 +25,11 @@ public partial class HeroController : Node2D
 {
     private const float StepInterval = 0.2f; // seconds per cell (convention, changeable)
 
+    /// <summary>MC 12149 RED-CONTROL (the gate proving it can go red): set to any
+    /// value and steps SNAP again (zero-length glide) — SmoothLeg's mid-glide
+    /// assertion goes red against it, green again when unset.</summary>
+    public const string SnapVar = "BABA_SNAP_MODE";
+
     private AreaRenderer _tiles = null!;
     private MonsterField _monsters = null!;
     private Hud _hud = null!;
@@ -36,15 +41,17 @@ public partial class HeroController : Node2D
     private float _stepTimer;
     private string _facing = "S";
 
+    // MC 12149 PRESENTATION GLIDE (owner complaint "the movement is very unsmooth" —
+    // a PRESENTATION bug: the sim step stays discrete, the sprite animates from the
+    // cell it was showing to the newly committed one over the step interval).
+    private Vector2 _glideFrom, _glideTo;
+    private float _glideT = 1f; // 1 = sitting on the committed cell, no glide in flight
+    private bool _snap;         // SnapVar set → zero-length glide (the RED lever)
+
     /// <summary>Wired by Act: after a SUCCESSFUL travel the world (tiles + monster
     /// row + hero placement + camera) is rebuilt under the NEW area — the door
     /// path and the headless journey leg share this ONE rebuild entry.</summary>
     public Action? OnAreaChanged;
-
-    /// <summary>MC 12144 STEP-END HOOK (the D2 camera lock's seam): fired after
-    /// each COMMITTED step in StepNext — Act wires the camera follow here;
-    /// presentation-only, the hook line is the only change in this file.</summary>
-    public Action? OnStepComplete;
 
     public void Wire(AreaRenderer tiles, MonsterField monsters, Hud hud)
     {
@@ -94,12 +101,30 @@ public partial class HeroController : Node2D
         // The sprite rides the PLACEMENT too (S4 legs found: before, an arrival
         // or a stone RIDE left the sprite at its old spot until the first walk
         // tick — the hero stood invisible at the origin on respawn and ride-in).
-        if (_sprite is not null) _sprite.Position = IsoCamera.GridToScreen(cell);
+        if (_sprite is not null)
+        {
+            var p = IsoCamera.GridToScreen(cell);
+            // MC 12149: an arrival (or an area jump) is a CUT, never a slide —
+            // the glide state is cancelled and parked on the placement point.
+            _glideFrom = _glideTo = p;
+            _glideT = 1f;
+            _sprite.Position = p;
+        }
     }
 
     /// <summary>The committed grid cell of the hero — the marker/read surface;
     /// hero position lives HERE ALONE (the Sim stores none).</summary>
     public Vector2I Cell => new(_pos.X, _pos.Y);
+
+    /// <summary>MC 12149: the sprite's CURRENT world px — mid-step the interpolated
+    /// visual position the camera rides; otherwise the committed cell's lattice
+    /// point. Presentation truth only, the committed cell above stays the ONE
+    /// sim-side read for targeting, hit tests and every leg marker.</summary>
+    public Vector2 VisualPos => _sprite is { } s ? s.Position : IsoCamera.GridToScreen(Cell);
+
+    /// <summary>MC 12149: true while a committed step's glide is still animating
+    /// (presentation read for the legs; the sim committed the moment it turned false).</summary>
+    public bool IsGliding => _glideT < 1f;
 
     /// <summary>Scripts a walk intent (the headless marker leg): the SAME A* the
     /// windowed click plans; an unwalkable goal plans nothing.</summary>
@@ -109,17 +134,24 @@ public partial class HeroController : Node2D
     }
 
     /// <summary>Commits ONE discrete Chebyshev step — timer-driven in the windowed
-    /// game, scripted directly under headless. False when the path is spent.</summary>
+    /// game, scripted directly under headless. False when the path is spent.
+    /// MC 12149: the commit stays discrete (the story byte-anchor is the proof);
+    /// only the SPRITE is handed a glide from its shown position to the new
+    /// cell's lattice point, animated by _Process over the step interval.</summary>
     public bool StepNext()
     {
         if (_path.Count == 0) return false;
         var next = _path[0];
         _path.RemoveAt(0);
         SetFacing(next);
-        _pos = next; // discrete Chebyshev step (easing joins with the real frames)
+        _pos = next; // discrete Chebyshev step — the sim truth NEVER interpolates
         if (_sprite is not null)
-            _sprite.Position = IsoCamera.GridToScreen(new Vector2I(_pos.X, _pos.Y));
-        OnStepComplete?.Invoke(); // MC 12144: the step-end camera hook — the ONE hook line (D2 lock-on)
+        {
+            _glideFrom = _sprite.Position; // resume mid-glide from WHERE IT SHOWS
+            _glideTo = IsoCamera.GridToScreen(new Vector2I(_pos.X, _pos.Y));
+            if (_snap) { _sprite.Position = _glideTo; _glideT = 1f; } // RED lever: snap mode (SnapVar)
+            else _glideT = 0f;
+        }
         return true;
     }
 
@@ -134,6 +166,7 @@ public partial class HeroController : Node2D
             YSortEnabled = true,
         };
         AddChild(_sprite);
+        _snap = System.Environment.GetEnvironmentVariable(SnapVar) is { Length: > 0 }; // MC 12149 RED lever
     }
 
     /// <summary>Committed cell while a walk path is still playing (S4 driver
@@ -201,8 +234,19 @@ public partial class HeroController : Node2D
 
     public override void _Process(double delta)
     {
+        float dt = (float)delta;
+        // MC 12149 GLIDE (presentation only): animate the in-flight step across the
+        // interval. Pumps BEFORE the path gate — the LAST step's sprite finishes its
+        // slide after the path is spent; the t=1 branch assigns the target EXACTLY,
+        // so a settled hero sits on its lattice point to the bit.
+        if (_glideT < 1f)
+        {
+            _glideT = Mathf.Min(_glideT + dt / StepInterval, 1f);
+            if (_sprite is { } sp)
+                sp.Position = _glideT < 1f ? _glideFrom.Lerp(_glideTo, _glideT) : _glideTo;
+        }
         if (_path.Count == 0) return;
-        _stepTimer += (float)delta;
+        _stepTimer += dt;
         if (_stepTimer < StepInterval) return;
         _stepTimer = 0f;
 

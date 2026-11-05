@@ -91,7 +91,9 @@ using Godot;
 /// painted anchor clicks, the hole repaint read as node hunt + pulled dump
 /// answer, the survivor's anchor click wearing the RIGHT item), or when
 /// BABA_GROUND_LEG names a dir, the MC 12135 ground-paints evidence driver
-/// (settled frame + cells/pixel gate; headless half asserts in RunMarkerLeg).
+/// (settled frame + cells/pixel gate; headless half asserts in RunMarkerLeg),
+/// or when BABA_SMOOTH_LEG names one, the MC 12149 movement-smoothing driver
+/// (same shape — the hero node must sit STRICTLY between two cells mid-step).
 /// Zero rules
 /// live here (Game → Sim → nothing).
 /// </summary>
@@ -126,6 +128,8 @@ public partial class Boot : Node
             RunGroundPaintLeg(grDir); // MC 12135 ground-paints evidence driver — same gate shape
         else if (System.Environment.GetEnvironmentVariable(CamLeg.EnvVar) is { Length: > 0 } camDir)
             RunCamLeg(camDir); // MC 12144 camera follow+zoom driver (BABA_CAM_LEG-gated) — same gate shape
+        else if (System.Environment.GetEnvironmentVariable(SmoothLeg.EnvVar) is { Length: > 0 } smDir)
+            RunSmoothLeg(smDir); // MC 12149 glide driver (BABA_SMOOTH_LEG-gated) — same gate shape
         else
             // LEDGER row 86 CURE (MC 11957): a SYNCHRONOUS ChangeSceneToFile from
             // inside _Ready made the engine remove_child the boot scene while the
@@ -328,6 +332,22 @@ public partial class Boot : Node
         var act = InstantiateActSmoke();
         if (act is null) { GetTree().Quit(1); return; }
         AddChild(new CamLeg { OutDir = legDir, Act = act });
+    }
+
+    /// <summary>MC 12149 MOVEMENT-SMOOTHING EVIDENCE LEG (owner complaint: "the
+    /// movement is very unsmooth"): the same gate shape — windowed ONLY,
+    /// BABA_SMOOTH_LEG-gated, unset = dead code. New session at the leg seed,
+    /// the REAL Act; the driver in SmoothLeg.cs walks and gates its exit on the
+    /// hero node's pos STRICTLY between two cells mid-step, EXACTLY on the
+    /// target at step end, a mid-glide synthesized click still targeting the
+    /// CLICKED cell, and the camera gliding too. RED lever: BABA_SNAP_MODE
+    /// (HeroController.SnapVar) makes the mid-glide assertion go red.</summary>
+    private void RunSmoothLeg(string legDir)
+    {
+        GameContext.New(SmoothLeg.LegSeed);
+        var act = InstantiateActSmoke();
+        if (act is null) { GetTree().Quit(1); return; }
+        AddChild(new SmoothLeg { OutDir = legDir, Act = act });
     }
 
     /// <summary>The DoD leg 3/3b gate + the slice journey legs. The legs below

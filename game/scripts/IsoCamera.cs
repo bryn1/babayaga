@@ -59,10 +59,12 @@ public partial class IsoCamera : Camera2D
         MakeCurrent();
     }
 
-    /// <summary>MC 12144 D2 LOCK-ON: the camera follows the hero's committed
-    /// cell after every step — dead-center except where the area extents clamp
-    /// it (the extents FocusOn stashed at build; no second extent math).</summary>
-    public void Follow(Vector2I cell) => Position = ClampToGrid(GridToScreen(cell), _extentW, _extentH);
+    /// <summary>MC 12144 D2 LOCK-ON; MC 12149 consumes the hero's INTERPOLATED
+    /// visual world px every frame (Act pulls) so the camera GLIDES with the
+    /// hero — dead-center except where the area extents clamp it (the extents
+    /// FocusOn stashed at build; no second extent math, the hero's committed
+    /// cell stays the only sim-side position).</summary>
+    public void Follow(Vector2 heroWorldPos) => Position = ClampToGrid(heroWorldPos, _extentW, _extentH);
 
     /// <summary>Clamp a world point into the parallelogram the W×H grid spans.</summary>
     public static Vector2 ClampToGrid(Vector2 p, int w, int h)

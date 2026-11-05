@@ -66,10 +66,12 @@ public partial class Act : Node
         _hero.Wire(_renderer, _monsters, _hud);
         _hero.OnAreaChanged = () => Rebuild(GameContext.Session!.CurrentArea);
         // MC 12144 D2 LOCK-ON (owner report: "the camera fixed on the hero
-        // character and moves the same way the hero moves"): every committed
-        // step rides the camera — the same ClampToGrid extents Rebuild's
-        // FocusOn stashed, so the hero stays dead-center except at the edges.
-        _hero.OnStepComplete = () => _camera.Follow(_hero.Cell);
+        // character and moves the same way the hero moves"); MC 12149 replaced
+        // the per-step hook wiring with the per-frame glide-aware pull in
+        // _Process below — the camera rides the hero's INTERPOLATED visual
+        // position, the same ClampToGrid extents Rebuild's FocusOn stashed, so
+        // the hero stays dead-center except at the edges (one mechanism, never
+        // a second beside it).
         // MC 11977: the follower field READS the hero cell + the area's
         // walkable set (pull-only, the MonsterField pattern's sibling) — it
         // owns a sprite, never a sim state, never a position the sim tracks.
@@ -88,6 +90,15 @@ public partial class Act : Node
         }
 
         Rebuild(session.CurrentArea);
+    }
+
+    public override void _Process(double delta)
+    {
+        // MC 12149 GLIDE-AWARE FOLLOW (the 12144 per-step hook, replaced): every
+        // frame the camera consumes the hero's INTERPOLATED visual px — during a
+        // step's glide it slides, on a settled frame it sits on the committed
+        // cell's lattice point (Follow's clamp is the ONE extent mechanism).
+        _camera.Follow(_hero.VisualPos);
     }
 
     /// <summary>Re-renders tiles + monster row + hero + camera for one area — the
