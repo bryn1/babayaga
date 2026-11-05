@@ -86,7 +86,9 @@ using Godot;
 /// refusal word read off the HUD line), or when BABA_INV_LEG names one, the
 /// MC 11995 inventory dump-truth driver (same shape — two painted BUYs, the
 /// painted anchor clicks, the hole repaint read as node hunt + pulled dump
-/// answer, the survivor's anchor click wearing the RIGHT item).
+/// answer, the survivor's anchor click wearing the RIGHT item), or when
+/// BABA_GROUND_LEG names a dir, the MC 12135 ground-paints evidence driver
+/// (settled frame + cells/pixel gate; headless half asserts in RunMarkerLeg).
 /// Zero rules
 /// live here (Game → Sim → nothing).
 /// </summary>
@@ -117,6 +119,8 @@ public partial class Boot : Node
             RunGambleLeg(gamDir); // MC 11987 town-panel GAMBLE-row evidence driver — same gate shape
         else if (System.Environment.GetEnvironmentVariable(InvTruthLeg.EnvVar) is { Length: > 0 } invDir)
             RunInvTruthLeg(invDir); // MC 11995 inventory dump-truth evidence driver — same gate shape
+        else if (System.Environment.GetEnvironmentVariable(GroundLeg.EnvVar) is { Length: > 0 } grDir)
+            RunGroundPaintLeg(grDir); // MC 12135 ground-paints evidence driver — same gate shape
         else
             // LEDGER row 86 CURE (MC 11957): a SYNCHRONOUS ChangeSceneToFile from
             // inside _Ready made the engine remove_child the boot scene while the
@@ -296,6 +300,18 @@ public partial class Boot : Node
         AddChild(new InvTruthLeg { OutDir = legDir, Act = act });
     }
 
+    /// <summary>MC 12135 GROUND-PAINTS EVIDENCE LEG: the same gate shape —
+    /// windowed ONLY, BABA_GROUND_LEG-gated, unset = dead code. New session at
+    /// the leg seed, the REAL Act; the settled-frame shot + the cells/pixel
+    /// gate live in GroundLeg.cs — no sim verb, no click, the paint is the test.</summary>
+    private void RunGroundPaintLeg(string legDir)
+    {
+        GameContext.New(GroundLeg.LegSeed);
+        var act = InstantiateActSmoke();
+        if (act is null) { GetTree().Quit(1); return; }
+        AddChild(new GroundLeg { OutDir = legDir, Act = act });
+    }
+
     /// <summary>The DoD leg 3/3b gate + the slice journey legs. The legs below
     /// perform NO waypoint verb after any travel (the WAYPOINT ORDER CONTRACT
     /// lights the DESTINATION stone BEFORE the travel — HeroController and
@@ -315,6 +331,19 @@ public partial class Boot : Node
 
         // The slice legs ride the SAME instantiated Act the scene smoke produces.
         var act = InstantiateActSmoke();
+
+        // MC 12135 GROUND-PAINTS GATE: BABA_GROUND_LEG-set ONLY — unset (every
+        // anchor run) this is dead code, story bytes untouched (the BABA_LOG
+        // shape). The gate is the TileMap's own used-cells count on the FIRST
+        // paint: the store bug's signature is 0 cells with ZERO engine error
+        // — a boot that never asserts a paint is how the grey world shipped.
+        if (System.Environment.GetEnvironmentVariable(GroundLeg.EnvVar) is { Length: > 0 })
+        {
+            if (act is null) GD.Print("BABA_GROUND_LEG FAIL — Act instantiated NULL");
+            GetTree().Quit(act is not null && GroundLeg.AssertHeadless(act) ? 0 : 1);
+            return;
+        }
+
         if (act is not null)
         {
             JourneyLeg.Run(session, act);

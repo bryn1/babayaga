@@ -47,6 +47,11 @@ public partial class AreaRenderer : Node2D
     /// ride hit-test (plan S4 map row 2: "drawn lit-stone marker under cursor").</summary>
     public bool IsLitStone(Vector2I c) => _stoneCell == c && _stoneLit;
 
+    /// <summary>Cells the LAST built area's tile layer actually STORES — the
+    /// ground-paints gate's read (MC 12135: the store bug left zero cells and
+    /// the grey world painted; the BABA_GROUND_LEG leg asserts this &gt; 0).</summary>
+    public int UsedCellCount => _layer?.GetUsedCells().Count ?? 0;
+
     public void Build(string areaKey, bool isTown)
     {
         _walkable.Clear();
@@ -70,8 +75,14 @@ public partial class AreaRenderer : Node2D
         _layer?.QueueFree();
         _layer = new TileMapLayer { Name = "Tiles", TileSet = MakeTileSet(isTown) };
         AddChild(_layer);
-        foreach (var cell in _walkable) _layer.SetCell(cell, 0);
-        foreach (var cell in _blocked) _layer.SetCell(cell, 1);
+        // MC 12135 (the grey-world fix): the 2-arg SetCell with DEFAULTED atlas
+        // coords stores NOTHING on Godot 4.7.2-mono — silently, zero error, used
+        // cells 0 (the owner played a flat grey void; the pinned-probe repro is
+        // out/.tmp/ownerfeel/probe/). The explicit-atlas-coords form stores and
+        // paints; the BABA_GROUND_LEG gate (Boot) asserts the used-cells count
+        // every boot so this can never regress silently again.
+        foreach (var cell in _walkable) _layer.SetCell(cell, 0, Vector2I.Zero, 0);
+        foreach (var cell in _blocked) _layer.SetCell(cell, 1, Vector2I.Zero, 0);
 
         // The stone stands at a DETERMINISTIC cell of every area (no RNG ever
         // touches layout truth): the first walkable cell at Chebyshev exactly 2
@@ -146,7 +157,15 @@ public partial class AreaRenderer : Node2D
             isTown ? Stone : Grass);
         var blockTex = ScaledToCell(ArtOrNull(isTown ? TownEdgeArt : FieldEdgeArt),
             isTown ? Wall : Water);
-        var ts = new TileSet { TileSize = new Vector2I(IsoCamera.TileW, IsoCamera.TileH) };
+        // MC 12135: the iso shape MATCHES the 256×128 diamond-cornered art and
+        // Godot's iso cell placement — ((x−y)·w/2, (x+y)·h/2) — the exact
+        // IsoCamera.GridToScreen formula, so the painted floor sits UNDER the
+        // entities. A square-shaped TileSet draws the diamonds checker-gapped.
+        var ts = new TileSet
+        {
+            TileSize = new Vector2I(IsoCamera.TileW, IsoCamera.TileH),
+            TileShape = TileSet.TileShapeEnum.Isometric,
+        };
         ts.AddSource(MakeSource(walkTex), 0);
         ts.AddSource(MakeSource(blockTex), 1);
         return ts;
