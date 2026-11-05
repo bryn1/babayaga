@@ -1,6 +1,7 @@
-// reason (file-hygiene, MC 12153): past 400 — the walk-pose cycle and the attack flash
-// animate THE ONE sprite node whose glide this class already pumps in _Process; handing
-// Texture/Modulate to a second file would split one node's per-frame owner across files.
+// reason (file-hygiene, MC 12153 + MC 12162): past 400 — the walk-pose cycle, the attack
+// pose and the attack flash animate THE ONE sprite node whose glide this class already
+// pumps in _Process; handing Texture/Modulate to a second file would split one node's
+// per-frame owner across files.
 using System;
 using System.Collections.Generic;
 using BabaYaga.Sim;
@@ -38,6 +39,12 @@ public partial class HeroController : Node2D
     /// Modulate) — AnimLeg's frame/attack assertions go red against it.</summary>
     public const string AnimOffVar = "BABA_ANIM_OFF";
 
+    /// <summary>MC 12162 RED-CONTROL for the ANIM LEG's attack-POSE assertions: set to
+    /// any value and the hero-attack sheet never reaches the sprite (the pose window
+    /// never opens; walk poses and the flash keep playing) — AnimLeg's
+    /// pose-on-screen / pose-resumed assertions go red against it.</summary>
+    public const string NoAttackPoseVar = "BABA_NO_ATTACK_POSE";
+
     private AreaRenderer _tiles = null!;
     private MonsterField _monsters = null!;
     private Hud _hud = null!;
@@ -62,13 +69,17 @@ public partial class HeroController : Node2D
     // + hero-walk-<dir>, both 128×128 — the census in out/leg-anim/EVIDENCE.md);
     // the frame index rides the glide progress: walk pose from the step's commit
     // to t=0.5, the planted idle pose for its second half; at rest the idle
-    // pose always stands. A committed attack rides NO attack art (none shipped):
-    // a 130 ms white over-exposure flash on this sprite + the red hit-flash on
-    // the monster — the missing attack sheet is an ART ORDER, never a fake.
+    // pose always stands. A committed attack plays the shipped hero-attack-<dir>
+    // sheet (MC 12154 art, wired MC 12162) for ~200 ms, then the normal
+    // idle/walk selection RESUMES; the 130 ms white over-exposure KEPT on top of
+    // the pose (the strike's intensity cue) + the red hit-flash on the monster.
     private const float AttackFlashDur = 0.13f; // brief's 100–150 ms window
+    private const float AttackPoseDur = 0.2f;   // MC 12162: ~200 ms pose window
     private bool _animOff;            // AnimOffVar set → frozen frame + no flash (RED lever)
+    private bool _noAttackPose;       // NoAttackPoseVar set → attack sheet never plays (RED lever)
     private bool _showWalk;           // the WALK pose texture is what stands on screen
     private float _attackFlashT;      // attack-flash seconds remaining (0 = none)
+    private float _attackPoseT;       // attack-pose seconds remaining (0 = none)
 
     /// <summary>MC 12153: true while the sprite shows the walk pose of the shipped
     /// two-frame hero cycle — the AnimLeg presentation read.</summary>
@@ -81,6 +92,11 @@ public partial class HeroController : Node2D
     /// <summary>MC 12153: the sprite's Modulate — the AnimLeg's attack-trigger read
     /// (the white flash deviates from plain white; a static hero answers white).</summary>
     public Color HeroSpriteModulate => _sprite!.Modulate;
+
+    /// <summary>MC 12162: the resource path of the sprite's CURRENT texture — the
+    /// AnimLeg's attack-pose read: "hero-attack" is IN it during the pose window and
+    /// gone (idle/walk back) after it. Placeholder pass answers "".</summary>
+    public string CurrentHeroFramePath => _sprite?.Texture?.ResourcePath ?? "";
 
     /// <summary>Wired by Act: after a SUCCESSFUL travel the world (tiles + monster
     /// row + hero placement + camera) is rebuilt under the NEW area — the door
@@ -210,6 +226,7 @@ public partial class HeroController : Node2D
         AddChild(_sprite);
         _snap = System.Environment.GetEnvironmentVariable(SnapVar) is { Length: > 0 }; // MC 12149 RED lever
         _animOff = System.Environment.GetEnvironmentVariable(AnimOffVar) is { Length: > 0 }; // MC 12153 RED lever
+        _noAttackPose = System.Environment.GetEnvironmentVariable(NoAttackPoseVar) is { Length: > 0 }; // MC 12162 RED lever
     }
 
     /// <summary>Committed cell while a walk path is still playing (S4 driver
@@ -306,6 +323,15 @@ public partial class HeroController : Node2D
             _attackFlashT = Mathf.Max(_attackFlashT - Mathf.Min(dt, 0.05f), 0f);
             float k = 1f + 1.25f * (_attackFlashT / AttackFlashDur); // over-bright → plain white
             _sprite!.Modulate = _attackFlashT > 0f ? new Color(k, k, k) : Colors.White;
+        }
+        if (_attackPoseT > 0f)
+        {
+            // MC 12162: the attack-pose window, same slow-frame clamp as the flash
+            // (≥4 pump frames per window on measured Xvfb deltas). On the expire
+            // edge the ONE applicator RESUMES the idle/walk selection — a timer
+            // read at any point inside names the pose, deterministic at any fps.
+            _attackPoseT = Mathf.Max(_attackPoseT - Mathf.Min(dt, 0.05f), 0f);
+            if (_attackPoseT == 0f) ApplyHeroPose();
         }
         if (_path.Count == 0) return;
         _stepTimer += dt;
@@ -439,7 +465,7 @@ public partial class HeroController : Node2D
             < 0 => "N",
             _ => sx > 0 ? "E" : sx < 0 ? "W" : _facing, // ties go S
         };
-        if (_sprite is not null) _sprite.Texture = HeroFrame(_facing);
+        ApplyHeroPose(); // MC 12162: the facing change rides the ONE pose applicator
     }
 
     private static Texture2D HeroFrame(string dir) =>
@@ -453,25 +479,52 @@ public partial class HeroController : Node2D
     private static Texture2D HeroWalkFrame(string dir) =>
         AreaRenderer.ArtOrNull($"res://assets/hero/hero-walk-{dir}.png") ?? HeroFrame(dir);
 
+    /// <summary>MC 12162: the shipped ATTACK pose for one direction (hero-attack-<dir>
+    /// .png, 128×128 — the 12154 art that closes the 12153 art order). Same identity
+    /// facing→sheet mapping; falls back through the walk→idle chain's placeholder
+    /// pass — never a fake.</summary>
+    private static Texture2D HeroAttackFrame(string dir) =>
+        AreaRenderer.ArtOrNull($"res://assets/hero/hero-attack-{dir}.png") ?? HeroWalkFrame(dir);
+
+    /// <summary>MC 12162: the sprite's ONE texture applicator — every Texture write
+    /// rides it. While the attack window plays the attack sheet stands; otherwise
+    /// the 12153 walk/idle cycle picks by _showWalk + facing. A frame is PLAYED,
+    /// never drawn — the three choices are three shipped sheets.</summary>
+    private void ApplyHeroPose()
+    {
+        if (_sprite is null) return;
+        _sprite.Texture = _attackPoseT > 0f ? HeroAttackFrame(_facing)
+                      : _showWalk         ? HeroWalkFrame(_facing)
+                                          : HeroFrame(_facing);
+    }
+
     /// <summary>MC 12153: swaps the ONE sprite between the shipped walk and idle
-    /// poses of the facing. SetFacing stands the idle pose; this is the cycle's
-    /// only other Texture writer, and it only ever chooses between two shipped
-    /// sheets — a frame is PLAYED, never drawn.</summary>
+    /// poses of the facing — the cycle's walk/idle state flag, and it only ever
+    /// chooses between shipped sheets: a frame is PLAYED, never drawn. MC 12162:
+    /// the write rides ApplyHeroPose, so during an attack window the underlying
+    /// walk/idle state updates while the attack sheet KEEPS the screen.</summary>
     private void SetWalkPose(bool walk)
     {
         if (_sprite is null || _showWalk == walk) return;
         _showWalk = walk;
-        _sprite.Texture = walk ? HeroWalkFrame(_facing) : HeroFrame(_facing);
+        ApplyHeroPose();
     }
 
     /// <summary>MC 12153 attack feedback, one burst per committed attack: the hit
     /// monster's red flash (MonsterField's own lever-checked decay) + this sprite's
     /// 130 ms white over-exposure, pumped by _Process. With AnimOffVar set NOTHING
-    /// moves — the ANIM LEG's RED shape for the attack assertion.</summary>
+    /// moves — the ANIM LEG's RED shape for the attack assertion. MC 12162: the
+    /// committed attack ALSO opens the ~200 ms pose window (the 12154 sheet on the
+    /// sprite, _Process closes it and resumes the idle/walk selection); the flash
+    /// is KEPT on top of the pose — with NoAttackPoseVar set the sheet never plays
+    /// and the flash alone answers (the ANIM LEG's attack-pose RED shape).</summary>
     private void FlashAttack(string key)
     {
         _monsters.FlashHit(key);
         if (_animOff || _sprite is null) return;
         _attackFlashT = AttackFlashDur;
+        if (_noAttackPose) return;
+        _attackPoseT = AttackPoseDur;
+        ApplyHeroPose();
     }
 }
