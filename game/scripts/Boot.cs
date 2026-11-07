@@ -97,7 +97,11 @@ using Godot;
 /// or when BABA_ANIM_LEG names one, the MC 12153 animation-play driver (same
 /// shape — the shipped hero walk/idle poses must CYCLE across a glide, the idle
 /// pose return at rest, and a struck monster's attack flash must deviate the
-/// hero sprite's Modulate; BABA_ANIM_OFF is its RED lever).
+/// hero sprite's Modulate; BABA_ANIM_OFF is its RED lever), or when
+/// BABA_MOBSCALE_LEG names one, the MC 12221 mob-scale driver (same shape —
+/// the hero:mob global-bounds ratio must land in [1.25, 1.6], the scaled mob's
+/// FEET on the tile centre, and a torso click must kill; BABA_MOBSCALE_1X is
+/// its RED lever).
 /// Zero rules
 /// live here (Game → Sim → nothing).
 /// </summary>
@@ -136,6 +140,8 @@ public partial class Boot : Node
             RunSmoothLeg(smDir); // MC 12149 glide driver (BABA_SMOOTH_LEG-gated) — same gate shape
         else if (System.Environment.GetEnvironmentVariable(AnimLeg.EnvVar) is { Length: > 0 } anDir)
             RunAnimLeg(anDir); // MC 12153 animation-play driver (BABA_ANIM_LEG-gated) — same gate shape
+        else if (System.Environment.GetEnvironmentVariable(MobScaleLeg.EnvVar) is { Length: > 0 } msDir)
+            RunMobScaleLeg(msDir); // MC 12221 mob-scale driver (BABA_MOBSCALE_LEG-gated) — same gate shape
         else
             // LEDGER row 86 CURE (MC 11957): a SYNCHRONOUS ChangeSceneToFile from
             // inside _Ready made the engine remove_child the boot scene while the
@@ -370,6 +376,23 @@ public partial class Boot : Node
         var act = InstantiateActSmoke();
         if (act is null) { GetTree().Quit(1); return; }
         AddChild(new AnimLeg { OutDir = legDir, Act = act });
+    }
+
+    /// <summary>MC 12221 MOB-SCALE EVIDENCE LEG (owner ruling MOBS HALVED — the
+    /// measured hero:mob hierarchy vs D2, DOC-d2-lod-compare): the same gate
+    /// shape — windowed ONLY, BABA_MOBSCALE_LEG-gated, unset = dead code. New
+    /// session at the leg seed, the REAL Act; the driver in MobScaleLeg.cs walks
+    /// out to mchy and gates the hero:mob global-BOUNDS height ratio inside
+    /// [1.25, 1.6], the FEET-ON-TILE anchor law under the scale (MC 12140), and
+    /// a synthesized LMB TORSO click that kills (the MC 12136 pipeline). RED
+    /// lever: BABA_MOBSCALE_1X (MonsterField.MobScale1XVar) renders mobs at 1.0
+    /// and the ratio assertion goes red.</summary>
+    private void RunMobScaleLeg(string legDir)
+    {
+        GameContext.New(MobScaleLeg.LegSeed);
+        var act = InstantiateActSmoke();
+        if (act is null) { GetTree().Quit(1); return; }
+        AddChild(new MobScaleLeg { OutDir = legDir, Act = act });
     }
 
     /// <summary>The DoD leg 3/3b gate + the slice journey legs. The legs below
