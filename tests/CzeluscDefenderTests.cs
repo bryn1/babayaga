@@ -34,8 +34,8 @@ public sealed class CzeluscDefenderTests
     // ---- the ported presentation chain (one concern: reproduce what MonsterField
     // builds — the cited originals are the shipped game files; fidelity rows pin it) ----
 
-    private const int W = 16;                 // AreaRenderer.W
-    private const int H = 16;                 // AreaRenderer.H
+    private const int W = 26;                 // AreaRenderer.FieldW (MC 12225 re-pin: fields 26×26; the town pair AreaRenderer.TownW/TownH=20 never applies HERE — the port walks no town, towns spawn nothing per the isTown row below)
+    private const int H = 26;                 // AreaRenderer.FieldH (the lair + the three anchor areas are ALL fields — one extent pair serves the whole port)
     private const double BlockChance = 0.22;  // AreaRenderer.Build scatter probability
     private const int NearMax = 3;            // MonsterField.NearMax (Chebyshev)
     private const int DeepMin = 5;            // MonsterField.DeepMin (Chebyshev)
@@ -254,11 +254,11 @@ public sealed class CzeluscDefenderTests
         // engine twice (out/.tmp/cz/probe-story{1,2}.out — the copy was removed).
         Assert.Equal(
         [
-            "MONSTER_SPAWN i=0 key=strzyga cell=9,7",
-            "MONSTER_SPAWN i=1 key=strzyga cell=6,7",
-            "MONSTER_SPAWN i=2 key=strzyga cell=8,10",
-            "MONSTER_SPAWN i=3 key=widlast cell=15,7",
-            "MONSTER_SPAWN i=4 key=widlast cell=11,14",
+            "MONSTER_SPAWN i=0 key=strzyga cell=14,13",
+            "MONSTER_SPAWN i=1 key=strzyga cell=11,13",
+            "MONSTER_SPAWN i=2 key=strzyga cell=14,11",
+            "MONSTER_SPAWN i=3 key=widlast cell=24,25",
+            "MONSTER_SPAWN i=4 key=widlast cell=18,7",
         ], StoryLines("czelusc"));
     }
 
@@ -272,38 +272,38 @@ public sealed class CzeluscDefenderTests
     {
         ["mchy"] =
         [
-            "MONSTER_SPAWN i=0 key=pokrzywnik cell=7,6",
-            "MONSTER_SPAWN i=1 key=pokrzywnik cell=10,9",
-            "MONSTER_SPAWN i=2 key=pokrzywnik cell=11,11",
-            "MONSTER_SPAWN i=3 key=pokrzywnik cell=10,8",
-            "MONSTER_SPAWN i=4 key=pokrzywnik cell=7,6",
-            "MONSTER_SPAWN i=5 key=pokrzywnik cell=5,5",
-            "MONSTER_SPAWN i=6 key=pokrzywnik cell=10,8",
-            "MONSTER_SPAWN i=7 key=pokrzywnik cell=6,7",
-            "MONSTER_SPAWN i=8 key=pokrzywnik cell=5,5",
-            "MONSTER_SPAWN i=9 key=pokrzywnik cell=9,10",
-            "MONSTER_SPAWN i=10 key=pokrzywnik cell=6,11",
-            "MONSTER_SPAWN i=11 key=pokrzywnik cell=6,7",
-            "MONSTER_SPAWN i=12 key=pokrzywnik cell=5,10",
-            "MONSTER_SPAWN i=13 key=pokrzywnik cell=6,11",
-            "MONSTER_SPAWN i=14 key=ponurak cell=4,3",
-            "MONSTER_SPAWN i=15 key=ponurak cell=7,15",
+            "MONSTER_SPAWN i=0 key=pokrzywnik cell=12,15",
+            "MONSTER_SPAWN i=1 key=pokrzywnik cell=15,12",
+            "MONSTER_SPAWN i=2 key=pokrzywnik cell=16,16",
+            "MONSTER_SPAWN i=3 key=pokrzywnik cell=15,11",
+            "MONSTER_SPAWN i=4 key=pokrzywnik cell=12,15",
+            "MONSTER_SPAWN i=5 key=pokrzywnik cell=10,11",
+            "MONSTER_SPAWN i=6 key=pokrzywnik cell=15,11",
+            "MONSTER_SPAWN i=7 key=pokrzywnik cell=11,11",
+            "MONSTER_SPAWN i=8 key=pokrzywnik cell=10,11",
+            "MONSTER_SPAWN i=9 key=pokrzywnik cell=14,11",
+            "MONSTER_SPAWN i=10 key=pokrzywnik cell=12,12",
+            "MONSTER_SPAWN i=11 key=pokrzywnik cell=11,11",
+            "MONSTER_SPAWN i=12 key=pokrzywnik cell=10,14",
+            "MONSTER_SPAWN i=13 key=pokrzywnik cell=12,12",
+            "MONSTER_SPAWN i=14 key=ponurak cell=8,17",
+            "MONSTER_SPAWN i=15 key=ponurak cell=13,24",
         ],
         ["pokrzywlasy"] =
         [
-            "MONSTER_SPAWN i=0 key=pokrzywnik cell=9,8",
-            "MONSTER_SPAWN i=1 key=pokrzywnik cell=6,7",
-            "MONSTER_SPAWN i=2 key=pokrzywnik cell=5,7",
-            "MONSTER_SPAWN i=3 key=kikimora cell=15,10",
-            "MONSTER_SPAWN i=4 key=kikimora cell=3,13",
+            "MONSTER_SPAWN i=0 key=pokrzywnik cell=15,13",
+            "MONSTER_SPAWN i=1 key=pokrzywnik cell=12,11",
+            "MONSTER_SPAWN i=2 key=pokrzywnik cell=10,15",
+            "MONSTER_SPAWN i=3 key=kikimora cell=25,9",
+            "MONSTER_SPAWN i=4 key=kikimora cell=7,24",
         ],
         ["kopcowisko"] =
         [
-            "MONSTER_SPAWN i=0 key=ponurak cell=11,7",
-            "MONSTER_SPAWN i=1 key=ponurak cell=11,5",
-            "MONSTER_SPAWN i=2 key=ponurak cell=8,9",
-            "MONSTER_SPAWN i=3 key=kretownik cell=10,13",
-            "MONSTER_SPAWN i=4 key=kretownik cell=14,10",
+            "MONSTER_SPAWN i=0 key=ponurak cell=16,10",
+            "MONSTER_SPAWN i=1 key=ponurak cell=15,16",
+            "MONSTER_SPAWN i=2 key=ponurak cell=13,15",
+            "MONSTER_SPAWN i=3 key=kretownik cell=16,22",
+            "MONSTER_SPAWN i=4 key=kretownik cell=22,25",
         ],
     };
 

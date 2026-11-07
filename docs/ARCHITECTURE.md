@@ -612,8 +612,11 @@ anchors are byte-safe BY CONSTRUCTION (md5 52af39886c0110a6d038068eb78a9429 unch
 M5 re-gate AND the doc-sync passes that cited it — historically scoped, true as measured then; czelusc's
 DEFENDERS data beat (MC 11954, LEDGER row 87) moved the anchor LEGITIMATELY — its spawn rows retired
 the rowless-lair NONE line, the data-gated guard falling silent, a single-hunk czelusc-only story diff —
-re-pinned md5 40c1e0a2e23501efa32906b9d894942d ×2 byte-identical: the current truth, re-measured ×2 by
-this hygiene pass). `SessionClock.Pump` is the ONE feed the windowed glue and
+re-pinned md5 40c1e0a2e23501efa32906b9d894942d ×2 byte-identical: the then-current truth, re-measured ×2 by
+this hygiene pass — SUPERSEDED 2026-11-07 (MC 12225): per-kind extents (fields 26×26 / town 20×20, AreaRenderer
+Build set from the data isTown flag) legitimately re-scattered the seeded layout — 198 story cell lines moved,
+markers intact — and the anchor was RE-PINNED own-measured to md5 7258e62d4f3242f0a45d5409b2528dc7 ×2
+pair-identical: the current truth, LEDGER row 89). `SessionClock.Pump` is the ONE feed the windowed glue and
 the headless bridge leg call verbatim — the tested path is the shipped path.
 
 REPLAY CONTRACT (v13 — the M5-S3 law, the round-2 verdict closing the continue gap): a

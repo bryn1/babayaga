@@ -62,6 +62,9 @@ Evidence measured for the v0.5.0 pre-staging (2026-11-03, base 76754b9, MC 11991
   `40c1e0a2e23501efa32906b9d894942d` (LEDGER row 87's re-pin; the v0.4.0 marker set above
   plus `DA_SCENE_ACT_OK`/`JOURNEY_OK`), 0 ERROR lines; game build ×2 `0 Error(s)`,
   `--import` exit 0.
+  > NOTE 2026-11-07 (MC 12225): the values above are the historical v0.5.0 pre-staging record — SUPERSEDED
+  > `40c1e0a2e23501efa32906b9d894942d` (pre-26/20 geometry). The LIVE story anchor is
+  > `7258e62d4f3242f0a45d5409b2528dc7` (×2 pair-identical, LEDGER row 89).
 
 ## Build & run
 

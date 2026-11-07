@@ -20,6 +20,11 @@ The D2 table-parity harness is the out-of-repo maintainer harness (README §Test
 recorded 10/10 on a merged tree (LEDGER row 84 and later row appends); it was NOT re-run in
 this docs-only pass — treat 10/10 at THIS commit as UNVERIFIED-this-pass.
 
+> NOTE 2026-11-07 (MC 12225): the md5 above is the historical pre-staging measurement on base 76754b9 —
+> SUPERSEDED `40c1e0a2e23501efa32906b9d894942d` (pre-26/20 geometry). The LIVE story anchor is
+> `7258e62d4f3242f0a45d5409b2528dc7` (×2 pair-identical, LEDGER row 89); the v0.5.0 TAG itself was cut on
+> the pre-26/20 tree and is NOT re-tagged by this note.
+
 ## WHAT SHIPS — the windowed act-1 slice
 
 - **A windowed Godot 4.7.2 (.NET/mono) game over the deterministic byte-anchored sim.**
