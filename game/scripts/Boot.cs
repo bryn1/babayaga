@@ -101,7 +101,12 @@ using Godot;
 /// BABA_MOBSCALE_LEG names one, the MC 12221 mob-scale driver (same shape —
 /// the hero:mob global-bounds ratio must land in [1.25, 1.6], the scaled mob's
 /// FEET on the tile centre, and a torso click must kill; BABA_MOBSCALE_1X is
-/// its RED lever).
+/// its RED lever), or when BABA_HUD_BAND_LEG names one, the MC 12222 bottom-band
+/// driver (same shape — the band's fills must EQUAL the live pools re-derived by
+/// the leg's own arithmetic, a click inside its 90px zone must stay the world's,
+/// and the MC 12136 controls line must hold its pixels; BABA_HUD_BAND_OFF hides
+/// the band and is its RED. STATED READING: the brief's BABA_HUD_LEG name is
+/// already owned by MC 11959's HudClickLeg, so this gate rides its own env).
 /// Zero rules
 /// live here (Game → Sim → nothing).
 /// </summary>
@@ -142,6 +147,8 @@ public partial class Boot : Node
             RunAnimLeg(anDir); // MC 12153 animation-play driver (BABA_ANIM_LEG-gated) — same gate shape
         else if (System.Environment.GetEnvironmentVariable(MobScaleLeg.EnvVar) is { Length: > 0 } msDir)
             RunMobScaleLeg(msDir); // MC 12221 mob-scale driver (BABA_MOBSCALE_LEG-gated) — same gate shape
+        else if (System.Environment.GetEnvironmentVariable(HudLeg.EnvVar) is { Length: > 0 } hbDir)
+            RunHudBandLeg(hbDir); // MC 12222 bottom-band driver (BABA_HUD_BAND_LEG-gated) — same gate shape
         else
             // LEDGER row 86 CURE (MC 11957): a SYNCHRONOUS ChangeSceneToFile from
             // inside _Ready made the engine remove_child the boot scene while the
@@ -393,6 +400,22 @@ public partial class Boot : Node
         var act = InstantiateActSmoke();
         if (act is null) { GetTree().Quit(1); return; }
         AddChild(new MobScaleLeg { OutDir = legDir, Act = act });
+    }
+
+    /// <summary>MC 12222 THE BOTTOM BAND EVIDENCE LEG (the owner complaint "our UI
+    /// is a bare left text column"): the same gate shape — windowed ONLY,
+    /// BABA_HUD_BAND_LEG-gated, unset = dead code (the story bytes never reach it).
+    /// New session at the leg seed, the REAL Act; the driver in HudLeg.cs reads the
+    /// band's orb/strip/belt fills back against the live session (its OWN
+    /// arithmetic, never the HUD's law), proves the bottom 90px is still the world's
+    /// to click, and shows the strip grow on a kill and the orb shrink on
+    /// counter-damage. BABA_HUD_BAND_OFF hides the band — that is its RED.</summary>
+    private void RunHudBandLeg(string legDir)
+    {
+        GameContext.New(HudLeg.LegSeed);
+        var act = InstantiateActSmoke();
+        if (act is null) { GetTree().Quit(1); return; }
+        AddChild(new HudLeg { OutDir = legDir, Act = act });
     }
 
     /// <summary>The DoD leg 3/3b gate + the slice journey legs. The legs below
