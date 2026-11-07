@@ -1,3 +1,6 @@
+// reason (file-hygiene, MC 12221): past 400 — the mob PRESENTATION scale, its feet
+// anchor and its hit circle are ONE draw contract of the sprite nodes this class
+// already spawns; splitting would scatter that contract from its owner.
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,18 +30,51 @@ using Godot;
 /// M5_S4_DESPAWN_OK marker reads; no second ledger, the Sim's fresh-per-kill MATH
 /// untouched) and Build skips recorded cells, so an area rebuild/re-entry never
 /// re-materializes a killed monster.
+/// MC 12221 (owner ruling MOBS HALVED): every monster sprite this class stands
+/// rides ONE presentation scale (MobScale — applied at its birth in Build, the
+/// single place all spawns pass through): the owner's measured comparison vs D2
+/// (DOC-d2-lod-compare §1–§2) showed the hero:mob height hierarchy INVERTED. The
+/// hit circle and the death ghost follow the same single number; the Sim, the
+/// spawn law, the roster and kills-stay-dead are untouched (presentation only).
 /// </summary>
 public partial class MonsterField : Node2D
 {
     // MC 12136 §6(b): the sprite draws 160×160 CENTERED 80 px ABOVE its Position
     // (Offset (0,-80)) — the old r=60 circle at the FEET anchor made every
-    // torso/head click (distance ≥ 96) a silent miss. The circle now sits at the
-    // DRAWN centre: r=90 covers the visible 160 px body, lands the feet anchor the
-    // S4 leg clicks with margin (80 < 90, never a boundary float), and a ground
-    // click BELOW the feet misses (the nearest south-cell centre is 32 px past the
-    // anchor → 112 away): no double-hit of the click that means the ground.
-    private const float BodyRise = 80f;  // the drawn body's centre, px above the feet anchor
-    private const float HitRadius = 90f; // the visible body + 10 px click slack, centred at BodyRise
+    // torso/head click (distance ≥ 96) a silent miss. The circle sits at the
+    // DRAWN centre and lands the feet anchor the S4 leg clicks with margin, and a
+    // ground click BELOW the feet misses (the nearest south-cell centre is 32 px
+    // past the anchor): no double-hit of the click that means the ground. Since
+    // MC 12221 the rise and the radius ride MobScale — the CIRCLE SCALES WITH THE
+    // BODY it circles (below), so clicking what you SEE never drifted from the art.
+    private const float BodyRise = 80f;  // the drawn body's centre, px above the feet anchor AT SCALE 1
+    private const float HitRadius = 90f; // body half (80) + 10 px click slack, AT SCALE 1, centred at BodyRise
+
+    // MC 12221 MOBS HALVED (owner's measured comparison vs D2, DOC-d2-lod-compare
+    // §1–§2): the hero:mob px-height hierarchy was INVERTED (visible pair 137:165 =
+    // 0.83; D2 anchor 1.42 — the hero TOWERS over what he kills). ONE constant,
+    // applied where every monster sprite node is born (Build) — all spawns, one
+    // place; the HERO IS NOT TOUCHED (137 px stands, per the owner ruling).
+    // DERIVATION: 137 / (165·s) = 1.42 ⇒ s = 0.5847 → 0.58: the visible pair lands
+    // 137:95.7 ≈ 1.43; the global-BOUNDS pair the MOBSCALE LEG gates lands
+    // 128:92.8 = 1.38 — both inside the brief's [1.25, 1.6] window. FEET-ON-TILE
+    // (the MC 12140 anchor law) needs NO second correction: Godot scales the node
+    // transform, so the (0,-80) Offset shortens WITH the sprite and the scaled
+    // body's FEET stay pinned on the cell's GridToScreen point at any scale.
+    private const float MobScaleTarget = 0.58f;
+
+    /// <summary>MC 12221 RED-CONTROL (the MOBSCALE LEG's red lever, the
+    /// BABA_SNAP_MODE shape): set to any value and mobs render at scale 1.0 — the
+    /// leg's hero:mob ratio assertion goes red; every older gate stays green.</summary>
+    public const string MobScale1XVar = "BABA_MOBSCALE_1X";
+
+    private static readonly bool _scale1X =
+        System.Environment.GetEnvironmentVariable(MobScale1XVar) is { Length: > 0 };
+
+    /// <summary>The ONE mob presentation scale in effect (0.58; 1.0 under the RED
+    /// lever). The node Scale in Build, the hit circle, the torso read below and
+    /// the death-ghost copy ALL ride this single number.</summary>
+    public static float MobScale => _scale1X ? 1f : MobScaleTarget;
     private const int NearMax = 3;   // near-spawn band, Chebyshev from arrival cell
     private const int DeepMin = 5;   // deep band; the 4-ring between may stay empty
 
@@ -133,7 +169,11 @@ public partial class MonsterField : Node2D
                 {
                     Texture = MonsterTexture(row.Kind),
                     Centered = true,
-                    Offset = new Vector2(0, -80f), // feet at cell centre, scale 1.0 (§3 SPRITE DRAW SCALE)
+                    Offset = new Vector2(0, -80f), // feet at cell centre (scales WITH the node below)
+                    Scale = Vector2.One * MobScale, // MC 12221: the ONE mob presentation scale,
+                                                    // applied where every spawn node is born — the
+                                                    // scaled (0,-80) offset keeps the FEET on the
+                                                    // cell's GridToScreen point (MC 12140 law)
                     Position = IsoCamera.GridToScreen(cell),
                 };
                 _row.AddChild(sprite);
@@ -280,12 +320,14 @@ public partial class MonsterField : Node2D
         var gTex = killed.Texture;
         var gPos = killed.Position;
         var gOff = killed.Offset;
+        var gScale = killed.Scale; // MC 12221: the ghost fades at the SAME scale it stood in
         killed.QueueFree();
         if (_visual && !AnimOff && gTex is not null && _ghostRow is not null)
         {
             var ghost = new Sprite2D
             {
-                Texture = gTex, Centered = true, Offset = gOff, Position = gPos, YSortEnabled = true,
+                Texture = gTex, Centered = true, Offset = gOff, Scale = gScale,
+                Position = gPos, YSortEnabled = true,
             };
             _ghostRow.AddChild(ghost);
             _ghosts.Add((ghost, FadeDur));
@@ -319,20 +361,53 @@ public partial class MonsterField : Node2D
         return row;
     }
 
+    /// <summary>MC 12221: the STANDING sprite nodes in roster (build) order — the
+    /// MOBSCALE LEG's node-level reads (bounds px, feet anchor, the red flash).
+    /// A rebuild's QueueFree'd siblings make the engine's node NAMES unreliable
+    /// (measured: "@Node2D@24"), so the roster — never a name hunt — is the
+    /// honest handle. Presentation truth, never Sim state.</summary>
+    public List<Sprite2D> StandingSprites()
+    {
+        var l = new List<Sprite2D>(_roster.Count);
+        foreach (var e in _roster.Entries)
+            if (GodotObject.IsInstanceValid(e.Sprite)) l.Add(e.Sprite);
+        return l;
+    }
+
+    /// <summary>MC 12221: the live death-ghost nodes (MC 12153's fading tail) —
+    /// the same roster-list-honest shape as StandingSprites, never a name hunt.</summary>
+    public List<Sprite2D> GhostSprites()
+    {
+        var l = new List<Sprite2D>();
+        foreach (var (spr, _) in _ghosts)
+            if (GodotObject.IsInstanceValid(spr)) l.Add(spr);
+        return l;
+    }
+
     /// <summary>The monster key under a world point, or null (click hit-test).
-    /// MC 12136: the circle rides the DRAWN body (centre at BodyRise above the
-    /// feet anchor, r=HitRadius) — torso and head clicks land; ground below the
-    /// feet does not. Roster order answers, so one click takes one key.</summary>
+    /// MC 12136: the circle rides the DRAWN body (centre above the feet anchor,
+    /// r=HitRadius) — torso and head clicks land; ground below the feet does not.
+    /// MC 12221: rise and radius ride MobScale — the circle CIRCLES the body the
+    /// player actually sees, so the kill-area never drifted from the art. Roster
+    /// order answers, so one click takes one key.</summary>
     public string? MonsterAt(Vector2 world)
     {
+        float k = MobScale; // ONE read: rise and radius scale TOGETHER with the body
         foreach (var e in _roster.Entries)
         {
             var p = e.Sprite.Position;
-            if (new Vector2(p.X, p.Y - BodyRise).DistanceTo(world) <= HitRadius)
+            if (new Vector2(p.X, p.Y - BodyRise * k).DistanceTo(world) <= HitRadius * k)
                 return e.Key;
         }
         return null;
     }
+
+    /// <summary>The DRAWN body centre (world px) of the monster standing on one
+    /// cell at the effective scale — the same anchor the hit circle rides, one
+    /// formula (click what you SEE). MC 12221: the MOBSCALE LEG's synthesized
+    /// torso click aims through here.</summary>
+    public static Vector2 BodyCentreWorld(Vector2I cell) =>
+        IsoCamera.GridToScreen(cell) - new Vector2(0f, BodyRise * MobScale);
 
     /// <summary>The walkable cells of one placement band around the arrival cell
     /// (Chebyshev, the one metric — same inline form as AreaRenderer.CenterCell);
