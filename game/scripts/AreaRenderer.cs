@@ -12,8 +12,25 @@ using Godot;
 /// </summary>
 public partial class AreaRenderer : Node2D
 {
-    public const int W = 16;
-    public const int H = 16;
+    /// <summary>MC 12225 PER-KIND EXTENTS (the D2-density ruling: fields 26×26,
+    /// the town hub 20×20). The kind is the data flag ALREADY flowing through
+    /// Build — act1-areas.json isTown is the one truth (no data size key was
+    /// added: the sim loader ignores unknown keys, measured by the MC 12225
+    /// probe, so a json size would be inert). W/H are the CURRENT built area's
+    /// extent — every consumer (click map, door tests, camera clamps, leg
+    /// scans) reads them AFTER a Build exactly as the old static 16s, the
+    /// extent simply follows the area on screen (one mechanism, no scatter
+    /// rewrite; the story anchor re-pinned per the sanctioned re-pin).</summary>
+    public const int TownW = 20;
+    public const int TownH = 20;
+    public const int FieldW = 26;
+    public const int FieldH = 26;
+
+    /// <summary>The LAST built area's extent — Build sets it from isTown; the
+    /// field pair is the pre-Build default (a renderer never paints before
+    /// Act.Rebuild calls Build, so no consumer ever sees the default).</summary>
+    public static int W { get; private set; } = FieldW;
+    public static int H { get; private set; } = FieldH;
 
     /// <summary>Bobrowisko Dusk tokens (M4-placement §3) for the placeholder pass.</summary>
     private static readonly Color Grass = new("3E5230");
@@ -61,7 +78,12 @@ public partial class AreaRenderer : Node2D
         _stoneSprite = null;
 
         // Display-only layout: a seeded scatter of blocked cells inside an always-
-        // walkable border (the door edges live on the border).
+        // walkable border (the door edges live on the border). The extent is the
+        // area KIND's own (MC 12225) — picked BEFORE the scatter, whose RNG draws
+        // run over W·H cells, so the whole layout chain (CenterCell, spawn bands,
+        // the story's cell coordinates) follows the extent deterministically.
+        W = isTown ? TownW : FieldW;
+        H = isTown ? TownH : FieldH;
         var rng = new Random((int)Fnv.Hash(areaKey));
         for (int x = 0; x < W; x++)
             for (int y = 0; y < H; y++)
