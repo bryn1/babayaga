@@ -104,9 +104,11 @@ using Godot;
 /// its RED lever), or when BABA_HUD_BAND_LEG names one, the MC 12222 bottom-band
 /// driver (same shape — the band's fills must EQUAL the live pools re-derived by
 /// the leg's own arithmetic, a click inside its 90px zone must stay the world's,
-/// and the MC 12136 controls line must hold its pixels; BABA_HUD_BAND_OFF hides
-/// the band and is its RED. STATED READING: the brief's BABA_HUD_LEG name is
-/// already owned by MC 11959's HudClickLeg, so this gate rides its own env).
+/// and the MC 12136 controls line must stay visible over its corner — MC 12252's
+/// corner rule lets the band lift it straight up above the orb, never sideways;
+/// BABA_HUD_BAND_OFF (band hidden) and BABA_BAND_UNPOLISHED (pre-polish
+/// constants) are its two REDs. STATED READING: the brief's BABA_HUD_LEG name
+/// is already owned by MC 11959's HudClickLeg, so this gate rides its own env).
 /// Zero rules
 /// live here (Game → Sim → nothing).
 /// </summary>
@@ -409,7 +411,11 @@ public partial class Boot : Node
     /// band's orb/strip/belt fills back against the live session (its OWN
     /// arithmetic, never the HUD's law), proves the bottom 90px is still the world's
     /// to click, and shows the strip grow on a kill and the orb shrink on
-    /// counter-damage. BABA_HUD_BAND_OFF hides the band — that is its RED.</summary>
+    /// counter-damage. MC 12252 ADDED gate (a2): the DOC-ui-compare-2 §4 measured
+    /// numbers (160px orbs edge-cut past the screen edges, ~26%W xp strip
+    /// left-of-centre, belt block right-of-centre) plus the corner rule for the
+    /// controls line. BABA_HUD_BAND_OFF (hides the band) and BABA_BAND_UNPOLISHED
+    /// (restores the pre-polish constants) are its two REDs.</summary>
     private void RunHudBandLeg(string legDir)
     {
         GameContext.New(HudLeg.LegSeed);
