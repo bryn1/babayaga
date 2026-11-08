@@ -17,11 +17,15 @@ using Godot;
 /// hit — the visual glide changes no targeting), plus the camera glides too
 /// (its pos strictly between the two clamped cell points mid-step — CamLeg's
 /// ε stays its own). RED proof: BABA_SNAP_MODE (HeroController.SnapVar, the
-/// zero-length glide) makes the mid-glide assertion fail. NO sim verb is
-/// reachable from any line here (the driver reads state; every state move is
-/// one click). The ≥2-frame sample rule exists because Act._Process pulls the
-/// camera BEFORE HeroController advances the glide — on the commit frame the
-/// camera legitimately still sits on the previous point.
+/// zero-length glide) makes the mid-glide assertion fail. Since MC 12256 the leg
+/// ALSO carries the CADENCE marker: a staged town cross (far-interior corner to
+/// far-interior corner, one LMB) prints <c>cross_seconds=steps×StepSeconds</c> and
+/// asserts the D2 pacing window [8,14] s — RED lever BABA_FAST_WALK (HeroController.
+/// FastWalkVar) keeps the old 0.2 s step, dropping cross_seconds to ~1/3 and the
+/// leg with it. NO sim verb is reachable from any line here (the driver reads state;
+/// every state move is one click). The ≥2-frame sample rule exists because
+/// Act._Process pulls the camera BEFORE HeroController advances the glide — on the
+/// commit frame the camera legitimately still sits on the previous point.
 /// </summary>
 public partial class SmoothLeg : Node
 {
@@ -31,12 +35,14 @@ public partial class SmoothLeg : Node
     public string OutDir = "";
     public Act Act = null!;
 
-    private enum Step { Settle, WaitStep1, MidGlide, WaitSettle, Arrive, Finish }
+    private enum Step { Settle, WaitStep1, MidGlide, WaitSettle, Arrive, CrossStage, CrossWalk, Finish }
 
     private Step _step = Step.Settle;
     private int _frames, _midFrames, _settleFrames;
-    private double _deadline, _maxDelta;
-    private Vector2I _prev, _cur, _retarget;
+    private double _deadline, _maxDelta, _crossT0, _clickT0Ms;
+    private Vector2I _prev, _cur, _retarget, _c0, _c1, _crossPrev;
+    private int _crossSteps, _crossHalf;
+    private bool _crossShot;
     private float _tSample = -1f;
     private bool _shot;
 
@@ -127,7 +133,60 @@ public partial class SmoothLeg : Node
                 if (hero.VisualPos != want) { Fail("Arrive", $"hero not EXACTLY on the target lattice point (end_dist={endDist:F6})"); return; }
                 if (hero.Cell != _retarget) { Fail("Arrive", $"mid-glide click lost targeting: landed {hero.Cell}, clicked {_retarget}"); return; }
                 if (!_shot) { Fail("Arrive", "no mid-glide screenshot was taken"); return; }
-                GD.Print($"BABA_SMOOTH_LEG OK mid_t={_tSample:F3} strict_between=yes exact=target click-mid-glide landed={hero.Cell} camera=glides shot=01-midglide.png");
+                // MC 12256 CADENCE — the marker measures a real cross-town walk. The
+                // pair is the town's two FARTHEST INTERIOR cells (every edge cell is
+                // a DOOR cell — committing one fires TravelIntent, so edge-to-edge is
+                // honestly the interior max of the 20×20 town). Staging first makes
+                // the measured leg start from a FIXED cell: the A* path, the step
+                // count and cross_seconds are then run-invariant (Xvfb frame jitter
+                // never moves a pinned number).
+                _c0 = CrossStageCell();
+                _c1 = CrossFarCell(_c0);
+                if (_c1 == _c0) { Fail("Arrive", "no interior walkable pair to cross the town between"); return; }
+                _crossHalf = Math.Max(Math.Abs(_c1.X - _c0.X), Math.Abs(_c1.Y - _c0.Y)) / 2;
+                GD.Print($"BABA_SMOOTH_LEG_CROSS plan from={_c0} to={_c1} step_seconds={hero.StepSeconds:F2} fast_lever={System.Environment.GetEnvironmentVariable(HeroController.FastWalkVar) is { Length: > 0 }}");
+                Click(hero.CellToScreen(_c0)); // stage: walk to the far-corner end (its steps are NOT counted)
+                _clickT0Ms = Time.GetTicksMsec(); // MC 12256 RESPONSIVENESS stamp: the cross click (an
+                Enter(Step.CrossStage, 60.0);     // LMB through the real queue) to its handler dispatch
+                break;
+            case Step.CrossStage:
+                if (_clickT0Ms > 0 && hero.IsWalking) // ONE read: the synthesized-click → _UnhandledInput →
+                {                                     // PlanPath dispatch span — the SAME handler chain
+                    double lat = Time.GetTicksMsec() - _clickT0Ms; // an in-range attack rides (its
+                    _clickT0Ms = 0;                                // s.Attack COMMITs in-call, never step-end)
+                    GD.Print($"BABA_SMOOTH_LEG_CLICKLAT plan_dispatch_ms={lat:F0} (click→handler, attack rides this door — not the step timer)");
+                }
+                if (hero.Cell != _c0 || hero.IsWalking || hero.IsGliding) { _settleFrames = 0; return; }
+                if (++_settleFrames < 3) return; // the staging walk's presents drain before the click
+                _crossSteps = 0; _crossPrev = hero.Cell; _crossT0 = Time.GetTicksMsec();
+                Click(hero.CellToScreen(_c1)); // THE measured edge->edge walk, one LMB like a human's
+                Enter(Step.CrossWalk, 60.0);
+                break;
+            case Step.CrossWalk:
+                if (hero.Cell != _crossPrev)
+                {
+                    _crossSteps++; _crossPrev = hero.Cell;
+                    if (!_crossShot && _crossSteps >= _crossHalf && hero.IsGliding)
+                    {
+                        Shot("01-town.png"); // mid-cross: the hero painted on the walk across town
+                        GD.Print($"BABA_SMOOTH_LEG_CROSSSHOT steps={_crossSteps} half={_crossHalf} — 01-town.png");
+                        _crossShot = true;
+                    }
+                }
+                if (hero.IsWalking || hero.IsGliding) { _settleFrames = 0; return; }
+                if (++_settleFrames < 3) return; // the last glide's presents drain before the read
+                if (hero.Cell != _c1) { Fail("CrossWalk", $"cross-town walk landed {hero.Cell}, clicked {_c1}"); return; }
+                if (!_crossShot) { Shot("01-town.png"); _crossShot = true; } // honest fallback: the arrival frame
+                // steps × interval -> seconds (the brief's instrument), read against the
+                // LIVE cadence (StepSeconds) — under the RED lever this is steps × 0.2.
+                float secs = _crossSteps * hero.StepSeconds;
+                double wall = (Time.GetTicksMsec() - _crossT0) / 1000.0; // honesty row: the real-clock span
+                GD.Print($"BABA_SMOOTH_LEG_CROSS steps={_crossSteps} cross_seconds={secs:F1} " +
+                         $"({_crossSteps}x{hero.StepSeconds:F2}s) measured={wall:F1}s max_dt={_maxDelta:F4}s window=[8,14]");
+                if (secs < 8f || secs > 14f)
+                { Fail("CrossWalk", $"cross_seconds={secs:F1} s outside the D2 cadence window [8,14] (steps={_crossSteps} x {hero.StepSeconds:F2} s)"); return; }
+                GD.Print($"BABA_SMOOTH_LEG OK mid_t={_tSample:F3} strict_between=yes exact=target click-mid-glide landed={_retarget} " +
+                         $"camera=glides shot=01-midglide.png cross_seconds={secs:F1} edge_cross=yes cross_steps={_crossSteps}");
                 Enter(Step.Finish, 0.3);
                 break;
             case Step.Finish:
@@ -163,6 +222,42 @@ public partial class SmoothLeg : Node
             return c;
         }
         return from; // the callers FAIL on this — never a silent pass
+    }
+
+    /// <summary>MC 12256: one interior cell — no edge (edge cells are DOOR cells: a
+    /// committed step onto one fires TravelIntent and leaves the town) and never the
+    /// lit stone (its click RIDES, it does not walk).</summary>
+    private bool IsInterior(Vector2I c) =>
+        c.X != 0 && c.Y != 0 && c.X != AreaRenderer.W - 1 && c.Y != AreaRenderer.H - 1
+        && !Act.Tiles.IsLitStone(c);
+
+    /// <summary>MC 12256: the interior walkable cell hugging the (0,0) corner —
+    /// deterministic off the walkable set (never off the hero's wanderings), so the
+    /// measured cross starts from the SAME cell in every run. Ties follow the Build
+    /// loop's row-major insertion order (stable).</summary>
+    private Vector2I CrossStageCell()
+    {
+        var best = new Vector2I(int.MaxValue, int.MaxValue);
+        int bestSum = int.MaxValue; // the sum rides its OWN sentinel — best.X+best.Y on the
+        foreach (var c in Act.Tiles.Walkable) // uninit pair overflows to −2 (caught by this leg's first run)
+            if (IsInterior(c) && c.X + c.Y < bestSum) { bestSum = c.X + c.Y; best = c; }
+        return best;
+    }
+
+    /// <summary>MC 12256: the interior walkable cell at the GREATEST Chebyshev
+    /// distance from the staging cell — the far edge of the 20-wide town, the one
+    /// A* path this walk then walks. Same metric as the Sim's DistanceTo.</summary>
+    private Vector2I CrossFarCell(Vector2I from)
+    {
+        var best = from;
+        int bestD = -1;
+        foreach (var c in Act.Tiles.Walkable)
+        {
+            if (!IsInterior(c) || c == from) continue;
+            int d = Math.Max(Math.Abs(c.X - from.X), Math.Abs(c.Y - from.Y));
+            if (d > bestD) { bestD = d; best = c; }
+        }
+        return best; // the Arrive caller FAILS on the from==to signature — never a silent pass
     }
 
     /// <summary>One synthesized LMB click — press then release, pushed through

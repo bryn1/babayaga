@@ -362,7 +362,11 @@ public partial class Boot : Node
     /// hero node's pos STRICTLY between two cells mid-step, EXACTLY on the
     /// target at step end, a mid-glide synthesized click still targeting the
     /// CLICKED cell, and the camera gliding too. RED lever: BABA_SNAP_MODE
-    /// (HeroController.SnapVar) makes the mid-glide assertion go red.</summary>
+    /// (HeroController.SnapVar) makes the mid-glide assertion go red. Since
+    /// MC 12256 it also prints the CADENCE marker cross_seconds=steps×step-interval
+    /// for one synthesized town edge->edge walk (D2 pacing window [8,14] s at the
+    /// 0.5 s/2-cells-per-second cadence); RED lever BABA_FAST_WALK
+    /// (HeroController.FastWalkVar) keeps the old 0.2 s step and goes red.</summary>
     private void RunSmoothLeg(string legDir)
     {
         GameContext.New(SmoothLeg.LegSeed);

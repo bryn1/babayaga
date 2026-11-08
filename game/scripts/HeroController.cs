@@ -27,7 +27,18 @@ using Godot;
 /// </summary>
 public partial class HeroController : Node2D
 {
-    private const float StepInterval = 0.2f; // seconds per cell (convention, changeable)
+    /// <summary>MC 12256 D2 CADENCE (the camera table's LAST gap, out/DOC-d2-lod-compare):
+    /// seconds per committed cell. Was 0.2 (5 cells/s — fast-and-frantic); 0.5 walks
+    /// 2 cells/s, the weighty D2 pacing. The ONE cadence source: the glide below pumps
+    /// over it (MC 12149) and SmoothLeg's cross_seconds window asserts against it
+    /// through StepSeconds — never a second constant beside this one.</summary>
+    private const float StepInterval = 0.5f;
+
+    /// <summary>MC 12256 RED-CONTROL for the SMOOTH LEG's cadence marker: set to any
+    /// value and steps keep the OLD 0.2 s interval (5 cells/s), so SmoothLeg's
+    /// cross_seconds window [8,14] s goes red against it, green again when unset.</summary>
+    public const string FastWalkVar = "BABA_FAST_WALK";
+    private const float FastWalkInterval = 0.2f; // the RED lever's pre-12256 cadence
 
     /// <summary>MC 12149 RED-CONTROL (the gate proving it can go red): set to any
     /// value and steps SNAP again (zero-length glide) — SmoothLeg's mid-glide
@@ -54,6 +65,7 @@ public partial class HeroController : Node2D
     private readonly List<WorldPos> _path = [];
     private Vector2I? _doorTarget; // set when the walk lands on an edge door
     private float _stepTimer;
+    private float _stepInterval = StepInterval; // MC 12256: FastWalkVar re-points it to the old 0.2 (RED lever)
     private string _facing = "S";
 
     // MC 12149 PRESENTATION GLIDE (owner complaint "the movement is very unsmooth" —
@@ -177,6 +189,11 @@ public partial class HeroController : Node2D
     /// (presentation read for the legs; the sim committed the moment it turned false).</summary>
     public bool IsGliding => _glideT < 1f;
 
+    /// <summary>MC 12256: the LIVE seconds-per-step cadence — the SmoothLeg's
+    /// cross_seconds read (the leg asserts its window against THIS one source,
+    /// never a duplicated constant beside it).</summary>
+    public float StepSeconds => _stepInterval;
+
     /// <summary>Scripts a walk intent (the headless marker leg): the SAME A* the
     /// windowed click plans; an unwalkable goal plans nothing.</summary>
     public void WalkTo(Vector2I cell)
@@ -227,6 +244,8 @@ public partial class HeroController : Node2D
         _snap = System.Environment.GetEnvironmentVariable(SnapVar) is { Length: > 0 }; // MC 12149 RED lever
         _animOff = System.Environment.GetEnvironmentVariable(AnimOffVar) is { Length: > 0 }; // MC 12153 RED lever
         _noAttackPose = System.Environment.GetEnvironmentVariable(NoAttackPoseVar) is { Length: > 0 }; // MC 12162 RED lever
+        if (System.Environment.GetEnvironmentVariable(FastWalkVar) is { Length: > 0 })
+            _stepInterval = FastWalkInterval; // MC 12256 RED lever: the old 5-cells/s cadence
     }
 
     /// <summary>Committed cell while a walk path is still playing (S4 driver
@@ -307,7 +326,7 @@ public partial class HeroController : Node2D
         // so a settled hero sits on its lattice point to the bit.
         if (_glideT < 1f)
         {
-            _glideT = Mathf.Min(_glideT + dt / StepInterval, 1f);
+            _glideT = Mathf.Min(_glideT + dt / _stepInterval, 1f); // glide coheres with the LIVE cadence (MC 12256)
             if (_sprite is { } sp)
                 sp.Position = _glideT < 1f ? _glideFrom.Lerp(_glideTo, _glideT) : _glideTo;
             // MC 12153: the walk cycle's second frame — the planted (idle) pose
@@ -335,7 +354,7 @@ public partial class HeroController : Node2D
         }
         if (_path.Count == 0) return;
         _stepTimer += dt;
-        if (_stepTimer < StepInterval) return;
+        if (_stepTimer < _stepInterval) return;
         _stepTimer = 0f;
 
         StepNext();
