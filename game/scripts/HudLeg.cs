@@ -37,14 +37,20 @@ using Godot;
 /// SHOTS: 01-band.png (the town start, the whole band) and 02-band-combat.png
 /// (after a kill — the strip moved), both with the world PAUSED and the present
 /// queue drained (AnimLeg's freeze-shot shape).
-/// RED proof: BABA_HUD_BAND_OFF (Hud.BandOffVar) HIDES the band → gate (a) goes
-/// red on the band's own visibility. Markers "BABA_HUD_BAND OK …" /
-/// "BABA_HUD_BAND FAIL …", pinned.
+/// MC 12252 (measured UI round 2) ADDED to that: gate (a2) — the DOC-ui-compare-2
+/// §4 numbers as assertions (160px orbs, both edge-cut past the screen edges —
+/// marker "orb_edge_clipped=yes", an ~26%W xp strip left of centre with the chip
+/// rail attached, the belt block right of centre after it) — and (d) grew the
+/// corner rule: the controls line stays visible at x=8 and clears the corner
+/// orb, printed with its lift delta. RED levers: BABA_HUD_BAND_OFF (band gone,
+/// gate (a) red) and BABA_BAND_UNPOLISHED (old constants, gate (a2) red on the
+/// 64px orb). Markers "BABA_HUD_BAND OK …" / "BABA_HUD_BAND FAIL …", pinned.
 /// </summary>
 public partial class HudLeg : Node
 {
     public const string EnvVar = "BABA_HUD_BAND_LEG";
     public const ulong LegSeed = 42; // the anchor seed — the town start, the owner's first frame
+    const int OrbArtPx = 64;         // the shipped ui-orb texture's own px (MC 12252: the band paints it ×2.5, the column ×1)
 
     public string OutDir = "";
     public Act Act = null!;
@@ -64,6 +70,8 @@ public partial class HudLeg : Node
     private long _lifeBeforeKill, _xpBeforeKill, _xpSpan;
     private int _lifePxBeforeKill, _lifePxAfterKill, _xpPxBeforeKill;
     private bool _heroWalked, _bandClickMovedHero, _bandWalked, _sawKill, _sawDamage;
+    private bool _edgeClipped;   // MC 12252 marker: the last Gate pass saw the orb rects cut by the screen edges
+    private int _lineLiftPx;     // MC 12252: how far straight up the controls line had to move (0 = it never collided)
     private Vector2 _bandPx = new(float.NaN, float.NaN); // a band pixel the WORLD owns
 
     public override void _Ready()
@@ -297,6 +305,7 @@ public partial class HudLeg : Node
                          $"life_px={Act.HudPanel.BandLifeFillPx} mana_px={Act.HudPanel.BandManaFillPx} " +
                          $"belt=[{Act.HudPanel.BandBeltShown}] chip={Act.HudPanel.BandChipShown} " +
                          $"ground_walk={_heroWalked} band_click_harmless=True band_walkthrough={_bandWalked} kill={_sawKill} damage={_sawDamage} " +
+                         $"orb_edge_clipped={(_edgeClipped ? "yes" : "no")} controls_lift={_lineLiftPx}px " +
                          $"column_and_band_agree=True");
                 GetTree().Quit(0);
                 break;
@@ -338,28 +347,68 @@ public partial class HudLeg : Node
         if (hud.BandLifeFillPx != wantLife) { why = $"life orb says {hud.BandLifeFillPx}px, {s.Character.Life}/{s.Character.MaxLife} over {orb}px is {wantLife}px"; return false; }
         if (hud.BandManaFillPx != wantMana) { why = $"mana orb says {hud.BandManaFillPx}px, {s.Character.Mana}/{s.Character.MaxMana} over {orb}px is {wantMana}px"; return false; }
         if (hud.BandXpFillPx != wantXp) { why = $"xp strip says {hud.BandXpFillPx}px, {into}/{span} over {track}px is {wantXp}px"; return false; }
-        if (hud.LifeFillPx != hud.BandLifeFillPx) { why = $"the column's orb drew {hud.LifeFillPx}px and the band's drew {hud.BandLifeFillPx}px — two truths, one pull"; return false; }
+        // The corner twin after MC 12252: the column still paints the raw 64px art,
+        // the band paints it ×2.5 — ONE pull now means EQUAL FRACTIONS, and two floor
+        // divisions of one fraction may part by one art-px at worst, so the leg
+        // re-scales the column's truth onto the band's extent with that tolerance.
+        long colOnBand = (long)hud.LifeFillPx * orb / OrbArtPx;
+        if (Math.Abs(colOnBand - hud.BandLifeFillPx) > 1)
+        { why = $"the column's orb drew {hud.LifeFillPx}/{OrbArtPx}px = {colOnBand}px over {orb}px, the band's drew {hud.BandLifeFillPx}px — two truths, one pull"; return false; }
 
         string belt = string.Join(",", s.Belt.Select(i => i is null ? "-" : char.ToUpperInvariant(i.Base.Name[0]).ToString()));
         if (hud.BandBeltShown != belt) { why = $"belt cells show [{hud.BandBeltShown}], session.Belt is [{belt}]"; return false; }
         string chip = span > 0 ? $"lvl {s.Level}" : $"lvl {s.Level} MAX";
         if (hud.BandChipShown != chip) { why = $"chip shows \"{hud.BandChipShown}\", the level is {s.Level} (span {span})"; return false; }
 
-        // (d) THE MC 12136 CONTROLS LINE — same node, same pixels, and no overlap
-        // with the band's life orb (the orb was laid out to the RIGHT of it).
+        // (a2) MC 12252 THE MEASURED POLISH — the DOC-ui-compare-2 §4 numbers re-derived
+        // HERE off the live rects, not off Hud's constants (an assertion that trusted
+        // them would guard nothing). BABA_BAND_UNPOLISHED=1 restores the pre-polish
+        // layout and this block is what pastes its FAIL: 64px orbs, flush insets, the
+        // 60.6%W strip and the centred belt all miss a target below.
+        int winX = win.X;
+        int wantOrb = (int)(OrbArtPx * Hud.OrbScale); // D2's 80–85px at 640 ⇒ 160–170 at 1280; ours: 64×2.5
+        if (orb != wantOrb) { why = $"orbs are {orb}px, the polish target is {wantOrb}px ({Hud.OrbScale}× the {OrbArtPx}px art)"; return false; }
+        var lifeR = new Rect2(hud.BandLifePos, new Vector2(orb, orb));
+        var manaR = new Rect2(hud.BandManaPos, new Vector2(orb, orb));
+        if (lifeR.Position.X >= 0 || manaR.End.X <= winX || lifeR.End.Y <= win.Y || manaR.End.Y <= win.Y)
+        { why = $"orbs are not edge-cut: life x={lifeR.Position.X} (want <0) mana right={manaR.End.X} (want >{winX}) bottoms={lifeR.End.Y},{manaR.End.Y} (want >{win.Y})"; return false; }
+        _edgeClipped = true;
+        if (track > winX * 28 / 100 || track < winX * 23 / 100) // the strip stays inside a ±2pt band on the measured 23–26%W
+        { why = $"xp trough is {track}px = {track * 100.0 / winX:F1}%W, D2 measures 23–26%W"; return false; }
+        int xpRight = (int)hud.BandXpPos.X + track;
+        if (xpRight > winX / 2) { why = $"the xp strip is not left-of-centre: right edge {xpRight} ≥ centre {winX / 2}"; return false; }
+        if ((int)hud.BandXpPos.X != (int)lifeR.End.X + 80)
+        { why = $"the chip rail is off the strip: xp starts at {hud.BandXpPos.X}, the chip-attached left of the orb edge is {(int)lifeR.End.X + 80}"; return false; }
+        var beltR = hud.BandBeltRect;
+        int beltCx = (int)(beltR.Position.X + beltR.Size.X / 2);
+        if (beltCx <= winX / 2 || beltR.Position.X < xpRight || beltR.End.X >= manaR.Position.X)
+        { why = $"belt block centre x={beltCx} (right {beltR.End.X}) is not RIGHT of centre after the xp area and clear of the mana orb (xp right {xpRight}, centre {winX / 2}, mana left {manaR.Position.X})"; return false; }
+
+        // (d) THE MC 12136 CONTROLS LINE + MC 12252's CORNER RULE — the line is still
+        // visible, still owns its corner x=8, and where the corner orb now sits over
+        // its shipped pixels the band has moved it STRAIGHT UP above the orb's top
+        // edge. The leg re-derives that edge HERE (window bottom − orb + overhang)
+        // and pins the line's bottom flush above it — the shipped (8, H−44) sits
+        // UNDER the polished orb, so under BABA_BAND_UNPOLISHED the line never
+        // reaches this check (gate (a2) already failed). The lift's delta prints.
         var line = hud.GetNodeOrNull<Control>("ControlsLine");
         if (line is null) { why = "the MC 12136 ControlsLine node is gone from the HUD"; return false; }
         if (!line.IsVisibleInTree()) { why = "the ControlsLine is no longer visible"; return false; }
-        if ((int)line.Position.X != 8 || (int)line.Position.Y != win.Y - 44)
-        { why = $"the ControlsLine moved to {(int)line.Position.X},{(int)line.Position.Y} (shipped: 8,{win.Y - 44})"; return false; }
+        if ((int)line.Position.X != 8) { why = $"the ControlsLine left its corner x=8: now {(int)line.Position.X},{(int)line.Position.Y}"; return false; }
+        int orbTop = win.Y - orb + Hud.OrbBottomOverhangPx; // window px, the leg's OWN arithmetic
+        int lineBottom = (int)(line.Position.Y + line.Size.Y);
+        if (lineBottom > orbTop || lineBottom < orbTop - 6)
+        { why = $"the ControlsLine bottom {lineBottom} is not flush above the orb top {orbTop} (shipped y {win.Y - 44} → now {(int)line.Position.Y})"; return false; }
         if (new Rect2(hud.BandLifePos, new Vector2(orb, orb)).Intersects(new Rect2(line.Position, line.Size)))
-        { why = "the band's life orb overlaps the controls line — the corner is taken"; return false; }
+        { why = "the band's life orb overlaps the controls line — the corner rule broke"; return false; }
+        _lineLiftPx = (win.Y - 44) - (int)line.Position.Y; // the brief's stated delta: 676 → 549 at 720p
 
         GD.Print($"BABA_HUD_BAND READS band={win.X}x{(int)band.Size.Y}@y{(int)band.Position.Y} orb={orb}px strip={track}px " +
                  $"life={s.Character.Life}/{s.Character.MaxLife} life_px={hud.BandLifeFillPx} " +
                  $"mana={s.Character.Mana}/{s.Character.MaxMana} mana_px={hud.BandManaFillPx} " +
                  $"xp_into={into}/{span} xp_px={hud.BandXpFillPx} belt=[{hud.BandBeltShown}] chip={hud.BandChipShown} " +
-                 $"slots={hud.BandSlotCount} shown={hud.BandSlotsShown} controls={line.Position} line_vis={line.IsVisibleInTree()}");
+                 $"slots={hud.BandSlotCount} shown={hud.BandSlotsShown} controls={line.Position} line_vis={line.IsVisibleInTree()} " +
+                 $"orb_edge_clipped={(_edgeClipped ? "yes" : "no")} xp_w={track * 100.0 / winX:F1}%W belt_cx={beltCx} controls_lift={_lineLiftPx}px");
         return true;
     }
 

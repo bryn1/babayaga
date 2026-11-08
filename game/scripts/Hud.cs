@@ -2,7 +2,8 @@
 // core are ONE file because the S5 ownership row pins it — BabaYaga.Sim.Tests
 // links THIS path with HUDCORE defined, so the bottom band's fills and the text
 // column's rows stay ONE paint of ONE Capture; splitting the shell off would put
-// a second file between the pull and what it paints. MC 12222's band is ~150 lines.
+// a second file between the pull and what it paints. MC 12222's band plus
+// MC 12252's measured polish (~180 lines) ride under the same S5 ownership row.
 // M5-S5 (MC 11939, plan-c2 S5): this file carries the windowed HUD AND its
 // pure read-back core (HudReadout below). BabaYaga.Sim.Tests links this file
 // with HUDCORE defined — the Godot shell then compiles OUT and the format
@@ -40,21 +41,31 @@ public partial class Hud : CanvasLayer
         _engaged = null!, _rites = null!, _area = null!, _hint = null!, _merc = null!, _flash = null!;
     private OrbGauge _lifeGauge = null!, _manaGauge = null!;
 
-    // ── MC 12222 THE BOTTOM BAND ─────────────────────────────────────────────
+    // ── MC 12222 THE BOTTOM BAND (MC 12252 measured polish) ──────────────────
     // D2's SHAPE, OUR art: a wood-and-iron band on the window's bottom edge — LIFE
-    // orb LEFT, MANA orb RIGHT, the four belt slots CENTRE, the XP strip and its
-    // level chip above them. It MIRRORS the corner column (the brief's ruling:
-    // that column stays as-is) off the SAME HudReadout.Capture — one pull, one
-    // truth, no second belt/XP logic, and nothing in the band uses anything.
+    // orb hugging the LEFT corner, MANA orb the RIGHT, both edge-cut like D2's
+    // half-spheres, the XP strip short and LEFT-of-centre with its level chip on
+    // its left, the four belt cells RIGHT of centre after it (D2's order: [ORB]
+    // controls | xp | belt | skills [ORB]). It MIRRORS the corner column (the
+    // brief's ruling: that column stays as-is) off the SAME HudReadout.Capture —
+    // one pull, one truth, no second belt/XP logic, and nothing in the band uses anything.
     // Click law: every part answers MouseFilterLaw.For("hud.band*") with "Ignore",
     // so the band owns no pixel of the click map — the world under the bottom 90px
     // still answers a click as if the band were not there (HudLeg proves both).
     // Original styling only: StyleBoxFlat frames in tokens this repo already paints
     // with. No D2 asset is shipped, referenced or imitated past the LAYOUT.
     public const string BandOffVar = "BABA_HUD_BAND_OFF"; // HudLeg's RED lever: env hides the band
+    public const string BandRawVar = "BABA_BAND_UNPOLISHED"; // HudLeg's 2nd RED lever: env restores the pre-polish constants
     public const int BandHeightPx = 90;                   // D2's band ≈18.8% of frame H at 720
-    public const int BandCornerInsetPx = 272;             // the MC 12136 controls line owns that corner
-    public const int BandOrbBottomPx = 46;                // the wood kept below the orb, clear of it
+    public const float OrbScale = 2.5f;                   // MC 12252: the 64px ui-orb art painted ×2.5 → a 160px sphere (D2's ≈160–170 at 1280)
+    public const int OrbSideClipPx = 24;                  // MC 12252: orb px driven past the screen side — D2's edge-cut
+    public const int OrbBottomOverhangPx = 25;            // MC 12252: orb px sunk under the band's bottom — the screen cuts them there
+    public const int XpTrackWPct = 26;                    // MC 12252: the trough's width = D2's measured 23–26%W (ours ran 60.6%)
+    public const int BeltCenterWPct = 64;                 // MC 12252: the belt block's centre, RIGHT of centre as D2's x≈408/640
+    public const int BeltCellPx = 46;                     // the shipped cell size (old cell = orb64 − 18) — size kept, only x moved
+    public const int BandCornerInsetPx = 272;             // pre-polish constants: the Unpolished RED path below reads them
+    public const int BandOrbBottomPx = 46;                // pre-polish: the wood that stayed below the orb
+    private static bool Unpolished => System.Environment.GetEnvironmentVariable(BandRawVar) is { Length: > 0 };
 
     private PanelContainer _band = null!;
     private Control _bandRow = null!;
@@ -182,6 +193,10 @@ public partial class Hud : CanvasLayer
     public int BandOrbPx => (int)_bandLife.CustomMinimumSize.Y; // the fill denominator
     public int BandSlotCount => _slots.Length;                  // the Sim's own belt ceiling
     public Vector2 BandLifePos => _bandLife.GlobalPosition;
+    public Vector2 BandManaPos => _bandMana.GlobalPosition;   // MC 12252: the leg's edge-cut read
+    public Vector2 BandXpPos => _xpTrack.GlobalPosition;      // MC 12252: the strip's left-of-centre read
+    public Rect2 BandBeltRect => new(_slots[0].GlobalPosition, new Vector2( // MC 12252: the whole block, for the right-of-centre read
+        _slots[^1].GlobalPosition.X + _slots[^1].Size.X - _slots[0].GlobalPosition.X, _slots[0].Size.Y));
     public bool BandSlotsShown => _slots.Length > 0 && !_slots.Any(c => !c.IsVisibleInTree());
 
 
@@ -224,6 +239,7 @@ public partial class Hud : CanvasLayer
         // when the band's live size moves (the TownPanel law — a code-built
         // Control under a CanvasLayer is sized from Size, never the preset).
         if (_bandRow.Size.X > 0 && _bandRow.Size != _laid) LayoutBand(_bandRow.Size);
+        LiftControlsLine(); // MC 12252: keep the MC 12136 line clear of the corner orb (no-op when no collision)
         _bandLife.SetFill(f.LifeNow, f.LifeMax);
         _bandMana.SetFill(f.ManaNow, f.ManaMax);
         _chip.Text = BandChipShown = f.LevelText;
@@ -342,8 +358,11 @@ public partial class Hud : CanvasLayer
         _bandRow = new Control { Name = "BandRow", MouseFilter = MouseFilterLaw.For("hud.band-row") };
         _band.AddChild(_bandRow); // the panel sizes this to the frame's content rect
         // The shipped ui-orb art reused: OrbGauge has ONE fill law (OrbFillPx).
-        _bandRow.AddChild(_bandLife = new OrbGauge("res://assets/ui/ui-orb-life.png", "7E1620")); // blood-rune
-        _bandRow.AddChild(_bandMana = new OrbGauge("res://assets/ui/ui-orb-mana.png", "1F3A8C")); // mana-deep
+        // MC 12252: the band paints it ORB_SCALE× (the brief's no-new-art rule —
+        // an upscale of the same 64px texture, never a fetched or generated one).
+        float scale = Unpolished ? 1f : OrbScale; // the RED lever paints the old 64px
+        _bandRow.AddChild(_bandLife = new OrbGauge("res://assets/ui/ui-orb-life.png", "7E1620", scale)); // blood-rune
+        _bandRow.AddChild(_bandMana = new OrbGauge("res://assets/ui/ui-orb-mana.png", "1F3A8C", scale)); // mana-deep
 
         _chip = new Label { HorizontalAlignment = HorizontalAlignment.Center, MouseFilter = MouseFilterLaw.For("hud.band-chip") };
         _chip.AddThemeColorOverride("font_color", new Color("D8CBA6")); // the parchment token
@@ -365,24 +384,32 @@ public partial class Hud : CanvasLayer
     }
 
     /// <summary>The band's ONE layout, from its live size — the law every code-built
-    /// Control under a CanvasLayer here obeys. The life orb sits RIGHT of the MC
-    /// 12136 controls line (that corner is taken, and the line keeps its exact
-    /// shipped position) and bulges above the band's top edge the way D2's orbs do;
-    /// the mana orb is flush right, the belt cells centre the window, the strip
-    /// spans between the orbs above them.</summary>
+    /// Control under a CanvasLayer here obeys. MC 12252's measured D2 corners: the
+    /// orbs HUG the corners on negative anchors and are EDGE-CUT (their rects run past
+    /// the screen side and under the band's bottom, where the window slices them like
+    /// D2's half-spheres); the XP trough takes D2's ~26%W with the chip attached at
+    /// its left, kept LEFT of centre; the belt block sits RIGHT of centre after the
+    /// xp area (D2's order [ORB] xp | belt [ORB]). The Unpolished RED lever restores
+    /// the pre-polish numbers verbatim — that is what HudLeg's second FAIL pastes.</summary>
     private void LayoutBand(Vector2 s)
     {
         _laid = s;
-        int orb = BandOrbPx, cell = orb - 18, gap = 8;
-        int rowW = _slots.Length * cell + (_slots.Length - 1) * gap, x0 = (int)((s.X - rowW) / 2);
-        _bandLife.Position = new Vector2(BandCornerInsetPx, s.Y - BandOrbBottomPx - orb);
-        _bandMana.Position = new Vector2(s.X - 8 - orb, s.Y - BandOrbBottomPx - orb);
-        int chipX = BandCornerInsetPx + orb + 8;
+        bool raw = Unpolished;
+        int orb = BandOrbPx, cell = raw ? orb - 18 : BeltCellPx, gap = 8;
+        int rowW = _slots.Length * cell + (_slots.Length - 1) * gap;
+        int lifeX = raw ? BandCornerInsetPx : -OrbSideClipPx; // the negative anchor: edge-cut, kb law
+        int orbY = raw ? (int)s.Y - BandOrbBottomPx - orb : (int)s.Y - orb + OrbBottomOverhangPx;
+        _bandLife.Position = new Vector2(lifeX, orbY);
+        _bandMana.Position = new Vector2(raw ? s.X - 8 - orb : s.X - orb + OrbSideClipPx, orbY);
+        int chipX = lifeX + orb + 8; // the chip stays attached to the xp bar's LEFT
         _chip.Position = new Vector2(chipX, 2);
         _chip.Size = new Vector2(64, 24);
-        _xpTrack.Position = new Vector2(chipX + 72, 10);
-        _xpTrack.Size = new Vector2(System.Math.Max(0, s.X - 88 - chipX - 72), 10);
+        int xpX = chipX + 72;
+        int xpW = raw ? (int)System.Math.Max(0, s.X - 88 - xpX) : (int)s.X * XpTrackWPct / 100;
+        _xpTrack.Position = new Vector2(xpX, 10);
+        _xpTrack.Size = new Vector2(xpW, 10);
         _xpFill.Position = Vector2.Zero; // its WIDTH is the painted XP fraction, set in Refresh
+        int x0 = raw ? (int)((s.X - rowW) / 2) : (int)s.X * BeltCenterWPct / 100 - rowW / 2;
         for (int i = 0; i < _slots.Length; i++)
         {
             // The cap line rides above the letter, and the WHOLE cell stays inside
@@ -390,6 +417,25 @@ public partial class Hud : CanvasLayer
             _slots[i].Position = new Vector2(x0 + i * (cell + gap), 30);
             _slots[i].Size = new Vector2(cell, cell + 8);
         }
+    }
+
+    /// <summary>MC 12252 THE CONTROLS-LINE COLLISION RULE: the MC 12136 line stays
+    /// visible bottom-left ABOVE the band (law) — but the life orb now owns the
+    /// bottom-left pixels the line shipped inside (HeroController.cs PLACES it and
+    /// is outside this card's file permit, so the band's own HUD moves it, which it
+    /// legally owns: a CanvasLayer child). When the two rects collide the line goes
+    /// STRAIGHT UP to sit above the orb's top edge, x untouched; HudLeg asserts the
+    /// new pixels and prints the delta (676 → above the orb top at 720p).</summary>
+    private void LiftControlsLine()
+    {
+        if (Unpolished || !_band.Visible) return; // old corner / hidden band: nothing collides
+        var line = GetNodeOrNull<Control>("ControlsLine"); // Wire adds it after the first paint
+        if (line is null) return;
+        var orb = new Rect2(_band.GlobalPosition.X - OrbSideClipPx,
+            _band.GlobalPosition.Y + BandHeightPx - BandOrbPx + OrbBottomOverhangPx, BandOrbPx, BandOrbPx);
+        var rect = line.GetGlobalRect();
+        if (orb.Intersects(rect))
+            line.Position = new Vector2(line.Position.X, orb.Position.Y - 2 - rect.Size.Y);
     }
 
     /// <summary>The band's ORIGINAL frames (MC 12222) — the only style boxes the HUD
@@ -435,19 +481,21 @@ public partial class Hud : CanvasLayer
         /// The fill column height the LAST SetFill asked for (px, 0..tex height).
         public int FillPx { get; private set; }
 
-        public OrbGauge(string artPath, string colorHex)
+        public OrbGauge(string artPath, string colorHex, float scale = 1f)
         {
             _tex = AreaRenderer.ArtOrNull(artPath) ?? AreaRenderer.Diamond(new Color(colorHex), 64, 64);
             TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
             MouseFilter = MouseFilterLaw.For("hud.orb-gauge"); // the art column never eats a world click (MC 11959)
-            var size = new Vector2(_tex.GetWidth(), _tex.GetHeight());
+            // MC 12252: the band's orbs paint the SAME texture ×2.5 (nearest, no new
+            // art); the corner column keeps scale 1 — its 64px is the fill twin's base.
+            var size = new Vector2(_tex.GetWidth(), _tex.GetHeight()) * scale;
             CustomMinimumSize = size;
             Size = size;
         }
 
         public void SetFill(long current, long max)
         {
-            int px = HudReadout.OrbFillPx(current, max, (int)_tex.GetHeight());
+            int px = HudReadout.OrbFillPx(current, max, (int)CustomMinimumSize.Y); // DISPLAY px (scale 1 ⇒ the art px, unchanged)
             if (px == FillPx) return;
             FillPx = px;
             QueueRedraw();
@@ -455,11 +503,11 @@ public partial class Hud : CanvasLayer
 
         public override void _Draw()
         {
-            var full = new Rect2(0, 0, _tex.GetWidth(), _tex.GetHeight());
-            DrawTextureRect(_tex, full, false, _dim); // the shell: an empty orb
+            DrawTextureRect(_tex, new Rect2(0, 0, Size.X, Size.Y), false, _dim); // the shell: an empty orb, at control size (MC 12252)
             if (FillPx <= 0) return; // DEAD/empty: the dim shell IS the state
-            var band = new Rect2(0, full.Size.Y - FillPx, full.Size.X, FillPx);
-            DrawTextureRectRegion(_tex, band, band); // the art's own base band, at full brightness
+            float k = Size.Y / _tex.GetHeight(); // display px per art px (1.0 on the corner column — the shipped path)
+            DrawTextureRectRegion(_tex, new Rect2(0, Size.Y - FillPx, Size.X, FillPx),
+                new Rect2(0, _tex.GetHeight() - FillPx / k, _tex.GetWidth(), FillPx / k)); // the art's own base band, at full brightness
         }
     }
 }
